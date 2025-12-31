@@ -185,25 +185,91 @@ export class MonitoringController {
     @Query('endTime') endTime?: string,
     @Query('limit') limit?: string,
   ) {
-    // TODO: Implement log retrieval from database/file system
-    // Untuk sementara return dummy data
-    return {
-      logs: [
-        {
-          timestamp: new Date().toISOString(),
-          level: 'info',
-          message: 'Pipeline execution completed successfully',
+    // For now, return recent pipeline executions and import/export operations as logs
+    // In a production system, this would read from actual log files or a logging database
+    const limitNum = limit ? parseInt(limit, 10) : 50;
+
+    try {
+      // Get recent pipeline executions (simulated as logs)
+      const recentExecutions = await this.monitoringService.getRecentExecutions(limitNum);
+
+      // Get recent imports and exports
+      const recentImports = await this.monitoringService.getDataImports(10);
+      const recentExports = await this.monitoringService.getDataExports(10);
+
+      // Combine and format as logs
+      const logs = [
+        ...recentExecutions.map(exec => ({
+          timestamp: exec.executedAt || new Date().toISOString(),
+          level: exec.status === 'success' ? 'info' : 'error',
+          message: `Pipeline "${exec.pipelineName}" ${exec.status}: ${exec.processedItems} items processed`,
           source: 'pipeline-runner',
+          metadata: exec,
+        })),
+        ...recentImports.map(imp => ({
+          timestamp: imp.createdAt,
+          level: imp.status === 'completed' ? 'info' : imp.status === 'failed' ? 'error' : 'warn',
+          message: `Data import "${imp.name}": ${imp.status} - ${imp.processedRows}/${imp.totalRows} rows`,
+          source: 'data-import',
+          metadata: imp,
+        })),
+        ...recentExports.map(exp => ({
+          timestamp: exp.createdAt,
+          level: exp.status === 'completed' ? 'info' : exp.status === 'failed' ? 'error' : 'warn',
+          message: `Data export "${exp.name}": ${exp.status} - ${exp.processedRows}/${exp.totalRows} rows`,
+          source: 'data-export',
+          metadata: exp,
+        })),
+      ];
+
+      // Sort by timestamp (most recent first)
+      logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      // Filter by level if specified
+      let filteredLogs = logs;
+      if (level) {
+        filteredLogs = logs.filter(log => log.level === level);
+      }
+
+      // Apply time range filter if specified
+      if (startTime || endTime) {
+        const start = startTime ? new Date(startTime) : new Date(0);
+        const end = endTime ? new Date(endTime) : new Date();
+
+        filteredLogs = filteredLogs.filter(log => {
+          const logTime = new Date(log.timestamp);
+          return logTime >= start && logTime <= end;
+        });
+      }
+
+      // Apply limit
+      const limitedLogs = filteredLogs.slice(0, limitNum);
+
+      return {
+        logs: limitedLogs,
+        total: logs.length,
+        filtered: limitedLogs.length,
+        level: level || 'all',
+        timeRange: {
+          start: startTime,
+          end: endTime,
         },
-        {
-          timestamp: new Date(Date.now() - 10000).toISOString(),
-          level: 'error',
-          message: 'Database connection timeout',
-          source: 'database',
-        },
-      ],
-      total: 2,
-      filtered: 2,
-    };
+      };
+    } catch (error) {
+      // Fallback to basic error logs
+      return {
+        logs: [
+          {
+            timestamp: new Date().toISOString(),
+            level: 'error',
+            message: `Failed to retrieve logs: ${error.message}`,
+            source: 'monitoring-service',
+          },
+        ],
+        total: 1,
+        filtered: 1,
+        error: error.message,
+      };
+    }
   }
 }

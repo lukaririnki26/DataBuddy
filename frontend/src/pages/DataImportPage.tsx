@@ -15,6 +15,7 @@ import {
   Info,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { dataService, ImportHistoryItem } from '../services/data.service';
 
 interface FileUploadResult {
   fileId: string;
@@ -42,14 +43,7 @@ interface ValidationResult {
   }>;
 }
 
-interface ImportHistoryItem {
-  id: string;
-  filename: string;
-  status: 'completed' | 'failed' | 'processing';
-  uploadedAt: string;
-  rowCount?: number;
-  errorMessage?: string;
-}
+// ImportHistoryItem interface moved to data.service.ts
 
 const DataImportPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -90,36 +84,12 @@ const DataImportPage: React.FC = () => {
   const loadImportHistory = async () => {
     try {
       setLoadingHistory(true);
-      // TODO: Implement getImportHistory in data service
-      // const history = await dataService.getImportHistory();
-      // setImportHistory(history);
-
-      // Mock data for now
-      setImportHistory([
-        {
-          id: '1',
-          filename: 'customer_data.csv',
-          status: 'completed',
-          uploadedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-          rowCount: 1234,
-        },
-        {
-          id: '2',
-          filename: 'sales_data.xlsx',
-          status: 'processing',
-          uploadedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-          rowCount: 5678,
-        },
-        {
-          id: '3',
-          filename: 'inventory.csv',
-          status: 'failed',
-          uploadedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-          errorMessage: 'Invalid data format in column "price"',
-        },
-      ]);
+      const history = await dataService.getImportHistory(10);
+      setImportHistory(history);
     } catch (error) {
       console.error('Failed to load import history:', error);
+      // Fallback to empty array if API fails
+      setImportHistory([]);
     } finally {
       setLoadingHistory(false);
     }
@@ -185,11 +155,11 @@ const DataImportPage: React.FC = () => {
     try {
       setUploading(true);
 
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const result: FileUploadResult = await api.post('/data/preview', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const result = await dataService.uploadFileForPreview(selectedFile, {
+        hasHeader: hasHeader,
+        encoding,
+        delimiter: separator,
+        maxRows: 10, // Preview first 10 rows
       });
 
       setUploadResult(result);
@@ -207,10 +177,7 @@ const DataImportPage: React.FC = () => {
     try {
       setValidating(true);
 
-      const result: ValidationResult = await api.post('/data/validate', {
-        fileId: uploadResult.fileId,
-        validationRules,
-      });
+      const result = await dataService.validateData(uploadResult.fileId, validationRules);
 
       setValidationResult(result);
       setUploadStep('validate');
@@ -227,8 +194,22 @@ const DataImportPage: React.FC = () => {
     try {
       setImporting(true);
 
-      // TODO: Implement actual import logic
-      alert('Import functionality will be implemented with pipeline integration');
+      // Create import record first
+      const importData = {
+        name: uploadResult.filename,
+        sourceType: 'file_upload',
+        fileFormat: uploadResult.mimeType.includes('csv') ? 'csv' : 'xlsx',
+        originalFileName: uploadResult.filename,
+      };
+
+      // Upload file first to get import ID
+      const uploadResponse = await api.uploadFile('/data/upload', selectedFile!);
+      const importId = uploadResponse.id;
+
+      // Process import with pipeline (if available)
+      const result = await dataService.processImport(importId);
+
+      alert(`Import job queued successfully! Job ID: ${result.jobId}`);
 
       // Reset form
       setSelectedFile(null);

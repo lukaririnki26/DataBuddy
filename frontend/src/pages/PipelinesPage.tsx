@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { usePipelines } from '../hooks/usePipelines';
+import { pipelinesService } from '../services/pipelines.service';
 import {
   Plus,
   Search,
@@ -216,10 +217,19 @@ const PipelinesPage: React.FC = () => {
   const handleExecutePipeline = async (pipelineId: string) => {
     setExecutingPipeline(pipelineId);
     try {
-      // TODO: Implement pipeline execution
-      alert('Pipeline execution not yet implemented');
-    } catch (err) {
+      const result = await pipelinesService.executePipeline(pipelineId, {
+        inputData: [],
+        parameters: {},
+      });
+
+      if (result.success) {
+        alert(`Pipeline executed successfully! Processed ${result.processedItems} items in ${result.executionTime}ms`);
+      } else {
+        alert(`Pipeline execution failed: ${result.errors.join(', ')}`);
+      }
+    } catch (err: any) {
       console.error('Failed to execute pipeline:', err);
+      alert(`Pipeline execution failed: ${err.message || 'Unknown error'}`);
     } finally {
       setExecutingPipeline(null);
     }

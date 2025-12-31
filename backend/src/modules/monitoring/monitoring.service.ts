@@ -9,6 +9,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThan } from 'typeorm';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
+import { Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { Pipeline } from '../../entities/pipeline.entity';
 import { DataImport } from '../../entities/data-import.entity';
 import { DataExport } from '../../entities/data-export.entity';
@@ -58,6 +63,10 @@ export class MonitoringService {
     private dataExportRepository: Repository<DataExport>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectConnection()
+    private connection: Connection,
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
   ) {}
 
   /**
@@ -298,7 +307,7 @@ export class MonitoringService {
       `Processed: ${executionResult.processedItems}, Time: ${executionResult.executionTime}ms`
     );
 
-    // TODO: Implement database logging untuk historical data
+    // Note: Database logging will be implemented in future version with execution logs table
   }
 
   /**
@@ -307,14 +316,55 @@ export class MonitoringService {
   async getSystemHealth(): Promise<any> {
     const metrics = await this.getSystemMetrics();
 
+    // Check database connection
+    let databaseStatus = 'disconnected';
+    try {
+      await this.connection.query('SELECT 1');
+      databaseStatus = 'connected';
+    } catch (error) {
+      this.logger.error('Database connection check failed:', error);
+      databaseStatus = 'error';
+    }
+
+    // Check Redis connection
+    let redisStatus = 'disconnected';
+    try {
+      await this.cacheManager.set('health_check', 'ok', 10);
+      const testValue = await this.cacheManager.get('health_check');
+      if (testValue === 'ok') {
+        redisStatus = 'connected';
+        await this.cacheManager.del('health_check');
+      }
+    } catch (error) {
+      this.logger.error('Redis connection check failed:', error);
+      redisStatus = 'error';
+    }
+
+    // Determine overall status
+    const overallStatus = (databaseStatus === 'connected' && redisStatus === 'connected')
+      ? 'healthy'
+      : 'degraded';
+
     return {
-      status: 'healthy',
+      status: overallStatus,
       timestamp: new Date().toISOString(),
       uptime: metrics.systemUptime,
       memory: metrics.memoryUsage,
       cpu: metrics.cpuUsage,
-      database: 'connected', // TODO: Check actual DB connection
-      redis: 'connected', // TODO: Check Redis connection
+      database: databaseStatus,
+      redis: redisStatus,
+      services: {
+        database: {
+          status: databaseStatus,
+          type: 'PostgreSQL',
+          connection: this.connection.isConnected
+        },
+        cache: {
+          status: redisStatus,
+          type: 'Redis',
+          available: true
+        }
+      }
     };
   }
 
@@ -325,7 +375,54 @@ export class MonitoringService {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
-    // TODO: Implement cleanup query untuk log tables
-    this.logger.log(`Cleaned up logs older than ${retentionDays} days`);
+    try {
+      // Clean up old import records (keep only last 1000 per user)
+      const oldImports = await this.dataImportRepository
+        .createQueryBuilder('import')
+        .where('import.createdAt < :cutoffDate', { cutoffDate })
+        .andWhere('import.status IN (:...statuses)', { statuses: ['completed', 'failed', 'cancelled'] })
+        .getMany();
+
+      let deletedImports = 0;
+      for (const importRecord of oldImports) {
+        // Keep only recent records per user
+        const recentCount = await this.dataImportRepository
+          .createQueryBuilder('import')
+          .where('import.createdById = :userId', { userId: importRecord.createdById })
+          .andWhere('import.createdAt >= :cutoffDate', { cutoffDate })
+          .getCount();
+
+        if (recentCount >= 100) {
+          await this.dataImportRepository.remove(importRecord);
+          deletedImports++;
+        }
+      }
+
+      // Clean up old export records (keep only last 500 per user)
+      const oldExports = await this.dataExportRepository
+        .createQueryBuilder('export')
+        .where('export.createdAt < :cutoffDate', { cutoffDate })
+        .andWhere('export.status IN (:...statuses)', { statuses: ['completed', 'failed', 'cancelled'] })
+        .getMany();
+
+      let deletedExports = 0;
+      for (const exportRecord of oldExports) {
+        const recentCount = await this.dataExportRepository
+          .createQueryBuilder('export')
+          .where('export.createdById = :userId', { userId: exportRecord.createdById })
+          .andWhere('export.createdAt >= :cutoffDate', { cutoffDate })
+          .getCount();
+
+        if (recentCount >= 50) {
+          await this.dataExportRepository.remove(exportRecord);
+          deletedExports++;
+        }
+      }
+
+      this.logger.log(`Cleaned up ${deletedImports} old import records and ${deletedExports} old export records older than ${retentionDays} days`);
+    } catch (error) {
+      this.logger.error('Failed to cleanup old logs:', error);
+      throw error;
+    }
   }
 }

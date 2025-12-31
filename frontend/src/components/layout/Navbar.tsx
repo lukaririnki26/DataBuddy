@@ -51,8 +51,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // TODO: Implement global search
-      console.log('Searching for:', searchQuery);
+      // Implement global search - navigate to search results page
+      // For now, we'll search pipelines as primary search
+      navigate(`/pipelines?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(''); // Clear search after navigation
     }
   };
 
