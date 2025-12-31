@@ -1,0 +1,95 @@
+import React, { useState, useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import Navbar from './layout/Navbar';
+import Sidebar from './layout/Sidebar';
+
+const Layout: React.FC = () => {
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Handle responsive sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) { // md breakpoint
+        setSidebarOpen(false); // Close mobile sidebar on desktop
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const sidebar = document.getElementById('sidebar');
+      const toggleButton = document.querySelector('[data-sidebar-toggle]');
+
+      if (
+        sidebarOpen &&
+        sidebar &&
+        !sidebar.contains(event.target as Node) &&
+        toggleButton &&
+        !toggleButton.contains(event.target as Node)
+      ) {
+        setSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [sidebarOpen]);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-30 bg-gray-600 bg-opacity-75 md:hidden" />
+      )}
+
+      {/* Sidebar */}
+      <div
+        id="sidebar"
+        className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:translate-x-0 md:static md:inset-0`}
+      >
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onCollapse={toggleSidebarCollapse}
+        />
+      </div>
+
+      {/* Main content area */}
+      <div className={`flex flex-col min-h-screen transition-all duration-300 ${
+        sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+      }`}>
+        {/* Top navbar */}
+        <Navbar
+          onMenuClick={toggleSidebar}
+          sidebarOpen={sidebarOpen}
+        />
+
+        {/* Main content */}
+        <main className="flex-1 p-6 overflow-auto">
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Layout;

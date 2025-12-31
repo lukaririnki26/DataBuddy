@@ -1,0 +1,38 @@
+# DataBuddy Frontend Dockerfile
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY ../frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code
+COPY ../frontend/public ./public
+COPY ../frontend/src ./src
+COPY ../frontend/tsconfig.json ./
+
+# Build application
+RUN npm run build
+
+# Install serve to serve the built application
+RUN npm install -g serve
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S reactjs -u 1001
+
+# Change ownership of app directory
+RUN chown -R reactjs:nodejs /app
+
+# Switch to non-root user
+USER reactjs
+
+# Expose port
+EXPOSE 3000
+
+# Start application
+CMD ["serve", "-s", "build", "-l", "3000"]
