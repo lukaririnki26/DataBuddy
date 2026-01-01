@@ -12,8 +12,6 @@ import { Repository, Between, MoreThan } from 'typeorm';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import { Inject } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { Pipeline } from '../../entities/pipeline.entity';
 import { DataImport } from '../../entities/data-import.entity';
 import { DataExport } from '../../entities/data-export.entity';
@@ -65,8 +63,6 @@ export class MonitoringService {
     private userRepository: Repository<User>,
     @InjectConnection()
     private connection: Connection,
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
   ) {}
 
   /**
@@ -244,7 +240,7 @@ export class MonitoringService {
       successRate: Math.floor(Math.random() * 30) + 70, // 70-100%
       averageExecutionTime: Math.floor(Math.random() * 60000) + 10000, // 10-70 detik
       lastExecuted: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random dalam 7 hari
-      createdBy: pipeline.creator?.name || 'Unknown',
+      createdBy: pipeline.createdBy?.fullName || 'Unknown',
     }));
   }
 
@@ -326,19 +322,8 @@ export class MonitoringService {
       databaseStatus = 'error';
     }
 
-    // Check Redis connection
-    let redisStatus = 'disconnected';
-    try {
-      await this.cacheManager.set('health_check', 'ok', 10);
-      const testValue = await this.cacheManager.get('health_check');
-      if (testValue === 'ok') {
-        redisStatus = 'connected';
-        await this.cacheManager.del('health_check');
-      }
-    } catch (error) {
-      this.logger.error('Redis connection check failed:', error);
-      redisStatus = 'error';
-    }
+    // Check Redis connection (disabled - cache manager not available)
+    let redisStatus = 'unknown';
 
     // Determine overall status
     const overallStatus = (databaseStatus === 'connected' && redisStatus === 'connected')

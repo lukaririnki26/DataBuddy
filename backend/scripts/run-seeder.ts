@@ -6,15 +6,20 @@
  * This script runs the database seeders to populate initial data
  */
 
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { config } from 'dotenv';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import * as bcrypt from 'bcrypt';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 config({ path: path.join(__dirname, '..', '.env') });
 
-// Import entities
+// Import entities (after reflect-metadata is loaded)
 import { User } from '../src/entities/user.entity';
 import { Pipeline } from '../src/entities/pipeline.entity';
 import { PipelineStep } from '../src/entities/pipeline-step.entity';

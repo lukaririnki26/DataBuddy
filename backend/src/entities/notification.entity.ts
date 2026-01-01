@@ -23,10 +23,14 @@ export enum NotificationType {
   IMPORT_FAILED = 'import_failed',
   EXPORT_COMPLETED = 'export_completed',
   EXPORT_FAILED = 'export_failed',
-  PIPELINE_EXECUTED = 'pipeline_executed',
+  PIPELINE_STARTED = 'pipeline_started',
+  PIPELINE_COMPLETED = 'pipeline_completed',
   PIPELINE_FAILED = 'pipeline_failed',
+  DATA_IMPORT_STARTED = 'data_import_started',
+  DATA_EXPORT_STARTED = 'data_export_started',
   SYSTEM_ERROR = 'system_error',
   SYSTEM_MAINTENANCE = 'system_maintenance',
+  SYSTEM_ALERT = 'system_alert',
   USER_INVITATION = 'user_invitation',
   DATA_VALIDATION_ERROR = 'data_validation_error',
 }
@@ -102,6 +106,10 @@ export class Notification {
 
   @Column({ type: 'timestamp', nullable: true })
   pushSentAt?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  @IsOptional()
+  expiresAt?: Date; // When the notification expires
 
   @Column({ type: 'timestamp', nullable: true })
   readAt?: Date;
@@ -269,7 +277,7 @@ export class Notification {
       message = `Pipeline execution "${pipeline.name}" has failed: ${error}`;
       priority = NotificationPriority.HIGH;
     } else {
-      type = NotificationType.PIPELINE_EXECUTED;
+      type = NotificationType.PIPELINE_COMPLETED;
       title = `Pipeline Executed: ${pipeline.name}`;
       message = `Pipeline "${pipeline.name}" has been executed successfully${executionTime ? ` in ${executionTime.toFixed(2)} seconds` : ''}.`;
       priority = NotificationPriority.LOW;

@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import { RootState } from '../store';
-import { getProfile } from '../store/slices/authSlice';
+import { getCurrentUser } from '../store/slices/authSlice';
+import LoadingSpinner from './ui/LoadingSpinner';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -14,7 +15,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
   useEffect(() => {
     if (token && !user) {
-      dispatch(getProfile());
+      dispatch(getCurrentUser());
     }
   }, [token, user, dispatch]);
 
@@ -24,9 +25,11 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
-      </div>
+      <LoadingSpinner
+        size="lg"
+        message="Loading your dashboard..."
+        fullScreen={true}
+      />
     );
   }
 

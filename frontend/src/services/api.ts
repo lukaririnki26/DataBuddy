@@ -27,8 +27,15 @@ export interface ApiError {
 }
 
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const API_TIMEOUT = 30000; // 30 seconds
+
+console.log('API Configuration:', {
+  API_BASE_URL,
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  mode: import.meta.env.MODE,
+  dev: import.meta.env.DEV
+});
 
 /**
  * Main API client class
@@ -57,7 +64,9 @@ class ApiClient {
     // Request interceptor - add auth token
     this.client.interceptors.request.use(
       (config) => {
-        if (this.token) {
+        // Don't add Authorization header for login and register endpoints
+        const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
+        if (this.token && !isAuthEndpoint) {
           config.headers.Authorization = `Bearer ${this.token}`;
         }
         return config;
@@ -91,7 +100,7 @@ class ApiClient {
    * Load token from localStorage
    */
   private loadToken(): void {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('accessToken');
     if (token) {
       this.token = token;
     }
@@ -102,7 +111,7 @@ class ApiClient {
    */
   setToken(token: string): void {
     this.token = token;
-    localStorage.setItem('auth_token', token);
+    localStorage.setItem('accessToken', token);
   }
 
   /**
@@ -110,7 +119,7 @@ class ApiClient {
    */
   clearToken(): void {
     this.token = null;
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem('accessToken');
   }
 
   /**

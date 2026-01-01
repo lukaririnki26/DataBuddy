@@ -17,6 +17,7 @@ import {
 } from 'typeorm';
 import { IsString, IsEnum, IsOptional, IsUUID, Min, Max } from 'class-validator';
 import { User } from './user.entity';
+import { FileFormat } from './data-import.entity';
 
 export enum ExportStatus {
   PENDING = 'pending',      // Export job created, waiting to start
@@ -68,9 +69,9 @@ export class DataExport {
 
   @Column({
     type: 'enum',
-    enum: import('./data-import.entity').FileFormat,
+    enum: FileFormat,
   })
-  fileFormat: import('./data-import.entity').FileFormat;
+  fileFormat: FileFormat;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   @IsOptional()
@@ -81,6 +82,11 @@ export class DataExport {
   @IsOptional()
   @IsString()
   outputFileName?: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @IsOptional()
+  @IsString()
+  filename?: string; // Processed filename
 
   @Column({ type: 'jsonb', nullable: true })
   exportConfig?: Record<string, any>; // Export-specific configuration

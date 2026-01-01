@@ -5,6 +5,20 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-01-01
+
+### Fixed
+- **Authentication Issues**: Fixed admin login credentials and password hashing issues
+- **Database Connection**: Resolved PostgreSQL connection problems for local development
+- **Styling Issues**: Fixed Tailwind CSS not loading properly in frontend
+- **Backend Startup**: Fixed multiple backend processes causing port conflicts
+- **User Seeding**: Corrected admin user password hashing in database seeder
+
+### Improved
+- **Development Setup**: Enhanced local development environment configuration
+- **Error Handling**: Better error messages and debugging for authentication flow
+- **Code Quality**: Cleaned up TypeScript compilation issues and build errors
+
 ## [1.1.0] - 2025-01-01
 
 ### Added

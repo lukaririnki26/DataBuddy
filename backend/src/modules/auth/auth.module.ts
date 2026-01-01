@@ -8,6 +8,7 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -22,6 +23,9 @@ import { LocalStrategy } from '../../strategies/local.strategy';
 
     // Register User entity for database operations
     TypeOrmModule.forFeature([User]),
+
+    // JWT module for token generation
+    JwtModule,
   ],
   controllers: [AuthController],
   providers: [

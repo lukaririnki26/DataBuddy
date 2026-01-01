@@ -17,6 +17,9 @@ export interface PipelineContext {
   /** Current step being executed */
   currentStepId?: string;
 
+  /** Timestamp when execution started (for performance tracking) */
+  startTime: number;
+
   /** Input data for the current step */
   data: any;
 

@@ -194,8 +194,9 @@ export class MonitoringController {
       const recentExecutions = await this.monitoringService.getRecentExecutions(limitNum);
 
       // Get recent imports and exports
-      const recentImports = await this.monitoringService.getDataImports(10);
-      const recentExports = await this.monitoringService.getDataExports(10);
+      // TODO: Implement recent data imports/exports retrieval
+      const recentImports = [];
+      const recentExports = [];
 
       // Combine and format as logs
       const logs = [

@@ -8,6 +8,14 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+// Create axios instance without auth interceptor for login/register
+const publicApi = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 export interface User {
   id: string;
   email: string;
@@ -40,7 +48,7 @@ const initialState: AuthState = {
   user: null,
   tokens: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false, // Set to false so landing page can show immediately
   error: null,
 };
 
@@ -49,7 +57,7 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await publicApi.post('/api/auth/login', credentials);
       const { user, tokens } = response.data;
 
       // Store tokens in localStorage
@@ -75,7 +83,7 @@ export const registerUser = createAsyncThunk(
     role?: string;
   }, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await publicApi.post('/api/auth/register', userData);
       const { user, tokens } = response.data;
 
       // Store tokens in localStorage
@@ -100,7 +108,7 @@ export const refreshToken = createAsyncThunk(
         throw new Error('No refresh token available');
       }
 
-      const response = await axios.post('/api/auth/refresh', {
+      const response = await publicApi.post('/api/auth/refresh', {
         refreshToken,
       });
 
@@ -124,12 +132,16 @@ export const refreshToken = createAsyncThunk(
 export const logoutUser = createAsyncThunk(
   'auth/logout',
   async (_, { getState }) => {
-    const state = getState() as { auth: AuthState };
-    const userId = state.auth.user?.id;
+    const accessToken = localStorage.getItem('accessToken');
 
     try {
-      if (userId) {
-        await axios.post('/api/auth/logout');
+      if (accessToken) {
+        // Use axios with Authorization header for logout
+        await axios.post('/api/auth/logout', {}, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
       }
     } catch (error) {
       // Ignore logout errors
@@ -145,7 +157,16 @@ export const getCurrentUser = createAsyncThunk(
   'auth/getCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/auth/me');
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      const response = await axios.get('/api/auth/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -163,7 +184,16 @@ export const changePassword = createAsyncThunk(
     confirmPassword: string;
   }, { rejectWithValue }) => {
     try {
-      await axios.put('/api/auth/password', passwordData);
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        throw new Error('No access token available');
+      }
+
+      await axios.put('/api/auth/password', passwordData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
       return { success: true };
     } catch (error: any) {
       return rejectWithValue(

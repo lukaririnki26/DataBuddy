@@ -1,7 +1,7 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { Processor } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
-import { PipelineRunnerService } from '../pipelines/pipeline-runner.service';
+import { Job } from 'bull';
+import { PipelineRunnerService } from '../../modules/pipelines/pipeline-runner.service';
 import { DataBuddyWebSocketGateway } from '../websocket/websocket.gateway';
 import { PipelineJobData, ExportJobData } from './queue.service';
 

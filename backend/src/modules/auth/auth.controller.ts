@@ -145,7 +145,6 @@ export class AuthController {
         email: { type: 'string' },
         firstName: { type: 'string' },
         lastName: { type: 'string' },
-        lastName: { type: 'string' },
         role: { type: 'string' },
         status: { type: 'string' },
         lastLoginAt: { type: 'string', format: 'date-time' },

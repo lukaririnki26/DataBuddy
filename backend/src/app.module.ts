@@ -10,12 +10,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { BullModule } from '@nestjs/bull';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { BullModule } from '@nestjs/bullmq';
 
 // Import all feature modules
 import { AuthModule } from './modules/auth/auth.module';
-import { UsersModule } from './modules/users/users.module';
 import { PipelinesModule } from './modules/pipelines/pipelines.module';
 import { DataModule } from './modules/data/data.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
@@ -42,14 +40,6 @@ import redisConfig from './config/redis.config';
       load: [databaseConfig, jwtConfig, redisConfig],
       envFilePath: ['.env.local', '.env'],
     }),
-
-    // Rate limiting
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
-      },
-    ]),
 
     // Database configuration
     TypeOrmModule.forRootAsync({
@@ -84,19 +74,20 @@ import redisConfig from './config/redis.config';
     // Redis/Bull queue configuration
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get('redis.host'),
-          port: configService.get('redis.port'),
-          password: configService.get('redis.password'),
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        return {
+          connection: {
+            host: configService.get('redis.host'),
+            port: configService.get('redis.port'),
+            password: configService.get('redis.password'),
+          },
+        };
+      },
       inject: [ConfigService],
     }),
 
     // Feature modules
     AuthModule,
-    UsersModule,
     PipelinesModule,
     DataModule,
     MonitoringModule,

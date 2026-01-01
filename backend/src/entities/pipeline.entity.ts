@@ -128,6 +128,11 @@ export class Pipeline {
     return this.status === PipelineStatus.DRAFT;
   }
 
+  // Alias for createdBy for backward compatibility
+  get creator(): User {
+    return this.createdBy;
+  }
+
   get isArchived(): boolean {
     return this.status === PipelineStatus.ARCHIVED;
   }

@@ -18,6 +18,7 @@ import {
   UseGuards,
   Request,
   Query,
+  Param,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';

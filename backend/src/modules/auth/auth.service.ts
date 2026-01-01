@@ -64,17 +64,24 @@ export class AuthService {
    * Authenticates user with email and password
    */
   async login(email: string, password: string): Promise<{ user: User; tokens: any }> {
+    console.log('Login attempt for email:', email);
     // Find user by email
     const user = await this.userRepository.findOne({
       where: { email: email.toLowerCase() },
+      select: ['id', 'email', 'firstName', 'lastName', 'password', 'role', 'status', 'lastLoginAt', 'lastLoginIp', 'preferences', 'createdAt', 'updatedAt']
     });
 
+    console.log('User found:', !!user);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     // Validate password
-    const isPasswordValid = await user.validatePassword(password);
+    console.log('User found:', !!user);
+    console.log('User password:', user?.password ? 'SET' : 'UNDEFINED');
+    console.log('User password value:', user?.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('Password validation result:', isPasswordValid);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -222,6 +229,53 @@ export class AuthService {
       refreshToken,
       expiresIn: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
     };
+  }
+
+  /**
+   * Validates user credentials for Passport local strategy
+   */
+  async validateUser(email: string, password: string): Promise<User | null> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { email: email.toLowerCase() },
+      });
+
+      if (!user || !user.isActive) {
+        return null;
+      }
+
+      const isPasswordValid = await user.validatePassword(password);
+      if (!isPasswordValid) {
+        return null;
+      }
+
+      // Remove password from user object
+      delete user.password;
+      return user;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Validates user by ID for Passport JWT strategy
+   */
+  async validateUserById(userId: string): Promise<User | null> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (!user || !user.isActive) {
+        return null;
+      }
+
+      // Remove password from user object
+      delete user.password;
+      return user;
+    } catch (error) {
+      return null;
+    }
   }
 
   /**

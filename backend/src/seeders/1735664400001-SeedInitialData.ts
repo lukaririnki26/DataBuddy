@@ -1,72 +1,129 @@
+import 'reflect-metadata';
 import { MigrationInterface, QueryRunner } from "typeorm";
+import { DataSource } from 'typeorm';
+import { config } from 'dotenv';
 import * as bcrypt from 'bcrypt';
 
-export class SeedInitialData1735664400001 implements MigrationInterface {
-    name = 'SeedInitialData1735664400001'
+// Load environment variables
+config({ path: '../../.env' });
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // Hash password for admin user
-        const saltRounds = 12;
-        const adminPassword = await bcrypt.hash('admin123', saltRounds);
+async function runSeeder() {
+  console.log('🌱 Starting DataBuddy Database Seeder...');
 
-        // Insert admin user
-        await queryRunner.query(`
-            INSERT INTO "users" (
-                "id", "email", "firstName", "lastName", "password", "role", "status",
-                "preferences", "createdAt", "updatedAt"
-            ) VALUES (
-                '00000000-0000-0000-0000-000000000001',
-                'admin@databuddy.com',
-                'Admin',
-                'DataBuddy',
-                '${adminPassword}',
-                'admin',
-                'active',
-                '{"theme": "light", "language": "en", "timezone": "UTC"}',
-                NOW(),
-                NOW()
-            )
-        `);
+  // Create database connection
+  const dataSource = new DataSource({
+    type: 'postgres',
+    host: process.env.DATABASE_HOST || 'localhost',
+    port: parseInt(process.env.DATABASE_PORT || '5432'),
+    username: process.env.DATABASE_USERNAME || 'postgres',
+    password: process.env.DATABASE_PASSWORD || 'postgres',
+    database: process.env.DATABASE_NAME || 'databuddy',
+    synchronize: false, // Don't sync, use migrations
+    logging: false,
+  });
 
-        // Insert sample editor user
-        const editorPassword = await bcrypt.hash('editor123', saltRounds);
-        await queryRunner.query(`
-            INSERT INTO "users" (
-                "id", "email", "firstName", "lastName", "password", "role", "status",
-                "preferences", "createdAt", "updatedAt"
-            ) VALUES (
-                '00000000-0000-0000-0000-000000000002',
-                'editor@databuddy.com',
-                'Jane',
-                'Editor',
-                '${editorPassword}',
-                'editor',
-                'active',
-                '{"theme": "dark", "language": "en", "timezone": "UTC"}',
-                NOW(),
-                NOW()
-            )
-        `);
+  try {
+    await dataSource.initialize();
+    console.log('✅ Database connection established');
 
-        // Insert sample viewer user
-        const viewerPassword = await bcrypt.hash('viewer123', saltRounds);
-        await queryRunner.query(`
-            INSERT INTO "users" (
-                "id", "email", "firstName", "lastName", "password", "role", "status",
-                "preferences", "createdAt", "updatedAt"
-            ) VALUES (
-                '00000000-0000-0000-0000-000000000003',
-                'viewer@databuddy.com',
-                'John',
-                'Viewer',
-                '${viewerPassword}',
-                'viewer',
-                'active',
-                '{"theme": "light", "language": "en", "timezone": "UTC"}',
-                NOW(),
-                NOW()
-            )
-        `);
+    await seedData(dataSource);
+
+    console.log('\n🎉 Database seeding completed successfully!');
+    console.log('=====================================');
+    console.log('Created:');
+    console.log('  • 3 Users (Admin, Editor, Viewer)');
+    console.log('  • 3 Pipeline Templates');
+    console.log('  • 5 Pipeline Steps');
+    console.log('  • 2 Sample Data Imports');
+    console.log('  • 1 Sample Data Export');
+    console.log('  • 4 Welcome Notifications');
+    console.log('');
+    console.log('Login credentials:');
+    console.log('  Admin: admin@databuddy.com / admin123');
+    console.log('  Editor: editor@databuddy.com / editor123');
+    console.log('  Viewer: viewer@databuddy.com / viewer123');
+
+  } catch (error) {
+    console.error('❌ Database seeding failed:', error);
+    throw error;
+  } finally {
+    await dataSource.destroy();
+  }
+}
+
+async function seedData(dataSource: DataSource) {
+    // Create query runner
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+        // Start transaction
+        await queryRunner.startTransaction();
+
+        // Import entities
+        const { User } = await import('../entities/user.entity');
+        const { Pipeline } = await import('../entities/pipeline.entity');
+        const { PipelineStep } = await import('../entities/pipeline-step.entity');
+        const { DataImport } = await import('../entities/data-import.entity');
+        const { DataExport } = await import('../entities/data-export.entity');
+        const { Notification } = await import('../entities/notification.entity');
+
+    // Hash passwords manually
+    const saltRounds = 12;
+    const adminPassword = await bcrypt.hash('admin123', saltRounds);
+    const editorPassword = await bcrypt.hash('editor123', saltRounds);
+    const viewerPassword = await bcrypt.hash('viewer123', saltRounds);
+
+    // Insert users directly using queryRunner to avoid entity hooks
+    await queryRunner.query(`
+        INSERT INTO "users" (
+            "id", "email", "firstName", "lastName", "password", "role", "status",
+            "preferences", "createdAt", "updatedAt"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+    `, [
+        '00000000-0000-0000-0000-000000000001',
+        'admin@databuddy.com',
+        'Admin',
+        'DataBuddy',
+        adminPassword,
+        'admin',
+        'active',
+        JSON.stringify({ theme: 'light', language: 'en', timezone: 'UTC' })
+    ]);
+    console.log('✅ Admin user created');
+
+    await queryRunner.query(`
+        INSERT INTO "users" (
+            "id", "email", "firstName", "lastName", "password", "role", "status",
+            "preferences", "createdAt", "updatedAt"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+    `, [
+        '00000000-0000-0000-0000-000000000002',
+        'editor@databuddy.com',
+        'Jane',
+        'Editor',
+        editorPassword,
+        'editor',
+        'active',
+        JSON.stringify({ theme: 'dark', language: 'en', timezone: 'UTC' })
+    ]);
+    console.log('✅ Editor user created');
+
+    await queryRunner.query(`
+        INSERT INTO "users" (
+            "id", "email", "firstName", "lastName", "password", "role", "status",
+            "preferences", "createdAt", "updatedAt"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+    `, [
+        '00000000-0000-0000-0000-000000000003',
+        'viewer@databuddy.com',
+        'John',
+        'Viewer',
+        viewerPassword,
+        'viewer',
+        'active',
+        JSON.stringify({ theme: 'light', language: 'en', timezone: 'UTC' })
+    ]);
+    console.log('✅ Viewer user created');
 
         // Insert sample pipeline templates
         await queryRunner.query(`
@@ -410,6 +467,29 @@ export class SeedInitialData1735664400001 implements MigrationInterface {
                 '00000000-0000-0000-0000-000000000003'
             )
         `);
+
+        // Commit the transaction
+        await queryRunner.commitTransaction();
+        console.log('✅ Sample data seeded successfully');
+    } catch (error) {
+        // Rollback on error
+        await queryRunner.rollbackTransaction();
+        console.error('❌ Error seeding data:', error);
+        throw error;
+    } finally {
+        // Release the query runner
+        await queryRunner.release();
+    }
+}
+
+// Migration interface for TypeORM CLI (legacy support)
+export class SeedInitialData1735664400001 implements MigrationInterface {
+    name = 'SeedInitialData1735664400001'
+
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        // This is kept for compatibility but we use the standalone function
+        const dataSource = queryRunner.connection;
+        await seedData(dataSource);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
@@ -421,4 +501,12 @@ export class SeedInitialData1735664400001 implements MigrationInterface {
         await queryRunner.query(`DELETE FROM "pipelines" WHERE "id" LIKE '10000000-%'`);
         await queryRunner.query(`DELETE FROM "users" WHERE "id" LIKE '00000000-%'`);
     }
+}
+
+// Run seeder if called directly
+if (require.main === module) {
+    runSeeder().catch((error) => {
+        console.error('Seeding failed:', error);
+        process.exit(1);
+    });
 }

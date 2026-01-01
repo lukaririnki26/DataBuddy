@@ -1,10 +1,11 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { Processor } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
+import { Worker } from 'bullmq';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Job } from 'bullmq';
-import { DataImport, ImportStatus } from '../common/entities/data-import.entity';
-import { PipelineRunnerService } from '../pipelines/pipeline-runner.service';
+import { Job } from 'bull';
+import { DataImport, ImportStatus } from '../../entities/data-import.entity';
+import { PipelineRunnerService } from '../../modules/pipelines/pipeline-runner.service';
 import { DataBuddyWebSocketGateway } from '../websocket/websocket.gateway';
 import { ImportJobData } from './queue.service';
 
@@ -15,8 +16,7 @@ import { ImportJobData } from './queue.service';
  * - Data import jobs with optional pipeline execution
  */
 @Injectable()
-@Processor('import')
-export class ImportQueueProcessor extends WorkerHost {
+export class ImportQueueProcessor {
   private readonly logger = new Logger(ImportQueueProcessor.name);
 
   constructor(
@@ -31,7 +31,7 @@ export class ImportQueueProcessor extends WorkerHost {
   /**
    * Process import job
    */
-  async process(job: Job<ImportJobData>): Promise<any> {
+  async process(job: any): Promise<any> {
     const { importId, pipelineId, userId, options } = job.data;
 
     this.logger.log(`Processing import job ${job.id} for import ${importId} by user ${userId}`);

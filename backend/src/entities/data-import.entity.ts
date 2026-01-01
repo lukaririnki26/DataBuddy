@@ -96,6 +96,21 @@ export class DataImport {
   @IsString()
   originalFileName?: string;
 
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  @IsOptional()
+  @IsString()
+  filePath?: string; // Local file path after upload
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @IsOptional()
+  @IsString()
+  filename?: string; // Processed filename
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  @IsOptional()
+  @IsString()
+  mimeType?: string; // MIME type of the file
+
   @Column({ type: 'bigint', nullable: true })
   @IsOptional()
   @Min(0)

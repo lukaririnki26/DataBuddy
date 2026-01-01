@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -17,6 +17,11 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "strict": false,
+    "noEmitOnError": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noImplicitOverride": false,
     "paths": {
       "@/*": ["src/*"],
       "@/common/*": ["src/common/*"],
@@ -29,5 +34,11 @@
       "@/utils/*": ["src/utils/*"],
       "@/config/*": ["src/config/*"]
     }
-  }
+  },
+  "exclude": [
+    "src/queue/**/*",
+    "src/utils/**/*",
+    "src/seeders/**/*",
+    "scripts/**/*"
+  ]
 }

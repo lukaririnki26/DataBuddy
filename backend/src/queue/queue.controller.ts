@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { User } from '../common/entities/user.entity';
+import { User } from '../../entities/user.entity';
 import { Request } from '@nestjs/common';
 import { QueueService } from './queue.service';
 

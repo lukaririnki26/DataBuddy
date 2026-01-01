@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../../store';
-import { logout } from '../../store/slices/authSlice';
+import { logoutUser } from '../../store/slices/authSlice';
 import { useNotifications, useNotificationStats } from '../../hooks/useNotifications';
 import {
   Bell,
@@ -44,7 +44,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
   const { stats: notificationStats } = useNotificationStats();
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUser());
     navigate('/login');
   };
 

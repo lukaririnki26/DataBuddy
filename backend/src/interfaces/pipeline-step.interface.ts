@@ -7,7 +7,7 @@
 
 import { Observable } from 'rxjs';
 import { PipelineContext } from './pipeline-context.interface';
-import { StepType } from '../../entities/pipeline-step.entity';
+import { StepType } from '../types/step-type';
 
 export interface PipelineStepHandler {
   /**
