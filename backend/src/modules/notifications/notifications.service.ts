@@ -6,9 +6,9 @@
  * progress updates, dan pesan sistem kepada pengguna.
  */
 
-import { Injectable, Logger, Inject } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Repository, LessThan } from "typeorm";
 import {
   Notification,
   NotificationType,
@@ -16,6 +16,7 @@ import {
   NotificationStatus,
 } from "../../entities/notification.entity";
 import { User } from "../../entities/user.entity";
+import { DataBuddyWebSocketGateway } from "../../websocket/websocket.gateway";
 
 export interface CreateNotificationDto {
   type: NotificationType;
@@ -45,7 +46,8 @@ export class NotificationsService {
     private notificationRepository: Repository<Notification>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) {}
+    private readonly websocketGateway: DataBuddyWebSocketGateway,
+  ) { }
 
   /**
    * Membuat notifikasi baru dan broadcast ke WebSocket
@@ -60,6 +62,7 @@ export class NotificationsService {
       metadata: dto.metadata || {},
       expiresAt: dto.expiresAt,
       isRead: false,
+      status: NotificationStatus.UNREAD,
       createdAt: new Date(),
     });
 
@@ -67,8 +70,7 @@ export class NotificationsService {
       await this.notificationRepository.save(notification);
 
     // Broadcast notifikasi ke WebSocket
-    // TODO: Implement WebSocket broadcasting
-    // await this.broadcastNotification(savedNotification);
+    await this.broadcastNotification(savedNotification);
 
     this.logger.log(`Notification created: ${dto.type} - ${dto.title}`);
     return savedNotification;
@@ -108,6 +110,11 @@ export class NotificationsService {
         priority = NotificationPriority.HIGH;
         type = NotificationType.PIPELINE_FAILED;
         break;
+      default:
+        title = `Pipeline Alert: ${pipelineName}`;
+        message = `Pipeline "${pipelineName}" status: ${status}`;
+        priority = NotificationPriority.MEDIUM;
+        type = NotificationType.SYSTEM_ALERT;
     }
 
     await this.createNotification({
@@ -168,6 +175,11 @@ export class NotificationsService {
             ? NotificationType.IMPORT_FAILED
             : NotificationType.EXPORT_FAILED;
         break;
+      default:
+        title = `Data ${operationType} Alert`;
+        message = `Data ${operation.toLowerCase()} operation status: ${status}`;
+        priority = NotificationPriority.MEDIUM;
+        type = NotificationType.SYSTEM_ALERT;
     }
 
     await this.createNotification({
@@ -251,9 +263,10 @@ export class NotificationsService {
 
     // Filter berdasarkan status baca
     if (filter.isRead !== undefined) {
-      query.andWhere("notification.isRead = :isRead", {
-        isRead: filter.isRead,
-      });
+      const status = filter.isRead
+        ? NotificationStatus.READ
+        : NotificationStatus.UNREAD;
+      query.andWhere("notification.status = :status", { status });
     }
 
     // Filter berdasarkan prioritas
@@ -290,7 +303,9 @@ export class NotificationsService {
         },
       );
     }
-    unreadQuery.andWhere("notification.isRead = :isRead", { isRead: false });
+    unreadQuery.andWhere("notification.status = :status", {
+      status: NotificationStatus.UNREAD,
+    });
     unreadQuery.andWhere(
       "(notification.expiresAt IS NULL OR notification.expiresAt > :now)",
       {
@@ -328,12 +343,10 @@ export class NotificationsService {
     notification.readAt = new Date();
 
     await this.notificationRepository.save(notification);
+    this.logger.log(`Notification ${notificationId} marked as read`);
 
-    // TODO: Broadcast update status ke WebSocket
-    // this.websocketGateway.broadcastToUser(userId, 'notification_read', {
-    //   notificationId,
-    //   readAt: notification.readAt,
-    // });
+    // Broadcast update ke WebSocket
+    await this.notifyUserStatsUpdate(userId);
   }
 
   /**
@@ -351,10 +364,10 @@ export class NotificationsService {
       },
     );
 
-    // TODO: Broadcast update ke WebSocket
-    // this.websocketGateway.broadcastToUser(userId, 'all_notifications_read', {
-    //   timestamp: new Date().toISOString(),
-    // });
+    this.logger.log(`All notifications marked as read for user ${userId}`);
+
+    // Broadcast update ke WebSocket
+    await this.notifyUserStatsUpdate(userId);
   }
 
   /**
@@ -378,19 +391,19 @@ export class NotificationsService {
     }
 
     await this.notificationRepository.remove(notification);
+    this.logger.log(`Notification ${notificationId} deleted`);
 
-    // TODO: Broadcast delete ke WebSocket
-    // this.websocketGateway.broadcastToUser(userId, 'notification_deleted', {
-    //   notificationId,
-    // });
+    // Broadcast update ke WebSocket
+    await this.notifyUserStatsUpdate(userId);
   }
 
   /**
    * Membersihkan notifikasi yang sudah expired
    */
   async cleanupExpiredNotifications(): Promise<number> {
+    const now = new Date();
     const result = await this.notificationRepository.delete({
-      expiresAt: { $lt: new Date() } as any,
+      expiresAt: LessThan(now),
     });
 
     this.logger.log(`Cleaned up ${result.affected || 0} expired notifications`);
@@ -400,20 +413,33 @@ export class NotificationsService {
   /**
    * Broadcast notifikasi ke WebSocket
    */
-  // TODO: Implement WebSocket broadcasting
-  // private async broadcastNotification(notification: Notification): Promise<void> {
-  //   try {
-  //     if (notification.userId) {
-  //       // Kirim ke user spesifik
-  //       this.websocketGateway.broadcastToUser(notification.userId, 'notification', notification);
-  //     } else {
-  //       // Broadcast ke semua user
-  //       this.websocketGateway.broadcastToAll('notification', notification);
-  //     }
-  //   } catch (error) {
-  //     this.logger.error('Failed to broadcast notification via WebSocket:', error);
-  //   }
-  // }
+  private async broadcastNotification(
+    notification: Notification,
+  ): Promise<void> {
+    try {
+      this.websocketGateway.emitNotification(notification.userId, {
+        type:
+          notification.priority === NotificationPriority.HIGH
+            ? "error"
+            : notification.priority === NotificationPriority.MEDIUM
+              ? "warning"
+              : "info",
+        title: notification.title,
+        message: notification.message,
+        data: notification,
+      });
+
+      // Juga update statistik (jumlah unread) jika ada userId
+      if (notification.userId) {
+        await this.notifyUserStatsUpdate(notification.userId);
+      }
+    } catch (error) {
+      this.logger.error(
+        "Failed to broadcast notification via WebSocket:",
+        error,
+      );
+    }
+  }
 
   /**
    * Mendapatkan statistik notifikasi untuk dashboard
@@ -441,7 +467,10 @@ export class NotificationsService {
 
     // Notifikasi yang belum dibaca
     const unread = await baseQuery
-      .andWhere("notification.isRead = :isRead", { isRead: false })
+      .clone() // Clone query to avoid affecting subsequent queries on baseQuery
+      .andWhere("notification.status = :status", {
+        status: NotificationStatus.UNREAD,
+      })
       .getCount();
 
     // Statistik berdasarkan tipe
@@ -482,5 +511,23 @@ export class NotificationsService {
       byType,
       byPriority,
     };
+  }
+
+  /**
+   * Mengirim statistik terbaru ke user melalui WebSocket
+   */
+  private async notifyUserStatsUpdate(userId: string): Promise<void> {
+    try {
+      const stats = await this.getNotificationStats(userId);
+      this.websocketGateway.emitNotificationStats(userId, {
+        unread: stats.unread,
+        total: stats.total,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send notification stats update for user ${userId}:`,
+        error,
+      );
+    }
   }
 }

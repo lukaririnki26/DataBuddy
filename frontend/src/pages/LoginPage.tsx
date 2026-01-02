@@ -7,14 +7,25 @@ import {
   Shield,
   Lock,
   Mail,
-  User,
-  ArrowRight,
+  Zap,
   Activity,
   Cpu,
-  Globe,
-  Zap
+  Globe
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Grid,
+  useTheme,
+  Card,
+  CardContent,
+  MenuItem,
+  InputAdornment,
+  alpha
+} from '@mui/material';
 
 const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -30,6 +41,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { success, error: toastError } = useToast();
   const { isLoading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const theme = useTheme();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -59,7 +71,7 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -67,184 +79,228 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 relative overflow-hidden transition-all duration-1000">
-      {/* Neural Network Background Efffect */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] animate-blob"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
-        <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] bg-indigo-500/10 rounded-full blur-[120px] animate-blob animation-delay-4000"></div>
-      </div>
+    <Box sx={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      p: 4,
+      position: 'relative',
+      overflow: 'hidden',
+      background: theme.palette.background.default, // Use theme background
+    }}>
+      {/* Background Effects (kept for specific visual flare, could be moved to separate component) */}
+      <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <Box sx={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: '50%', filter: 'blur(120px)' }} />
+        <Box sx={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '40%', height: '40%', bgcolor: alpha(theme.palette.secondary.main, 0.1), borderRadius: '50%', filter: 'blur(120px)' }} />
+      </Box>
 
-      <div className="relative z-10 w-full max-w-xl grid grid-cols-1 lg:max-w-none lg:grid-cols-2 gap-12 items-center">
-        {/* Left Side: Branding & Stats */}
-        <div className="hidden lg:flex flex-col space-y-12 max-w-md">
-          <div className="space-y-6">
-            <div className="inline-flex items-center px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-400 text-xs font-black uppercase tracking-[0.2em] animate-pulse">
-              <Zap className="w-3 h-3 mr-2" />
+      <Grid container spacing={12} alignItems="center" sx={{ position: 'relative', zIndex: 10, maxWidth: 'lg' }}>
+        {/* Left Side: Branding */}
+        <Grid item xs={12} lg={6} sx={{ display: { xs: 'none', lg: 'block' } }}>
+          <Box sx={{ mb: 6 }}>
+            <Box sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              px: 2,
+              py: 1,
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              borderRadius: '9999px',
+              color: theme.palette.primary.light,
+              typography: 'caption',
+              fontWeight: 900,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              mb: 3
+            }}>
+              <Zap size={12} style={{ marginRight: 8 }} />
               Advanced Data Synthesis
-            </div>
-            <h1 className="text-6xl font-black text-white leading-tight">
-              Control the <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">Digital Pulse</span>
-            </h1>
-            <p className="text-xl text-slate-400 font-medium leading-relaxed">
+            </Box>
+            <Typography variant="h1" gutterBottom sx={{ lineHeight: 1.1 }}>
+              Control the <Box component="span" sx={{
+                background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>Digital Pulse</Box>
+            </Typography>
+            <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 500, opacity: 0.8, maxWidth: 'sm' }}>
               DataBuddy: The next-generation infrastructure for autonomous data management and neural pipeline orchestration.
-            </p>
-          </div>
+            </Typography>
+          </Box>
 
-          <div className="grid grid-cols-2 gap-6">
+          <Grid container spacing={3}>
             {[
-              { label: 'Uptime', value: '99.99%', icon: <Activity className="w-4 h-4" /> },
-              { label: 'Latency', value: '0.4ms', icon: <Cpu className="w-4 h-4" /> },
-              { label: 'Global Nodes', value: '1,240', icon: <Globe className="w-4 h-4" /> },
-              { label: 'Encryption', value: 'AES-512', icon: <Shield className="w-4 h-4" /> }
-            ].map(stat => (
-              <div key={stat.label} className="p-6 backdrop-blur-md bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
-                <div className="text-blue-400 mb-2 group-hover:scale-110 transition-transform">{stat.icon}</div>
-                <div className="text-2xl font-black text-white">{stat.value}</div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">{stat.label}</div>
-              </div>
+              { label: 'Uptime', value: '99.99%', icon: <Activity size={16} /> },
+              { label: 'Latency', value: '0.4ms', icon: <Cpu size={16} /> },
+              { label: 'Global Nodes', value: '1,240', icon: <Globe size={16} /> },
+              { label: 'Encryption', value: 'AES-512', icon: <Shield size={16} /> }
+            ].map((stat) => (
+              <Grid item xs={6} key={stat.label}>
+                <Card sx={{
+                  bgcolor: alpha(theme.palette.background.paper, 0.05),
+                  borderColor: 'rgba(255,255,255,0.1)',
+                  backdropFilter: 'blur(10px)',
+                  transition: 'transform 0.2s',
+                  '&:hover': { transform: 'translateY(-4px)' }
+                }}>
+                  <CardContent>
+                    <Box sx={{ color: theme.palette.primary.light, mb: 1 }}>{stat.icon}</Box>
+                    <Typography variant="h4" sx={{ fontWeight: 900 }}>{stat.value}</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>
+                      {stat.label}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
             ))}
-          </div>
-        </div>
+          </Grid>
+        </Grid>
 
         {/* Right Side: Auth Form */}
-        <div className="w-full max-w-md mx-auto">
-          {/* Logo Mobble */}
-          <div className="lg:hidden text-center mb-12 animate-fadeInUp">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/25">
-              <Cpu className="text-white w-10 h-10" />
-            </div>
-            <h2 className="text-4xl font-black text-white italic tracking-tighter">DATABUDDY</h2>
-          </div>
+        <Grid item xs={12} lg={6}>
+          <Box sx={{
+            bgcolor: alpha(theme.palette.background.paper, 0.05),
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '2.5rem',
+            p: 6,
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+          }}>
+            <Box sx={{ mb: 5 }}>
+              <Typography variant="h3" gutterBottom sx={{ fontWeight: 800 }}>
+                {isLogin ? 'Access Identity' : 'Provision Protocol'}
+              </Typography>
+              <Typography color="text.secondary" fontWeight={500}>
+                {isLogin ? 'Provide your verification tokens to proceed' : 'Create a new node in our global network'}
+              </Typography>
+            </Box>
 
-          <div className="backdrop-blur-3xl bg-white/5 border border-white/10 rounded-[2.5rem] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-fadeInUp">
-            {/* Header */}
-            <div className="space-y-2 mb-10">
-              <h2 className="text-3xl font-black text-white">{isLogin ? 'Access Identity' : 'Provision Protocol'}</h2>
-              <p className="text-slate-500 font-medium">{isLogin ? 'Provide your verification tokens to proceed' : 'Create a new node in our global network'}</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {!isLogin && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">First Name</label>
-                    <div className="relative">
-                      <input
+            <form onSubmit={handleSubmit}>
+              <Grid container spacing={3}>
+                {!isLogin && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" sx={{ ml: 1, mb: 1, display: 'block', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>First Name</Typography>
+                      <TextField
+                        fullWidth
                         name="firstName"
-                        type="text"
-                        required={!isLogin}
-                        className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-6 py-4 text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         placeholder="John"
                         value={formData.firstName}
                         onChange={handleInputChange}
+                        variant="filled"
                       />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Last Name</label>
-                    <input
-                      name="lastName"
-                      type="text"
-                      required={!isLogin}
-                      className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-6 py-4 text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                </div>
-              )}
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" sx={{ ml: 1, mb: 1, display: 'block', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>Last Name</Typography>
+                      <TextField
+                        fullWidth
+                        name="lastName"
+                        placeholder="Doe"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        variant="filled"
+                      />
+                    </Grid>
+                  </>
+                )}
 
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Network Identity</label>
-                <div className="relative group">
-                  <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
-                  <input
+                <Grid item xs={12}>
+                  <Typography variant="caption" sx={{ ml: 1, mb: 1, display: 'block', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>Network Identity</Typography>
+                  <TextField
+                    fullWidth
                     name="email"
                     type="email"
-                    required
-                    className="w-full bg-slate-950/50 border border-white/10 rounded-2xl pl-16 pr-6 py-4 text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                     placeholder="name@matrix.net"
                     value={formData.email}
                     onChange={handleInputChange}
+                    variant="filled"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Mail size={20} color={theme.palette.text.secondary} />
+                        </InputAdornment>
+                      ),
+                    }}
                   />
-                </div>
-              </div>
+                </Grid>
 
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Access Cipher</label>
-                <div className="relative group">
-                  <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
-                  <input
+                <Grid item xs={12}>
+                  <Typography variant="caption" sx={{ ml: 1, mb: 1, display: 'block', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>Access Cipher</Typography>
+                  <TextField
+                    fullWidth
                     name="password"
                     type="password"
-                    required
-                    className="w-full bg-slate-950/50 border border-white/10 rounded-2xl pl-16 pr-6 py-4 text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleInputChange}
+                    variant="filled"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Lock size={20} color={theme.palette.text.secondary} />
+                        </InputAdornment>
+                      ),
+                    }}
                   />
-                </div>
-              </div>
+                </Grid>
 
-              {!isLogin && (
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Operational Role</label>
-                  <select
-                    name="role"
-                    className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-6 py-4 text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                    value={formData.role}
-                    onChange={handleInputChange}
+                {!isLogin && (
+                  <Grid item xs={12}>
+                    <Typography variant="caption" sx={{ ml: 1, mb: 1, display: 'block', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.secondary' }}>Operational Role</Typography>
+                    <TextField
+                      select
+                      fullWidth
+                      name="role"
+                      value={formData.role}
+                      onChange={handleInputChange}
+                      variant="filled"
+                    >
+                      <MenuItem value="viewer">Viewer</MenuItem>
+                      <MenuItem value="editor">Editor</MenuItem>
+                      <MenuItem value="admin">Administrator</MenuItem>
+                    </TextField>
+                  </Grid>
+                )}
+
+                <Grid item xs={12} sx={{ mt: 2 }}>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    disabled={isLoading}
+                    sx={{
+                      py: 2,
+                      fontSize: '1.1rem',
+                      fontWeight: 800,
+                      background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                    }}
                   >
-                    <option value="viewer" className="bg-slate-900">Viewer</option>
-                    <option value="editor" className="bg-slate-900">Editor</option>
-                    <option value="admin" className="bg-slate-900">Administrator</option>
-                  </select>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl text-white font-black text-lg shadow-2xl hover:shadow-blue-500/40 transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group overflow-hidden relative"
-              >
-                <div className="relative z-10 flex items-center justify-center">
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      {isLogin ? 'Initialize Uplink' : 'Activate Node'}
-                      <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                    </>
-                  )}
-                </div>
-                {/* Shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-              </button>
+                    {isLoading ? 'Processing...' : (isLogin ? 'Initialize Uplink' : 'Activate Node')}
+                  </Button>
+                </Grid>
+              </Grid>
             </form>
 
-            <div className="mt-10 text-center">
-              <button
+            <Box sx={{ mt: 4, textAlign: 'center' }}>
+              <Button
+                variant="text"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-slate-400 hover:text-white font-black uppercase tracking-widest text-[10px] transition-all hover:tracking-[0.2em]"
+                sx={{
+                  color: 'text.secondary',
+                  typography: 'caption',
+                  fontWeight: 900,
+                  letterSpacing: '0.1em',
+                  '&:hover': { color: 'white', letterSpacing: '0.2em' }
+                }}
               >
                 {isLogin ? 'Register New Access Node' : 'Return to Verification Protocol'}
-              </button>
-            </div>
-          </div>
-
-          <div className="text-center mt-8">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
-              Protocol: HTTPS • Status: SECURE • Version: 1.1.2
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+              </Button>
+            </Box>
+          </Box>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

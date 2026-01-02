@@ -32,8 +32,7 @@ import { WsJwtAuthGuard } from "./guards/ws-jwt-auth.guard";
 })
 @Injectable()
 export class DataBuddyWebSocketGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -43,7 +42,7 @@ export class DataBuddyWebSocketGateway
     { userId: string; rooms: string[] }
   >();
 
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   /**
    * Handle client connection
@@ -51,13 +50,21 @@ export class DataBuddyWebSocketGateway
   async handleConnection(client: Socket) {
     try {
       // Extract token from handshake
-      const token =
+      let token =
         client.handshake.auth.token || (client.handshake.query.token as string);
 
       if (!token) {
+        this.logger.warn(`Client ${client.id} tried to connect without token`);
         client.disconnect();
         return;
       }
+
+      // Clean token if it has Bearer prefix
+      if (typeof token === 'string' && token.startsWith("Bearer ")) {
+        token = token.substring(7).trim();
+      }
+
+      this.logger.debug(`Verifying token for client ${client.id} (Length: ${token.length})`);
 
       // Verify JWT token
       const payload = this.jwtService.verify(token);
@@ -346,6 +353,29 @@ export class DataBuddyWebSocketGateway
 
     this.logger.log(
       `Emitted notification: ${notification.type} - ${notification.title}`,
+    );
+  }
+
+  /**
+   * Send notification stats update (unread count)
+   */
+  emitNotificationStats(
+    userId: string,
+    stats: {
+      unread: number;
+      total: number;
+    },
+  ) {
+    const event = "notification:stats";
+    const data = {
+      ...stats,
+      timestamp: new Date().toISOString(),
+    };
+
+    this.server.to(`user_${userId}`).emit(event, data);
+
+    this.logger.debug(
+      `Emitted notification stats for user ${userId}: ${stats.unread} unread`,
     );
   }
 

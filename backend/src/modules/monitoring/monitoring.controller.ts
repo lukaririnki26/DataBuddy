@@ -24,7 +24,7 @@ import { MonitoringService } from "./monitoring.service";
 @Controller("monitoring")
 @UseGuards(JwtAuthGuard)
 export class MonitoringController {
-  constructor(private readonly monitoringService: MonitoringService) {}
+  constructor(private readonly monitoringService: MonitoringService) { }
 
   @Get("dashboard")
   @ApiOperation({
@@ -213,9 +213,9 @@ export class MonitoringController {
         await this.monitoringService.getRecentExecutions(limitNum);
 
       // Get recent imports and exports
-      // TODO: Implement recent data imports/exports retrieval
-      const recentImports = [];
-      const recentExports = [];
+      // Get recent imports and exports
+      const recentImports = await this.monitoringService.getRecentImports(limitNum);
+      const recentExports = await this.monitoringService.getRecentExports(limitNum);
 
       // Combine and format as logs
       const logs = [

@@ -20,23 +20,50 @@ import {
   RefreshCw,
   ChevronRight,
   Activity,
-  Box,
+  Box as BoxIcon,
   Cpu,
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import {
+  Box,
+  Typography,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  Chip,
+  IconButton,
+  TextField,
+  InputAdornment,
+  useTheme,
+  alpha,
+  Skeleton,
+  FormControl,
+  Select,
+  MenuItem
+} from '@mui/material';
 
 /**
  * Premium Status Badge Component
  */
-const StatusBadge: React.FC<{ isActive: boolean }> = ({ isActive }) => (
-  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest backdrop-blur-md border ${isActive
-      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
-      : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
-    }`}>
-    <div className={`w-1.5 h-1.5 rounded-full mr-2 ${isActive ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`}></div>
-    {isActive ? 'Active' : 'Draft'}
-  </span>
-);
+const StatusBadge: React.FC<{ isActive: boolean }> = ({ isActive }) => {
+  const theme = useTheme();
+  return (
+    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest backdrop-blur-md border"
+      style={{
+        backgroundColor: isActive ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.text.secondary, 0.1),
+        color: isActive ? theme.palette.success.light : theme.palette.text.secondary,
+        borderColor: isActive ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.text.secondary, 0.2),
+        boxShadow: isActive ? `0 0 15px ${alpha(theme.palette.success.main, 0.1)}` : 'none'
+      }}
+    >
+      <div className={`w-1.5 h-1.5 rounded-full mr-2 ${isActive ? 'animate-pulse' : ''}`}
+        style={{ backgroundColor: isActive ? theme.palette.success.light : theme.palette.text.secondary }}
+      ></div>
+      {isActive ? 'Active' : 'Draft'}
+    </span>
+  );
+};
 
 const PipelinesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -44,6 +71,7 @@ const PipelinesPage: React.FC = () => {
   const { pipelines, loading, refreshPipelines } = usePipelines();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const theme = useTheme();
 
   const filteredPipelines = useMemo(() => {
     return (pipelines || []).filter(p => {
@@ -61,7 +89,7 @@ const PipelinesPage: React.FC = () => {
       if (result.success) {
         success('Execution Success', `"${name}" processed ${result.processedItems} items successfully`);
       } else {
-        toastError('Execution Error', `Failed to run "${name}": ${result.errors.join(', ')}`);
+        toastError('Execution Error', `Failed to run "${name}"`);
       }
     } catch (err: any) {
       toastError('System Error', err.message || 'An unexpected error occurred during execution');
@@ -81,166 +109,273 @@ const PipelinesPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] bg-gradient-to-br from-slate-900 via-indigo-900/40 to-slate-900">
+    <Box sx={{
+      minHeight: '100vh',
+      background: theme.palette.background.default,
+      backgroundAttachment: 'fixed',
+      color: 'text.primary',
+      p: 4
+    }}>
       {/* Background Ambience */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px] animate-blob"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[100px] animate-blob animation-delay-4000"></div>
-      </div>
+      <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <Box sx={{
+          position: 'absolute', top: 0, right: 0, width: 500, height: 500,
+          bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: '50%', filter: 'blur(100px)',
+          animation: 'blob 7s infinite'
+        }} />
+        <Box sx={{
+          position: 'absolute', bottom: 0, left: 0, width: 500, height: 500,
+          bgcolor: alpha(theme.palette.secondary.main, 0.05), borderRadius: '50%', filter: 'blur(100px)',
+          animation: 'blob 7s infinite 4s'
+        }} />
+      </Box>
 
-      <div className="relative z-10 p-8 space-y-8 max-w-7xl mx-auto">
+      <Box sx={{ position: 'relative', zIndex: 10, maxWidth: 'lg', mx: 'auto' }}>
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-black bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent">
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: { lg: 'center' }, gap: 3, mb: 4 }}>
+          <Box>
+            <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>
               Operational Blueprints
-            </h1>
-            <p className="text-slate-400 text-lg font-medium">Manage and monitor your intelligent data processing sequences</p>
-          </div>
+            </Typography>
+            <Typography variant="h6" color="text.secondary" fontWeight="medium">
+              Manage and monitor your intelligent data processing sequences
+            </Typography>
+          </Box>
 
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => refreshPipelines()}
-              className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-slate-400 hover:text-white transition-all active:scale-95"
-            >
-              <RefreshCw className="w-5 h-5" />
-            </button>
-            <Link
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <IconButton onClick={() => refreshPipelines()} sx={{ bgcolor: alpha(theme.palette.common.white, 0.05), border: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
+              <RefreshCw size={20} />
+            </IconButton>
+            <Button
+              component={Link}
               to="/pipelines/builder/new"
-              className="inline-flex items-center px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] transition-all transform hover:scale-105"
+              variant="contained"
+              startIcon={<Plus size={20} />}
+              sx={{
+                borderRadius: '16px',
+                px: 3, py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.3)}`
+              }}
             >
-              <Plus className="w-5 h-5 mr-3" />
               Genesis Blueprint
-            </Link>
-          </div>
-        </div>
+            </Button>
+          </Box>
+        </Box>
 
         {/* Filters & Command Bar */}
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="flex-1 relative group">
-            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-blue-400 transition-colors">
-              <Search className="w-5 h-5" />
-            </div>
-            <input
-              type="text"
-              placeholder="Query blueprints by name or logic..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-[2rem] pl-16 pr-6 py-4 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-slate-600"
-            />
-          </div>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, mb: 4 }}>
+          <TextField
+            placeholder="Query blueprints by name or logic..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            variant="filled"
+            fullWidth
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={20} color={theme.palette.text.secondary} />
+                </InputAdornment>
+              ),
+              disableUnderline: true,
+              sx: { borderRadius: '2rem' }
+            }}
+            sx={{
+              '& .MuiFilledInput-root': {
+                borderRadius: '2rem',
+                bgcolor: alpha(theme.palette.common.white, 0.05),
+                '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1) },
+                '&.Mui-focused': { bgcolor: alpha(theme.palette.common.white, 0.1) }
+              }
+            }}
+          />
 
-          <div className="flex p-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-[2.5rem] overflow-hidden w-full md:w-auto">
+          <Box sx={{
+            display: 'flex',
+            p: 0.5,
+            bgcolor: alpha(theme.palette.common.white, 0.05),
+            backdropFilter: 'blur(10px)',
+            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            borderRadius: '2.5rem',
+            overflow: 'hidden'
+          }}>
             {['all', 'active', 'draft'].map((type) => (
-              <button
+              <Button
                 key={type}
                 onClick={() => setFilterType(type)}
-                className={`px-8 py-3 rounded-[2rem] text-sm font-black uppercase tracking-wider transition-all ${filterType === type
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
+                sx={{
+                  borderRadius: '2rem',
+                  px: 3,
+                  color: filterType === type ? 'white' : 'text.secondary',
+                  bgcolor: filterType === type ? theme.palette.primary.main : 'transparent',
+                  fontWeight: 'bold',
+                  '&:hover': { bgcolor: filterType === type ? theme.palette.primary.dark : alpha(theme.palette.common.white, 0.1) }
+                }}
               >
                 {type}
-              </button>
+              </Button>
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
 
         {/* Pipelines Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-white/5 border border-white/10 rounded-[2.5rem] animate-pulse"></div>
-            ))}
-          </div>
-        ) : filteredPipelines.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPipelines.map((p) => (
-              <div
-                key={p.id}
-                className="group relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden hover:bg-white/8 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
-              >
-                {/* Blueprint Card Content */}
-                <div className="p-8 space-y-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-4 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-2xl border border-white/10 group-hover:scale-110 transition-transform duration-500">
-                        <Cpu className="w-6 h-6 text-blue-400" />
-                      </div>
-                      <StatusBadge isActive={p.status === 'active'} />
-                    </div>
-                    <div className="relative">
-                      <button className="p-2 text-slate-500 hover:text-white transition-colors">
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
+        <Grid container spacing={4}>
+          {loading ? (
+            [...Array(6)].map((_, i) => (
+              <Grid item xs={12} md={6} lg={4} key={i}>
+                <Skeleton variant="rectangular" height={256} sx={{ borderRadius: '2.5rem', bgcolor: alpha(theme.palette.common.white, 0.05) }} />
+              </Grid>
+            ))
+          ) : filteredPipelines.length > 0 ? (
+            filteredPipelines.map((p) => (
+              <Grid item xs={12} md={6} lg={4} key={p.id}>
+                <Card sx={{
+                  height: '100%',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  borderRadius: '2.5rem',
+                  bgcolor: alpha(theme.palette.common.white, 0.05),
+                  backdropFilter: 'blur(20px)',
+                  border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                  transition: 'all 0.3s',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                    boxShadow: `0 20px 50px rgba(0,0,0,0.3)`
+                  }
+                }}>
+                  <CardContent sx={{ p: 4, height: '100%' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{
+                          p: 2,
+                          borderRadius: '16px',
+                          bgcolor: alpha(theme.palette.primary.main, 0.1),
+                          border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          <Cpu size={24} color={theme.palette.primary.light} />
+                        </Box>
+                        <StatusBadge isActive={p.status === 'active'} />
+                      </Box>
+                      <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                        <MoreVertical size={20} />
+                      </IconButton>
+                    </Box>
 
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-black text-white group-hover:text-blue-200 transition-colors truncate">
-                      {p.name}
-                    </h3>
-                    <p className="text-slate-400 text-sm font-medium line-clamp-2 leading-relaxed">
-                      {p.description || 'No strategic description defined for this blueprint sequence.'}
-                    </p>
-                  </div>
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="h5" fontWeight="900" gutterBottom noWrap title={p.name}>
+                        {p.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        minHeight: '2.5em'
+                      }}>
+                        {p.description || 'No strategic description defined for this blueprint sequence.'}
+                      </Typography>
+                    </Box>
 
-                  <div className="pt-4 grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-slate-900/50 rounded-2xl border border-white/5">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Architecture</p>
-                      <p className="text-white font-bold text-sm">Modular {p.steps?.length || 0} Nodes</p>
-                    </div>
-                    <div className="p-4 bg-slate-900/50 rounded-2xl border border-white/5">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Last Sync</p>
-                      <p className="text-white font-bold text-sm">{new Date(p.updatedAt).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                </div>
+                    <Grid container spacing={2} sx={{ mt: 'auto' }}>
+                      <Grid item xs={6}>
+                        <Box sx={{ p: 2, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
+                          <Typography variant="caption" display="block" color="text.secondary" fontWeight="900" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', mb: 0.5 }}>Architecture</Typography>
+                          <Typography variant="body2" fontWeight="bold">Modular {p.steps?.length || 0} Nodes</Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Box sx={{ p: 2, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
+                          <Typography variant="caption" display="block" color="text.secondary" fontWeight="900" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', mb: 0.5 }}>Last Sync</Typography>
+                          <Typography variant="body2" fontWeight="bold">{new Date(p.updatedAt).toLocaleDateString()}</Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
 
-                {/* Command Bar Overlay */}
-                <div className="absolute inset-x-0 bottom-0 p-6 bg-slate-900/90 backdrop-blur-xl border-t border-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => handleExecute(p.id, p.name)}
-                      className="p-3 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-110 active:scale-95 transition-all"
-                    >
-                      <Play className="w-5 h-5" />
-                    </button>
-                    <Link
-                      to={`/pipelines/builder/${p.id}`}
-                      className="p-3 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-all font-bold"
-                    >
-                      Configure
-                    </Link>
-                  </div>
-                  <button
-                    onClick={() => handleDelete(p.id, p.name)}
-                    className="p-3 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500/20 transition-all"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="backdrop-blur-xl bg-white/5 border-2 border-dashed border-white/10 rounded-[3rem] py-32 text-center">
-            <div className="relative inline-block mb-8">
-              <div className="absolute inset-0 bg-blue-500/20 blur-[80px] rounded-full"></div>
-              <Activity className="mx-auto h-24 w-24 text-slate-700 relative z-10" />
-            </div>
-            <h2 className="text-3xl font-black text-white mb-4">No Blueprints Identified</h2>
-            <p className="text-slate-400 text-lg mb-10 max-w-md mx-auto">Your command center is ready. Initialize your first operational sequence to begin.</p>
-            <Link
-              to="/pipelines/builder/new"
-              className="inline-flex items-center px-12 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-[2rem] font-black text-lg shadow-2xl hover:shadow-blue-500/40 transform hover:scale-105 transition-all"
-            >
-              Initialize Command
-            </Link>
-          </div>
-        )}
-      </div>
-    </div>
+                    {/* Command Bar Overlay - revealed on hover */}
+                    <Box sx={{
+                      position: 'absolute', inset: 'auto 0 0 0',
+                      p: 3,
+                      bgcolor: alpha('#0f172a', 0.9),
+                      backdropFilter: 'blur(20px)',
+                      borderTop: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      transform: 'translateY(100%)',
+                      transition: 'transform 0.3s',
+                      '.MuiCard-root:hover &': { transform: 'translateY(0)' }
+                    }}>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton onClick={() => handleExecute(p.id, p.name)} sx={{
+                          bgcolor: theme.palette.success.main,
+                          color: 'white',
+                          '&:hover': { bgcolor: theme.palette.success.dark }
+                        }}>
+                          <Play size={20} />
+                        </IconButton>
+                        <Button
+                          component={Link}
+                          to={`/pipelines/builder/${p.id}`}
+                          variant="outlined"
+                          sx={{
+                            borderColor: 'rgba(255,255,255,0.2)',
+                            color: 'white',
+                            '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' }
+                          }}
+                        >
+                          Configure
+                        </Button>
+                      </Box>
+                      <IconButton onClick={() => handleDelete(p.id, p.name)} sx={{
+                        bgcolor: alpha(theme.palette.error.main, 0.1),
+                        color: theme.palette.error.main,
+                        '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2) }
+                      }}>
+                        <Trash2 size={20} />
+                      </IconButton>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))
+          ) : (
+            <Grid item xs={12}>
+              <Box sx={{
+                textAlign: 'center',
+                py: 10,
+                borderRadius: '3rem',
+                border: `2px dashed ${alpha(theme.palette.common.white, 0.1)}`,
+                bgcolor: alpha(theme.palette.common.white, 0.02)
+              }}>
+                <Box sx={{ position: 'relative', display: 'inline-flex', mb: 4 }}>
+                  <Box sx={{ position: 'absolute', inset: 0, bgcolor: alpha(theme.palette.primary.main, 0.2), filter: 'blur(40px)', borderRadius: '50%' }} />
+                  <Activity size={80} color={theme.palette.text.secondary} style={{ position: 'relative' }} />
+                </Box>
+                <Typography variant="h4" fontWeight="900" gutterBottom>No Blueprints Identified</Typography>
+                <Typography variant="h6" color="text.secondary" sx={{ mb: 4, maxWidth: 'sm', mx: 'auto' }}>
+                  Your command center is ready. Initialize your first operational sequence to begin.
+                </Typography>
+                <Button
+                  component={Link}
+                  to="/pipelines/builder/new"
+                  size="large"
+                  variant="contained"
+                  sx={{
+                    borderRadius: '2rem',
+                    px: 6, py: 2,
+                    fontSize: '1.2rem',
+                    background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  }}
+                >
+                  Initialize Command
+                </Button>
+              </Box>
+            </Grid>
+          )}
+        </Grid>
+      </Box>
+    </Box>
   );
 };
 

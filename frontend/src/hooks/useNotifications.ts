@@ -7,6 +7,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { notificationsService, NotificationItem, NotificationStats, NotificationFilter } from '../services/notifications.service';
+import { useSocket } from '../context/SocketContext';
+import { useToast } from '../context/ToastContext';
 
 /**
  * Hook untuk mendapatkan daftar notifikasi user
@@ -18,40 +20,66 @@ export const useNotifications = (filter?: NotificationFilter) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { socket } = useSocket();
+  const { toast } = useToast();
+
+  // Memoize filter components to prevent dependency loop
+  const limit = filter?.limit;
+  const offset = filter?.offset;
+  const type = filter?.type;
+  const isRead = filter?.isRead;
+  const priority = filter?.priority;
+
   const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await notificationsService.getNotifications(filter);
+      const activeFilter = { limit, offset, type, isRead, priority };
+      const response = await notificationsService.getNotifications(activeFilter);
       setNotifications(response.notifications);
       setTotal(response.total);
       setUnread(response.unread);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
-      setNotifications([]);
-      setTotal(0);
-      setUnread(0);
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [limit, offset, type, isRead, priority]);
 
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  // Listen for real-time updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewNotification = (data: any) => {
+      // Refresh current list when new notification arrives
+      fetchNotifications();
+
+      // Show toast if data has content
+      if (data.title && data.message) {
+        toast(data.type || 'info', data.title, data.message);
+      }
+    };
+
+    const handleStatsUpdate = () => {
+      fetchNotifications();
+    };
+
+    socket.on('notification', handleNewNotification);
+    socket.on('notification:stats', handleStatsUpdate);
+
+    return () => {
+      socket.off('notification', handleNewNotification);
+      socket.off('notification:stats', handleStatsUpdate);
+    };
+  }, [socket, fetchNotifications, toast]);
+
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
       await notificationsService.markAsRead(notificationId);
-      // Update local state
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif.id === notificationId
-            ? { ...notif, isRead: true, readAt: new Date().toISOString() }
-            : notif
-        )
-      );
-      setUnread(prev => Math.max(0, prev - 1));
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
     }
@@ -60,11 +88,6 @@ export const useNotifications = (filter?: NotificationFilter) => {
   const markAllAsRead = useCallback(async () => {
     try {
       await notificationsService.markAllAsRead();
-      // Update local state
-      setNotifications(prev =>
-        prev.map(notif => ({ ...notif, isRead: true, readAt: new Date().toISOString() }))
-      );
-      setUnread(0);
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
     }
@@ -73,9 +96,6 @@ export const useNotifications = (filter?: NotificationFilter) => {
   const deleteNotification = useCallback(async (notificationId: string) => {
     try {
       await notificationsService.deleteNotification(notificationId);
-      // Update local state
-      setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
-      setTotal(prev => Math.max(0, prev - 1));
     } catch (err) {
       console.error('Failed to delete notification:', err);
     }
@@ -101,6 +121,7 @@ export const useNotificationStats = () => {
   const [stats, setStats] = useState<NotificationStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { socket } = useSocket();
 
   const fetchStats = useCallback(async () => {
     try {
@@ -120,8 +141,28 @@ export const useNotificationStats = () => {
     fetchStats();
   }, [fetchStats]);
 
+  // Listen for real-time stats update
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleStatsUpdate = (data: any) => {
+      if (data.unread !== undefined) {
+        setStats(prev => prev ? { ...prev, unread: data.unread, total: data.total || prev.total } : null);
+      } else {
+        fetchStats();
+      }
+    };
+
+    socket.on('notification:stats', handleStatsUpdate);
+
+    return () => {
+      socket.off('notification:stats', handleStatsUpdate);
+    };
+  }, [socket, fetchStats]);
+
   return {
     stats,
+    unread: stats?.unread || 0,
     loading,
     error,
     refetch: fetchStats,
@@ -129,45 +170,9 @@ export const useNotificationStats = () => {
 };
 
 /**
- * Hook untuk real-time notification updates via WebSocket
+ * Hook untuk mengecek koneksi WebSocket
  */
 export const useRealtimeNotifications = () => {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    // In a real implementation, you'd connect to WebSocket here
-    // For now, we'll simulate with polling
-    const connectWebSocket = () => {
-      try {
-        // const ws = new WebSocket('ws://localhost:3001');
-        // ws.onopen = () => setConnected(true);
-        // ws.onclose = () => setConnected(false);
-        // ws.onmessage = (event) => {
-        //   const notification = JSON.parse(event.data);
-        //   // Handle incoming notification
-        // };
-        // setSocket(ws);
-
-        // Simulate connection
-        setConnected(true);
-      } catch (error) {
-        console.error('WebSocket connection failed:', error);
-        setConnected(false);
-      }
-    };
-
-    connectWebSocket();
-
-    return () => {
-      if (socket) {
-        socket.close();
-      }
-    };
-  }, []);
-
-  return {
-    connected,
-    socket,
-  };
+  const { connected, socket } = useSocket();
+  return { connected, socket };
 };

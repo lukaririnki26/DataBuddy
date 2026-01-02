@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
@@ -9,35 +9,41 @@ import {
   Plus,
   Settings,
   Trash2,
-  Copy,
-  Move,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  XCircle,
   X,
   Database,
-  Terminal,
-  Filter,
   RefreshCw,
-  Search,
-  ChevronRight,
+  CheckCircle,
   GripVertical,
 } from 'lucide-react';
 import { usePipelines } from '../hooks/usePipelines';
 import { pipelinesService } from '../services/pipelines.service';
 import { useToast } from '../context/ToastContext';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  IconButton,
+  Card,
+  CardContent,
+  Grid,
+  useTheme,
+  alpha,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText
+} from '@mui/material';
 
-/**
- * Available pipeline step types with futuristic icons
- */
 const STEP_TYPES = [
   {
     type: 'read',
     name: 'Read Data',
     description: 'Read data from files (CSV, Excel, JSON)',
-    icon: <Database className="w-5 h-5" />,
-    color: 'blue',
+    icon: <Database size={20} />,
+    color: 'info',
     category: 'Input',
     configSchema: {
       filePath: { type: 'string', required: true },
@@ -48,24 +54,24 @@ const STEP_TYPES = [
     type: 'transform',
     name: 'Transform Data',
     description: 'Transform and manipulate data columns',
-    icon: <RefreshCw className="w-5 h-5" />,
-    color: 'purple',
+    icon: <RefreshCw size={20} />,
+    color: 'secondary',
     category: 'Processing',
   },
   {
     type: 'validate',
     name: 'Validate Data',
     description: 'Validate data quality and constraints',
-    icon: <CheckCircle className="w-5 h-5" />,
-    color: 'emerald',
+    icon: <CheckCircle size={20} />,
+    color: 'success',
     category: 'Processing',
   },
   {
     type: 'write',
     name: 'Write Data',
     description: 'Write data to files or databases',
-    icon: <Save className="w-5 h-5" />,
-    color: 'indigo',
+    icon: <Save size={20} />,
+    color: 'warning',
     category: 'Output',
   },
 ];
@@ -82,8 +88,8 @@ interface PipelineStep {
 const PipelineBuilderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useSelector((state: RootState) => state.auth);
   const { success, error: toastError, info } = useToast();
+  const theme = useTheme();
 
   const [pipelineName, setPipelineName] = useState('');
   const [pipelineDescription, setPipelineDescription] = useState('');
@@ -93,13 +99,11 @@ const PipelineBuilderPage: React.FC = () => {
   const [showStepPalette, setShowStepPalette] = useState(false);
 
   const {
-    loading,
     createPipeline,
     updatePipeline,
     getPipeline,
   } = usePipelines();
 
-  // Load existing pipeline
   useEffect(() => {
     if (id && id !== 'new') {
       const loadPipeline = async () => {
@@ -205,216 +209,285 @@ const PipelineBuilderPage: React.FC = () => {
   const selectedStepData = selectedStep ? steps.find(step => step.id === selectedStep) : null;
 
   return (
-    <div className="min-h-screen bg-[#0f172a] bg-gradient-to-br from-slate-900 via-indigo-900/40 to-slate-900">
+    <Box sx={{
+      minHeight: '100vh',
+      background: theme.palette.background.default,
+      display: 'flex', flexDirection: 'column', overflow: 'hidden'
+    }}>
       {/* Dynamic Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-blob"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
-      </div>
+      <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <Box sx={{
+          position: 'absolute', top: '25%', left: '25%', width: 400, height: 400,
+          bgcolor: alpha(theme.palette.primary.main, 0.1), borderRadius: '50%', filter: 'blur(120px)',
+          animation: 'blob 7s infinite'
+        }} />
+        <Box sx={{
+          position: 'absolute', bottom: '25%', right: '25%', width: 400, height: 400,
+          bgcolor: alpha(theme.palette.secondary.main, 0.1), borderRadius: '50%', filter: 'blur(120px)',
+          animation: 'blob 7s infinite 2s'
+        }} />
+      </Box>
 
-      <div className="relative z-10 flex flex-col h-screen overflow-hidden">
-        {/* Futuristic Header */}
-        <header className="backdrop-blur-xl bg-slate-900/60 border-b border-white/10 px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <button
-                onClick={() => navigate('/pipelines')}
-                className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-slate-400 hover:text-white transition-all hover:scale-105"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
-                  {id && id !== 'new' ? 'Pipeline Editor' : 'Pipeline Genesis'}
-                </h1>
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Constructing Intelligent Workflows</p>
-              </div>
-            </div>
+      {/* Header */}
+      <Box sx={{
+        bgcolor: alpha(theme.palette.background.paper, 0.1), backdropFilter: 'blur(20px)',
+        borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+        px: 4, py: 2,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        position: 'relative', zIndex: 10
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <IconButton onClick={() => navigate('/pipelines')} sx={{ bgcolor: alpha(theme.palette.common.white, 0.05) }}>
+            <ArrowLeft size={20} />
+          </IconButton>
+          <Box>
+            <Typography variant="h6" fontWeight="bold" sx={{
+              background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              {id && id !== 'new' ? 'Pipeline Editor' : 'Pipeline Genesis'}
+            </Typography>
+            <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Constructing Intelligent Workflows
+            </Typography>
+          </Box>
+        </Box>
 
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={executePipeline}
-                disabled={steps.length === 0 || isExecuting}
-                className="group relative inline-flex items-center px-6 py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl font-bold hover:bg-emerald-500/20 transition-all disabled:opacity-30"
-              >
-                <Play className={`w-4 h-4 mr-2 ${isExecuting ? 'animate-spin' : 'group-hover:scale-110'}`} />
-                {isExecuting ? 'Processing...' : 'Execute'}
-              </button>
-              <button
-                onClick={savePipeline}
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] transition-all transform hover:scale-105"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save Blueprint
-              </button>
-            </div>
-          </div>
-        </header>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            onClick={executePipeline}
+            disabled={steps.length === 0 || isExecuting}
+            variant="outlined"
+            startIcon={<Play size={16} className={isExecuting ? 'animate-spin' : ''} />}
+            sx={{
+              color: theme.palette.success.light,
+              borderColor: alpha(theme.palette.success.main, 0.5),
+              '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.1), borderColor: theme.palette.success.main }
+            }}
+          >
+            {isExecuting ? 'Processing...' : 'Execute'}
+          </Button>
+          <Button
+            onClick={savePipeline}
+            variant="contained"
+            startIcon={<Save size={16} />}
+            sx={{
+              fontWeight: 'bold',
+              background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.dark})`
+            }}
+          >
+            Save Blueprint
+          </Button>
+        </Box>
+      </Box>
 
-        <main className="flex-1 flex overflow-hidden">
-          {/* Canvas Area */}
-          <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-            <div className="max-w-4xl mx-auto space-y-8">
-              {/* Configuration Panel */}
-              <section className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-400 ml-1">Blueprint Name</label>
-                    <input
-                      type="text"
+      {/* Main Content */}
+      <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 10 }}>
+        {/* Canvas */}
+        <Box sx={{ flex: 1, overflowY: 'auto', p: 4 }}>
+          <Box sx={{ maxWidth: 'md', mx: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {/* Config Panel */}
+            <Card sx={{
+              borderRadius: '2rem',
+              bgcolor: alpha(theme.palette.common.white, 0.05),
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+            }}>
+              <CardContent sx={{ p: 4 }}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ ml: 1, mb: 1, display: 'block' }}>Blueprint Name</Typography>
+                    <TextField
+                      fullWidth
                       value={pipelineName}
                       onChange={(e) => setPipelineName(e.target.value)}
-                      className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-6 py-4 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                       placeholder="My Intelligent Pipeline"
+                      variant="filled"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-400 ml-1">Strategy Description</label>
-                    <input
-                      type="text"
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ ml: 1, mb: 1, display: 'block' }}>Strategy Description</Typography>
+                    <TextField
+                      fullWidth
                       value={pipelineDescription}
                       onChange={(e) => setPipelineDescription(e.target.value)}
-                      className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-6 py-4 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                       placeholder="Defining the data transformation logic..."
+                      variant="filled"
                     />
-                  </div>
-                </div>
-              </section>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
 
-              {/* Pipeline Sequence */}
-              <div className="space-y-6">
-                <div className="flex items-center justify-between px-2">
-                  <h3 className="text-xl font-bold text-white">Operations Sequence</h3>
-                  <button
+            {/* Steps */}
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold">Operations Sequence</Typography>
+                <IconButton onClick={() => setShowStepPalette(true)} sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main }}>
+                  <Plus size={20} />
+                </IconButton>
+              </Box>
+
+              {steps.length === 0 ? (
+                <Box sx={{
+                  border: `2px dashed ${alpha(theme.palette.common.white, 0.1)}`,
+                  borderRadius: '2rem',
+                  py: 10, textAlign: 'center',
+                  bgcolor: alpha(theme.palette.common.white, 0.02)
+                }}>
+                  <Settings size={48} color={theme.palette.text.secondary} style={{ marginBottom: 16 }} />
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>Sequence Empty</Typography>
+                  <Typography color="text.secondary" sx={{ mb: 3 }}>Begin your automation journey by adding your first operational step.</Typography>
+                  <Button
                     onClick={() => setShowStepPalette(true)}
-                    className="p-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl border border-blue-500/30 transition-all group"
+                    variant="outlined"
+                    startIcon={<Plus size={16} />}
                   >
-                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                  </button>
-                </div>
+                    Add Initial Step
+                  </Button>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {steps.map((step, index) => {
+                    const template = STEP_TYPES.find(t => t.type === step.type);
+                    const isSelected = selectedStep === step.id;
+                    return (
+                      <Card
+                        key={step.id}
+                        onClick={() => setSelectedStep(step.id)}
+                        sx={{
+                          borderRadius: '1.5rem',
+                          cursor: 'pointer',
+                          bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.05),
+                          border: isSelected ? `1px solid ${theme.palette.primary.main}` : `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                          transition: 'all 0.2s',
+                          '&:hover': { bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.common.white, 0.08) }
+                        }}
+                      >
+                        <CardContent sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', '&:last-child': { pb: 3 } }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Box sx={{
+                              width: 40, height: 40, borderRadius: '12px',
+                              bgcolor: theme.palette.background.paper,
+                              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontWeight: '900', color: isSelected ? theme.palette.primary.main : 'text.secondary'
+                            }}>
+                              {String(index + 1).padStart(2, '0')}
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: alpha(theme.palette.grey[900], 0.5), border: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
+                                {template?.icon}
+                              </Box>
+                              <Box>
+                                <Typography variant="subtitle1" fontWeight="bold" color={isSelected ? 'primary.light' : 'text.primary'}>{step.name}</Typography>
+                                <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>{template?.category} Operation</Typography>
+                              </Box>
+                            </Box>
+                          </Box>
 
-                {steps.length === 0 ? (
-                  <div className="backdrop-blur-sm bg-white/3 border-2 border-dashed border-white/10 rounded-[2.5rem] py-24 text-center">
-                    <div className="relative inline-block mb-6">
-                      <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full"></div>
-                      <Settings className="w-16 h-16 text-slate-600 relative z-10 animate-pulse" />
-                    </div>
-                    <h4 className="text-2xl font-bold text-white mb-2">Sequence Empty</h4>
-                    <p className="text-slate-500 max-w-sm mx-auto mb-8">Begin your automation journey by adding your first operational step.</p>
-                    <button
-                      onClick={() => setShowStepPalette(true)}
-                      className="inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold border border-white/10 transition-all hover:scale-105"
-                    >
-                      <Plus className="w-5 h-5 mr-3" />
-                      Add Initial Step
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {steps.map((step, index) => {
-                      const template = STEP_TYPES.find(t => t.type === step.type);
-                      return (
-                        <div
-                          key={step.id}
-                          onClick={() => setSelectedStep(step.id)}
-                          className={`group relative backdrop-blur-md border rounded-2xl p-6 transition-all duration-300 cursor-pointer overflow-hidden ${selectedStep === step.id
-                              ? 'bg-blue-600/10 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20'
-                              : 'bg-white/5 border-white/10 hover:bg-white/8 hover:border-white/20'
-                            }`}
-                        >
-                          <div className="flex items-center justify-between relative z-10">
-                            <div className="flex items-center space-x-6">
-                              <div className="flex items-center justify-center w-12 h-12 bg-slate-900 rounded-2xl border border-white/10 shadow-xl group-hover:scale-110 transition-transform">
-                                <span className={`text-sm font-black ${selectedStep === step.id ? 'text-blue-400' : 'text-slate-500'}`}>0{index + 1}</span>
-                              </div>
-                              <div className="flex items-center space-x-4">
-                                <div className={`p-3 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5`}>
-                                  {template?.icon}
-                                </div>
-                                <div>
-                                  <h4 className="text-lg font-bold text-white group-hover:text-blue-200 transition-colors">{step.name}</h4>
-                                  <p className="text-xs font-bold uppercase tracking-tighter text-slate-500">{template?.category} Operation</p>
-                                </div>
-                              </div>
-                            </div>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <IconButton
+                              onClick={(e) => { e.stopPropagation(); removeStep(step.id); }}
+                              size="small"
+                              sx={{ color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.1) }}
+                            >
+                              <Trash2 size={16} />
+                            </IconButton>
+                            <IconButton size="small" sx={{ cursor: 'grab' }}>
+                              <GripVertical size={20} />
+                            </IconButton>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </Box>
 
-                            <div className="flex items-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={(e) => { e.stopPropagation(); removeStep(step.id); }} className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-all">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                              <div className="text-slate-600 cursor-grab active:cursor-grabbing">
-                                <GripVertical className="w-5 h-5" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Panel: Step Palette / Configuration */}
-          <aside className={`w-96 backdrop-blur-2xl bg-slate-900/40 border-l border-white/10 p-8 flex flex-col transition-all duration-500 ${showStepPalette || selectedStepData ? 'translate-x-0' : 'translate-x-full absolute right-0 h-full'}`}>
-            {showStepPalette ? (
-              <div className="flex flex-col h-full">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-black text-white italic tracking-tighter">Blueprint Palette</h3>
-                  <button onClick={() => setShowStepPalette(false)} className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-white/5">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="space-y-6 overflow-y-auto custom-scrollbar-mini pr-2">
-                  {STEP_TYPES.map(type => (
-                    <button
-                      key={type.type}
-                      onClick={() => addStep(type.type)}
-                      className="w-full group text-left p-5 bg-white/3 border border-white/5 rounded-3xl hover:bg-white/8 hover:border-white/20 transition-all hover:scale-[1.02]"
-                    >
-                      <div className="flex items-start space-x-4">
-                        <div className="p-4 bg-slate-950 rounded-2xl border border-white/10 group-hover:text-blue-400 transition-colors">
-                          {type.icon}
-                        </div>
-                        <div>
-                          <h5 className="font-bold text-white mb-1">{type.name}</h5>
-                          <p className="text-xs text-slate-500 leading-relaxed">{type.description}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : selectedStepData ? (
-              <div className="flex flex-col h-full">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-xl font-black text-white italic tracking-tighter">Step Intelligence</h3>
-                  <button onClick={() => setSelectedStep(null)} className="p-2 text-slate-500 hover:text-white rounded-lg hover:bg-white/5">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="space-y-8 flex-1">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Operational Name</label>
-                    <input
-                      type="text"
-                      value={selectedStepData.name}
-                      onChange={(e) => setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, name: e.target.value } : s))}
-                      className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-5 py-4 text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                    />
-                  </div>
-                  <div className="p-6 bg-blue-500/5 border border-blue-500/10 rounded-3xl">
-                    <h5 className="text-sm font-bold text-blue-300 mb-2">Neural Configuration</h5>
-                    <p className="text-xs text-slate-400 leading-relaxed">Defining hardware and logic constraints for this specific operational node. Advanced variables will appear below.</p>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </aside>
-        </main>
-      </div>
-    </div>
+        {/* Right Panel */}
+        <Box sx={{
+          width: 400,
+          borderLeft: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+          bgcolor: alpha(theme.palette.background.default, 0.8),
+          backdropFilter: 'blur(20px)',
+          position: 'absolute', right: 0, top: 0, bottom: 0,
+          transform: showStepPalette || selectedStepData ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s ease-in-out',
+          display: 'flex', flexDirection: 'column',
+          p: 4
+        }}>
+          {showStepPalette ? (
+            <>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                <Typography variant="h6" fontWeight="900" fontStyle="italic">Blueprint Palette</Typography>
+                <IconButton onClick={() => setShowStepPalette(false)} size="small">
+                  <X size={20} />
+                </IconButton>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
+                {STEP_TYPES.map(type => (
+                  <Card
+                    key={type.type}
+                    onClick={() => addStep(type.type)}
+                    sx={{
+                      cursor: 'pointer',
+                      bgcolor: alpha(theme.palette.common.white, 0.05),
+                      border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                      borderRadius: '1.5rem',
+                      '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1), transform: 'scale(1.02)' },
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <CardContent sx={{ p: 2, display: 'flex', gap: 2, '&:last-child': { pb: 2 } }}>
+                      <Box sx={{
+                        p: 2, borderRadius: '12px', bgcolor: theme.palette.background.default,
+                        border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                        color: `text.primary`
+                      }}>
+                        {type.icon}
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight="bold">{type.name}</Typography>
+                        <Typography variant="caption" color="text.secondary">{type.description}</Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            </>
+          ) : selectedStepData ? (
+            <>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                <Typography variant="h6" fontWeight="900" fontStyle="italic">Step Intelligence</Typography>
+                <IconButton onClick={() => setSelectedStep(null)} size="small">
+                  <X size={20} />
+                </IconButton>
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box>
+                  <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: 1, display: 'block' }}>Operational Name</Typography>
+                  <TextField
+                    fullWidth
+                    value={selectedStepData.name}
+                    onChange={(e) => setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, name: e.target.value } : s))}
+                    variant="filled"
+                  />
+                </Box>
+                <Box sx={{ p: 3, borderRadius: '1.5rem', bgcolor: alpha(theme.palette.info.main, 0.1), border: `1px solid ${alpha(theme.palette.info.main, 0.2)}` }}>
+                  <Typography variant="subtitle2" fontWeight="bold" color="info.light" gutterBottom>Neural Configuration</Typography>
+                  <Typography variant="caption" color="text.secondary">Defining hardware and logic constraints for this specific operational node. Advanced variables will appear below.</Typography>
+                </Box>
+              </Box>
+            </>
+          ) : null}
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

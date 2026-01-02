@@ -5,11 +5,9 @@ import {
     Cpu,
     Database,
     Zap,
-    Shield,
     RefreshCw,
     Clock,
     AlertCircle,
-    CheckCircle,
     BarChart3,
     Terminal,
     Server,
@@ -23,16 +21,28 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    BarChart,
-    Bar,
-    Cell
 } from 'recharts';
 import { useMonitoringDashboard, useSystemHealth } from '../hooks/useMonitoring';
+import {
+    Box,
+    Typography,
+    Grid,
+    Card,
+    CardContent,
+    Button,
+    IconButton,
+    Chip,
+    LinearProgress,
+    useTheme,
+    alpha,
+    CircularProgress
+} from '@mui/material';
 
 const MonitoringPage: React.FC = () => {
     const [timeRange, setTimeRange] = useState('24h');
     const { data, loading, error, refetch } = useMonitoringDashboard(timeRange);
     const { health, loading: healthLoading } = useSystemHealth();
+    const theme = useTheme();
 
     const formatUptime = (ms: number) => {
         const seconds = Math.floor(ms / 1000);
@@ -55,229 +65,298 @@ const MonitoringPage: React.FC = () => {
 
     if (loading && !data) {
         return (
-            <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-                <div className="text-center space-y-4">
-                    <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto"></div>
-                    <p className="text-slate-400 font-bold tracking-widest uppercase text-xs">Uplinking to Neural Monitoring...</p>
-                </div>
-            </div>
+            <Box sx={{
+                minHeight: '100vh',
+                bgcolor: theme.palette.background.default,
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+                <Box sx={{ textAlign: 'center' }}>
+                    <CircularProgress size={60} thickness={4} sx={{ color: theme.palette.primary.main, mb: 2 }} />
+                    <Typography variant="overline" color="text.secondary" fontWeight="900" letterSpacing={1.2}>
+                        Uplinking to Neural Monitoring...
+                    </Typography>
+                </Box>
+            </Box>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#0f172a] p-8 text-white">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <Box sx={{
+            minHeight: '100vh',
+            background: theme.palette.background.default,
+            p: { xs: 2, md: 4 }
+        }}>
+            <Box sx={{ maxWidth: 'xl', mx: 'auto' }}>
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="space-y-1">
-                        <h1 className="text-4xl font-black bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent italic tracking-tight">
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 3, mb: 4 }}>
+                    <Box>
+                        <Typography variant="h3" fontWeight="900" sx={{
+                            background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            mb: 0.5
+                        }}>
                             NEURAL MONITORING
-                        </h1>
-                        <p className="text-slate-400 font-medium">Real-time system health and performance architecture</p>
-                    </div>
+                        </Typography>
+                        <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                            Real-time system health and performance architecture
+                        </Typography>
+                    </Box>
 
-                    <div className="flex items-center gap-4">
-                        <div className="flex bg-slate-900/50 p-1 rounded-xl border border-white/5 backdrop-blur-md">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{ bgcolor: alpha(theme.palette.background.paper, 0.1), p: 0.5, borderRadius: '1rem', display: 'flex', gap: 0.5 }}>
                             {['1h', '24h', '7d'].map((range) => (
-                                <button
+                                <Button
                                     key={range}
                                     onClick={() => setTimeRange(range)}
-                                    className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${timeRange === range
-                                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
-                                        : 'text-slate-500 hover:text-slate-300'
-                                        }`}
+                                    size="small"
+                                    sx={{
+                                        minWidth: 0,
+                                        px: 2,
+                                        borderRadius: '0.75rem',
+                                        color: timeRange === range ? 'white' : 'text.secondary',
+                                        bgcolor: timeRange === range ? theme.palette.primary.main : 'transparent',
+                                        fontWeight: 'bold',
+                                        '&:hover': { bgcolor: timeRange === range ? theme.palette.primary.dark : alpha(theme.palette.common.white, 0.05) }
+                                    }}
                                 >
-                                    {range.toUpperCase()}
-                                </button>
+                                    {range}
+                                </Button>
                             ))}
-                        </div>
-                        <button
+                        </Box>
+                        <IconButton
                             onClick={() => refetch()}
-                            className="p-3 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-xl transition-all group"
+                            sx={{
+                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                color: theme.palette.primary.light,
+                                border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                                borderRadius: '1rem',
+                                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
+                            }}
                         >
-                            <RefreshCw className="w-5 h-5 group-active:rotate-180 transition-transform duration-500" />
-                        </button>
-                    </div>
-                </div>
+                            <RefreshCw size={20} />
+                        </IconButton>
+                    </Box>
+                </Box>
 
                 {/* Global Health Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <HealthCard
-                        title="SYSTEM STATUS"
-                        value={health?.status === 'healthy' ? 'OPERATIONAL' : 'DEGRADED'}
-                        icon={Server}
-                        color={health?.status === 'healthy' ? 'text-emerald-400' : 'text-amber-400'}
-                        loading={healthLoading}
-                    />
-                    <HealthCard
-                        title="SYSTEM UPTIME"
-                        value={formatUptime(health?.uptime || 0)}
-                        icon={Clock}
-                        color="text-blue-400"
-                        loading={healthLoading}
-                    />
-                    <HealthCard
-                        title="DATA THROUGHPUT"
-                        value={`${data?.pipelineStats?.throughputPerMinute || 0} req/m`}
-                        icon={Zap}
-                        color="text-purple-400"
-                        loading={loading}
-                    />
-                    <HealthCard
-                        title="ERROR RATE"
-                        value={`${(data?.pipelineStats?.errorRate || 0).toFixed(2)}%`}
-                        icon={AlertCircle}
-                        color={data?.pipelineStats?.errorRate && data.pipelineStats.errorRate > 5 ? 'text-red-400' : 'text-slate-300'}
-                        loading={loading}
-                    />
-                </div>
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                    <Grid item xs={12} sm={6} lg={3}>
+                        <HealthCard
+                            title="SYSTEM STATUS"
+                            value={health?.status === 'healthy' ? 'OPERATIONAL' : 'DEGRADED'}
+                            icon={Server}
+                            color={health?.status === 'healthy' ? theme.palette.success.main : theme.palette.warning.main}
+                            loading={healthLoading}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6} lg={3}>
+                        <HealthCard
+                            title="SYSTEM UPTIME"
+                            value={formatUptime(health?.uptime || 0)}
+                            icon={Clock}
+                            color={theme.palette.info.main}
+                            loading={healthLoading}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6} lg={3}>
+                        <HealthCard
+                            title="DATA THROUGHPUT"
+                            value={`${data?.pipelineStats?.throughputPerMinute || 0} req/m`}
+                            icon={Zap}
+                            color={theme.palette.secondary.main}
+                            loading={loading}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6} lg={3}>
+                        <HealthCard
+                            title="ERROR RATE"
+                            value={`${(data?.pipelineStats?.errorRate || 0).toFixed(2)}%`}
+                            icon={AlertCircle}
+                            color={data?.pipelineStats?.errorRate && data.pipelineStats.errorRate > 5 ? theme.palette.error.main : theme.palette.text.disabled}
+                            loading={loading}
+                        />
+                    </Grid>
+                </Grid>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <Grid container spacing={4}>
                     {/* Main Chart Area */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-8">
-                                <BarChart3 className="w-8 h-8 text-white/5 group-hover:text-indigo-500/20 transition-colors" />
-                            </div>
+                    <Grid item xs={12} lg={8}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <Card sx={{
+                                borderRadius: '2.5rem',
+                                bgcolor: alpha(theme.palette.common.white, 0.05),
+                                backdropFilter: 'blur(20px)',
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                                overflow: 'visible'
+                            }}>
+                                <CardContent sx={{ p: 4, position: 'relative' }}>
+                                    <Box sx={{ position: 'absolute', top: 0, right: 0, p: 4 }}>
+                                        <BarChart3 className="w-8 h-8 text-white/5" />
+                                    </Box>
 
-                            <div className="space-y-8 relative z-10">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-bold italic tracking-tight">Performance Topology</h3>
-                                    <div className="flex gap-6">
-                                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                            <div className="w-2 h-2 rounded-full bg-indigo-500"></div> Throughput
-                                        </div>
-                                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                            <div className="w-2 h-2 rounded-full bg-purple-500"></div> Latency
-                                        </div>
-                                    </div>
-                                </div>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                                        <Typography variant="h6" fontWeight="bold" fontStyle="italic">Performance Topology</Typography>
+                                        <Box sx={{ display: 'flex', gap: 3 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: theme.palette.primary.main }} />
+                                                <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Throughput</Typography>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: theme.palette.secondary.main }} />
+                                                <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Latency</Typography>
+                                            </Box>
+                                        </Box>
+                                    </Box>
 
-                                <div className="h-[350px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={performanceData}>
-                                            <defs>
-                                                <linearGradient id="colorThroughput" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                                </linearGradient>
-                                                <linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                            <XAxis
-                                                dataKey="time"
-                                                stroke="rgba(255,255,255,0.3)"
-                                                fontSize={10}
-                                                tickLine={false}
-                                                axisLine={false}
-                                            />
-                                            <YAxis
-                                                stroke="rgba(255,255,255,0.3)"
-                                                fontSize={10}
-                                                tickLine={false}
-                                                axisLine={false}
-                                            />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: '#0f172a',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                    borderRadius: '16px',
-                                                    color: '#fff'
-                                                }}
-                                            />
-                                            <Area
-                                                type="monotone"
-                                                dataKey="throughput"
-                                                stroke="#6366f1"
-                                                fillOpacity={1}
-                                                fill="url(#colorThroughput)"
-                                                strokeWidth={3}
-                                            />
-                                            <Area
-                                                type="monotone"
-                                                dataKey="latency"
-                                                stroke="#a855f7"
-                                                fillOpacity={1}
-                                                fill="url(#colorLatency)"
-                                                strokeWidth={3}
-                                            />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        </div>
+                                    <Box sx={{ height: 350, width: '100%' }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={performanceData}>
+                                                <defs>
+                                                    <linearGradient id="colorThroughput" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={0.3} />
+                                                        <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={0} />
+                                                    </linearGradient>
+                                                    <linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor={theme.palette.secondary.main} stopOpacity={0.3} />
+                                                        <stop offset="95%" stopColor={theme.palette.secondary.main} stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.common.white, 0.05)} vertical={false} />
+                                                <XAxis dataKey="time" stroke={alpha(theme.palette.common.white, 0.3)} fontSize={10} tickLine={false} axisLine={false} />
+                                                <YAxis stroke={alpha(theme.palette.common.white, 0.3)} fontSize={10} tickLine={false} axisLine={false} />
+                                                <Tooltip
+                                                    contentStyle={{
+                                                        backgroundColor: theme.palette.background.default,
+                                                        border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                                                        borderRadius: '16px',
+                                                        color: '#fff'
+                                                    }}
+                                                />
+                                                <Area type="monotone" dataKey="throughput" stroke={theme.palette.primary.main} fillOpacity={1} fill="url(#colorThroughput)" strokeWidth={3} />
+                                                <Area type="monotone" dataKey="latency" stroke={theme.palette.secondary.main} fillOpacity={1} fill="url(#colorLatency)" strokeWidth={3} />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </Box>
+                                </CardContent>
+                            </Card>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2rem] p-8 space-y-6">
-                                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500">Resource Allocation</h3>
-                                <div className="space-y-4">
-                                    <ResourceMetric label="CPU Clusters" value={health?.cpu?.user || 0} color="bg-indigo-500" />
-                                    <ResourceMetric label="Neural Memory" value={(health?.memory?.heapUsed / health?.memory?.heapTotal * 100) || 0} color="bg-purple-500" />
-                                </div>
-                            </div>
-                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2rem] p-8 space-y-6">
-                                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500">Database Synchrony</h3>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Database className="w-5 h-5 text-indigo-400" />
-                                        <span className="text-xs font-bold">Main Node</span>
-                                    </div>
-                                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black rounded-full border border-emerald-500/20 uppercase">Connected</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Network className="w-5 h-5 text-purple-400" />
-                                        <span className="text-xs font-bold">Cache Layer</span>
-                                    </div>
-                                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black rounded-full border border-emerald-500/20 uppercase">Connected</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} md={6}>
+                                    <Card sx={{ borderRadius: '2rem', bgcolor: alpha(theme.palette.common.white, 0.05), border: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
+                                        <CardContent sx={{ p: 4 }}>
+                                            <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', mb: 3, display: 'block' }}>Resource Allocation</Typography>
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                                <ResourceMetric label="CPU Clusters" value={health?.cpu?.user || 0} color={theme.palette.primary.main} />
+                                                <ResourceMetric label="Neural Memory" value={(health?.memory?.heapUsed / health?.memory?.heapTotal * 100) || 0} color={theme.palette.secondary.main} />
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <Card sx={{ borderRadius: '2rem', bgcolor: alpha(theme.palette.common.white, 0.05), border: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
+                                        <CardContent sx={{ p: 4 }}>
+                                            <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', mb: 3, display: 'block' }}>Database Synchrony</Typography>
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                        <Database size={16} color={theme.palette.primary.light} />
+                                                        <Typography variant="caption" fontWeight="bold">Main Node</Typography>
+                                                    </Box>
+                                                    <Chip label="Connected" size="small" sx={{ bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.light, fontWeight: 900, fontSize: '0.625rem', height: 20 }} />
+                                                </Box>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                        <Network size={16} color={theme.palette.secondary.light} />
+                                                        <Typography variant="caption" fontWeight="bold">Cache Layer</Typography>
+                                                    </Box>
+                                                    <Chip label="Connected" size="small" sx={{ bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.light, fontWeight: 900, fontSize: '0.625rem', height: 20 }} />
+                                                </Box>
+                                            </Box>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    </Grid>
 
                     {/* Neural Logs */}
-                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8 flex flex-col max-h-[850px]">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Terminal className="w-5 h-5 text-indigo-400" />
-                                <h3 className="text-lg font-bold italic tracking-tight">Neural Logs</h3>
-                            </div>
-                            <Activity className="w-4 h-4 text-slate-600 animate-pulse" />
-                        </div>
+                    <Grid item xs={12} lg={4}>
+                        <Card sx={{
+                            height: '100%',
+                            borderRadius: '2.5rem',
+                            bgcolor: alpha(theme.palette.common.white, 0.05), // Use common.white for glassmorphism
+                            backdropFilter: 'blur(20px)',
+                            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                            display: 'flex', flexDirection: 'column'
+                        }}>
+                            <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <Terminal size={20} color={theme.palette.primary.light} />
+                                        <Typography variant="h6" fontWeight="bold" fontStyle="italic">Neural Logs</Typography>
+                                    </Box>
+                                    <Activity size={16} color={theme.palette.text.secondary} />
+                                </Box>
 
-                        <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                            {data?.recentExecutions?.map((exec, idx) => (
-                                <div key={idx} className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors group">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${exec.status === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                            }`}>
-                                            {exec.status}
-                                        </span>
-                                        <span className="text-[10px] text-slate-500 font-medium">{new Date(exec.executedAt).toLocaleTimeString()}</span>
-                                    </div>
-                                    <h4 className="text-sm font-bold text-slate-200 mb-1 group-hover:text-indigo-300 transition-colors">{exec.pipelineName}</h4>
-                                    <p className="text-xs text-slate-500 line-clamp-1">{exec.processedItems} units synthesized in {exec.executionTime}ms</p>
-                                </div>
-                            ))}
+                                <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    {data?.recentExecutions?.map((exec, idx) => (
+                                        <Box key={idx} sx={{
+                                            p: 2, borderRadius: '1rem',
+                                            bgcolor: alpha(theme.palette.common.white, 0.05),
+                                            border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
+                                            '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.08) },
+                                            transition: 'all 0.2s'
+                                        }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                <Chip
+                                                    label={exec.status}
+                                                    size="small"
+                                                    sx={{
+                                                        height: 20, fontSize: '0.625rem', fontWeight: 900, textTransform: 'uppercase',
+                                                        bgcolor: exec.status === 'success' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
+                                                        color: exec.status === 'success' ? theme.palette.success.light : theme.palette.error.light,
+                                                        border: `1px solid ${exec.status === 'success' ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.error.main, 0.2)}`
+                                                    }}
+                                                />
+                                                <Typography variant="caption" color="text.secondary" fontWeight="medium">{new Date(exec.executedAt).toLocaleTimeString()}</Typography>
+                                            </Box>
+                                            <Typography variant="subtitle2" color="text.primary" fontWeight="bold" gutterBottom>{exec.pipelineName}</Typography>
+                                            <Typography variant="caption" color="text.secondary" display="block" noWrap>
+                                                {exec.processedItems} units synthesized in {exec.executionTime}ms
+                                            </Typography>
+                                        </Box>
+                                    ))}
 
-                            {(!data?.recentExecutions || data.recentExecutions.length === 0) && (
-                                <div className="h-full flex flex-col items-center justify-center text-slate-600 italic py-20">
-                                    <Network className="w-12 h-12 mb-4 opacity-10" />
-                                    <p className="text-xs font-black uppercase tracking-widest">No active logs detected</p>
-                                </div>
-                            )}
-                        </div>
+                                    {(!data?.recentExecutions || data.recentExecutions.length === 0) && (
+                                        <Box sx={{ py: 10, textAlign: 'center', opacity: 0.5 }}>
+                                            <Network size={48} style={{ margin: '0 auto 16px', opacity: 0.2 }} />
+                                            <Typography variant="caption" fontWeight="900" textTransform="uppercase">No active logs detected</Typography>
+                                        </Box>
+                                    )}
+                                </Box>
 
-                        <Link to="/dashboard" className="w-full py-4 bg-indigo-500 text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-lg shadow-indigo-500/25 hover:bg-indigo-600 transition-all hover:scale-[1.02] active:scale-95 text-center block">
-                            Access History Matrix
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        </div>
+                                <Button
+                                    component={Link}
+                                    to="/dashboard"
+                                    fullWidth
+                                    variant="contained"
+                                    sx={{
+                                        mt: 4, py: 1.5,
+                                        borderRadius: '1rem',
+                                        fontWeight: 900, letterSpacing: '0.1em', fontSize: '0.625rem',
+                                        bgcolor: theme.palette.primary.main,
+                                        '&:hover': { bgcolor: theme.palette.primary.dark }
+                                    }}
+                                >
+                                    Access History Matrix
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Box>
+        </Box>
     );
 };
 
@@ -289,36 +368,65 @@ interface HealthCardProps {
     loading?: boolean;
 }
 
-const HealthCard: React.FC<HealthCardProps> = ({ title, value, icon: Icon, color, loading }) => (
-    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2rem] p-6 space-y-4 hover:bg-white/8 transition-all group">
-        <div className="flex items-center justify-between">
-            <div className={`p-3 rounded-2xl bg-white/5 border border-white/5 group-hover:scale-110 transition-transform ${color}`}>
-                <Icon className="w-5 h-5" />
-            </div>
-            <div className="w-6 h-6 rounded-full border border-white/5 flex items-center justify-center">
-                <div className={`w-1.5 h-1.5 rounded-full ${color} animate-pulse`}></div>
-            </div>
-        </div>
-        <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{title}</h4>
-            <div className={`text-xl font-bold tracking-tight ${loading ? 'opacity-20 animate-pulse' : ''}`}>{value}</div>
-        </div>
-    </div>
-);
+const HealthCard: React.FC<HealthCardProps> = ({ title, value, icon: Icon, color, loading }) => {
+    const theme = useTheme();
+    return (
+        <Card sx={{
+            borderRadius: '2rem',
+            bgcolor: alpha(theme.palette.common.white, 0.05),
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            transition: 'all 0.3s',
+            '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.08) }
+        }}>
+            <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{
+                        p: 1.5, borderRadius: '1rem',
+                        bgcolor: alpha(theme.palette.common.white, 0.05),
+                        border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
+                        color: color
+                    }}>
+                        <Icon size={20} />
+                    </Box>
+                    <Box sx={{ width: 24, height: 24, borderRadius: '50%', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: color, animation: 'pulse 2s infinite' }} />
+                    </Box>
+                </Box>
+                <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                    {title}
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" sx={{ opacity: loading ? 0.5 : 1 }}>
+                    {value}
+                </Typography>
+            </CardContent>
+        </Card>
+    );
+};
 
-const ResourceMetric: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => (
-    <div className="space-y-2">
-        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
-            <span>{label}</span>
-            <span className="text-white italic">{Math.round(value)}%</span>
-        </div>
-        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-            <div
-                className={`h-full ${color} transition-all duration-1000 ease-out`}
-                style={{ width: `${value}%` }}
-            ></div>
-        </div>
-    </div>
-);
+const ResourceMetric: React.FC<{ label: string; value: number; color: string }> = ({ label, value, color }) => {
+    const theme = useTheme();
+    return (
+        <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</Typography>
+                <Typography variant="caption" fontWeight="bold" sx={{ color: 'white' }}>{Math.round(value)}%</Typography>
+            </Box>
+            <LinearProgress
+                variant="determinate"
+                value={value}
+                sx={{
+                    height: 6,
+                    borderRadius: '999px',
+                    bgcolor: alpha(theme.palette.common.white, 0.05),
+                    '& .MuiLinearProgress-bar': {
+                        bgcolor: color,
+                        borderRadius: '999px'
+                    }
+                }}
+            />
+        </Box>
+    );
+};
 
 export default MonitoringPage;

@@ -112,6 +112,7 @@ export class DataService {
 
       // Buat record import di database
       const dataImport = this.dataImportRepository.create({
+        name: file.originalname,
         filename: file.originalname,
         filePath,
         fileSize: file.size,
@@ -539,6 +540,7 @@ export class DataService {
 
       // Simpan record export ke database
       const dataExport = this.dataExportRepository.create({
+        name: baseFilename,
         filename: `${baseFilename}.${options.format}`,
         filePath,
         fileSize: await this.getFileSize(filePath),
@@ -690,6 +692,116 @@ export class DataService {
       order: { createdAt: "DESC" },
       take: limit,
     });
+  }
+
+  /**
+   * Process import dengan pipeline
+   */
+  async processImport(
+    importId: string,
+    pipelineId?: string,
+  ): Promise<{ import: DataImport; jobId: string }> {
+    const importRecord = await this.dataImportRepository.findOne({
+      where: { id: importId },
+    });
+
+    if (!importRecord) {
+      throw new BadRequestException("Import record not found");
+    }
+
+    // Update status ke processing
+    importRecord.status = ImportStatus.PROCESSING;
+    await this.dataImportRepository.save(importRecord);
+
+    // Tambahkan job ke queue (stubbed for now - assuming queue name is 'import-queue' from constructor)
+    const job = await this.importQueue.add("process-import", {
+      importId,
+      pipelineId,
+    });
+
+    return {
+      import: importRecord,
+      jobId: job.id!,
+    };
+  }
+
+  /**
+   * Get download info
+   */
+  async getDownloadInfo(filename: string): Promise<any> {
+    return {
+      filename,
+      message: "File streaming implementation required for production",
+      url: `/api/data/download/${filename}`,
+    };
+  }
+
+  /**
+   * Delete import
+   */
+  async deleteImport(id: string): Promise<void> {
+    const importRecord = await this.dataImportRepository.findOne({
+      where: { id },
+    });
+
+    if (!importRecord) {
+      throw new BadRequestException("Import record not found");
+    }
+
+    // Hapus file
+    try {
+      await fs.unlink(importRecord.filePath);
+    } catch (e) {
+      this.logger.warn(`Failed to delete file ${importRecord.filePath}`);
+    }
+
+    await this.dataImportRepository.remove(importRecord);
+  }
+
+  /**
+   * Get details
+   */
+  async getImportDetails(id: string): Promise<DataImport> {
+    const record = await this.dataImportRepository.findOne({ where: { id } });
+    if (!record) throw new BadRequestException("Record not found");
+    return record;
+  }
+
+  async getExportDetails(id: string): Promise<DataExport> {
+    const record = await this.dataExportRepository.findOne({ where: { id } });
+    if (!record) throw new BadRequestException("Record not found");
+    return record;
+  }
+
+  /**
+   * Get data preview dari record yang sudah ada
+   */
+  async getDataPreview(
+    importId: string,
+    options: { limit: number; offset: number },
+  ): Promise<{ data: any[]; totalRows: number; columns: string[] }> {
+    const importRecord = await this.getImportDetails(importId);
+
+    // Baca file dan parse
+    const fileBuffer = await fs.readFile(importRecord.filePath);
+    const parsedData = await this.parseFile(
+      {
+        buffer: fileBuffer,
+        originalname: importRecord.filename,
+        mimetype: importRecord.mimeType,
+        size: importRecord.fileSize,
+      } as Express.Multer.File,
+      importRecord.metadata,
+    );
+
+    return {
+      data: parsedData.data.slice(
+        options.offset,
+        options.offset + options.limit,
+      ),
+      totalRows: parsedData.rowCount,
+      columns: parsedData.columns,
+    };
   }
 
   /**

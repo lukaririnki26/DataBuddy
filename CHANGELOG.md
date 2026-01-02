@@ -5,6 +5,18 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-01-02
+
+### Added
+- **Backend Pipelines**: Enhanced pipeline runner service with improved step factory and controller support.
+- **Real-time Notifications**: Integrated `SocketContext` in frontend and `websocket.gateway` in backend for live updates.
+- **Profile & Settings**: Added dedicated, theme-compliant pages for user profile and application settings.
+
+### Changed
+- **Frontend Architecture**: Refactored `App.tsx` and `main.tsx` to support new context providers (Socket, Toast).
+- **API Integration**: Updated `api.ts` and `authSlice.ts` to handle improved authentication and error flows.
+- **Monitoring & Data**: synchronized backend services (`monitoring`, `data`) with the new frontend dashboard capabilities.
+
 ## [1.2.1] - 2026-01-02
 
 ### Fixed

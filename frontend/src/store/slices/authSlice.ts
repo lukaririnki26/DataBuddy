@@ -6,15 +6,7 @@
  */
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-// Create axios instance without auth interceptor for login/register
-const publicApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import { api } from '../../services/api';
 
 export interface User {
   id: string;
@@ -57,8 +49,8 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await publicApi.post('/api/auth/login', credentials);
-      const { user, tokens } = response.data;
+      const response = await api.post('/auth/login', credentials);
+      const { user, tokens } = response;
 
       // Store tokens in localStorage
       localStorage.setItem('accessToken', tokens.accessToken);
@@ -83,8 +75,8 @@ export const registerUser = createAsyncThunk(
     role?: string;
   }, { rejectWithValue }) => {
     try {
-      const response = await publicApi.post('/api/auth/register', userData);
-      const { user, tokens } = response.data;
+      const response = await api.post('/auth/register', userData);
+      const { user, tokens } = response;
 
       // Store tokens in localStorage
       localStorage.setItem('accessToken', tokens.accessToken);
@@ -108,11 +100,11 @@ export const refreshToken = createAsyncThunk(
         throw new Error('No refresh token available');
       }
 
-      const response = await publicApi.post('/api/auth/refresh', {
+      const response = await api.post('/auth/refresh', {
         refreshToken,
       });
 
-      const { accessToken, refreshToken: newRefreshToken } = response.data;
+      const { accessToken, refreshToken: newRefreshToken } = response;
 
       // Update tokens in localStorage
       localStorage.setItem('accessToken', accessToken);
@@ -136,12 +128,8 @@ export const logoutUser = createAsyncThunk(
 
     try {
       if (accessToken) {
-        // Use axios with Authorization header for logout
-        await axios.post('/api/auth/logout', {}, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        // Use api service for logout
+        await api.post('/auth/logout');
       }
     } catch (error) {
       // Ignore logout errors
@@ -162,12 +150,8 @@ export const getCurrentUser = createAsyncThunk(
         throw new Error('No access token available');
       }
 
-      const response = await axios.get('/api/auth/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      return response.data;
+      const response = await api.get('/auth/me');
+      return response;
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || 'Failed to get user data'
@@ -189,11 +173,7 @@ export const changePassword = createAsyncThunk(
         throw new Error('No access token available');
       }
 
-      await axios.put('/api/auth/password', passwordData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      await api.put('/auth/password', passwordData);
       return { success: true };
     } catch (error: any) {
       return rejectWithValue(

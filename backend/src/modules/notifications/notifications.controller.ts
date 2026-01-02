@@ -41,7 +41,7 @@ import {
 @Controller("notifications")
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(private readonly notificationsService: NotificationsService) { }
 
   @Get()
   @ApiOperation({
@@ -106,13 +106,7 @@ export class NotificationsController {
     description: "Notification statistics retrieved successfully",
   })
   async getNotificationStats(@Request() req) {
-    // Temporarily return dummy data
-    return {
-      total: 0,
-      unread: 0,
-      byType: {},
-      byPriority: {},
-    };
+    return this.notificationsService.getNotificationStats(req.user.id);
   }
 
   @Post(":id/read")
@@ -164,8 +158,7 @@ export class NotificationsController {
     @Param("id") notificationId: string,
     @Request() req,
   ) {
-    // TODO: Implement delete notification
-    // await this.notificationsService.deleteNotification(notificationId, req.user.id);
+    await this.notificationsService.deleteNotification(notificationId, req.user.id);
     return { message: "Notification deleted successfully" };
   }
 

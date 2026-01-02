@@ -18,6 +18,8 @@ import {
   UseGuards,
   Request,
   Query,
+  Patch,
+  Delete,
   Param,
   BadRequestException,
 } from "@nestjs/common";
@@ -42,7 +44,7 @@ import {
 @Controller("data")
 @UseGuards(JwtAuthGuard)
 export class DataController {
-  constructor(private readonly dataService: DataService) {}
+  constructor(private readonly dataService: DataService) { }
 
   @Post("upload")
   @UseInterceptors(FileInterceptor("file"))
@@ -238,14 +240,59 @@ export class DataController {
     };
   }
 
+  @Post("imports/:id/process")
+  @ApiOperation({ summary: "Process an import" })
+  async processImport(
+    @Param("id") id: string,
+    @Body("pipelineId") pipelineId?: string,
+  ) {
+    return this.dataService.processImport(id, pipelineId);
+  }
+
+  @Get("exports/:filename/download")
+  @ApiOperation({
+    summary: "Download exported file",
+    description: "Download file yang sudah diexport berdasarkan filename.",
+  })
+  async downloadFile(@Param("filename") filename: string) {
+    return this.dataService.getDownloadInfo(filename);
+  }
+
+  @Delete("imports/:id")
+  @ApiOperation({ summary: "Delete import record" })
+  async deleteImport(@Param("id") id: string) {
+    return this.dataService.deleteImport(id);
+  }
+
+  @Get("imports/:id")
+  @ApiOperation({ summary: "Get import details" })
+  async getImportDetails(@Param("id") id: string) {
+    return this.dataService.getImportDetails(id);
+  }
+
+  @Get("exports/:id")
+  @ApiOperation({ summary: "Get export details" })
+  async getExportDetails(@Param("id") id: string) {
+    return this.dataService.getExportDetails(id);
+  }
+
+  @Get("imports/:id/preview")
+  @ApiOperation({ summary: "Get data preview for an import" })
+  async getDataPreview(
+    @Param("id") id: string,
+    @Query("limit") limit?: string,
+    @Query("offset") offset?: string,
+  ) {
+    return this.dataService.getDataPreview(id, {
+      limit: limit ? parseInt(limit, 10) : 10,
+      offset: offset ? parseInt(offset, 10) : 0,
+    });
+  }
+
   @Get("imports")
   @ApiOperation({
     summary: "Get import history",
     description: "Mengambil riwayat file import untuk user yang sedang login.",
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Import history retrieved successfully",
   })
   async getImportHistory(@Request() req, @Query("limit") limit?: string) {
     const limitNum = limit ? parseInt(limit, 10) : 20;
@@ -257,32 +304,9 @@ export class DataController {
     summary: "Get export history",
     description: "Mengambil riwayat file export untuk user yang sedang login.",
   })
-  @ApiResponse({
-    status: 200,
-    description: "Export history retrieved successfully",
-  })
   async getExportHistory(@Request() req, @Query("limit") limit?: string) {
     const limitNum = limit ? parseInt(limit, 10) : 20;
     return this.dataService.getExportHistory(req.user.id, limitNum);
-  }
-
-  @Get("download/:filename")
-  @ApiOperation({
-    summary: "Download exported file",
-    description: "Download file yang sudah diexport berdasarkan filename.",
-  })
-  @ApiResponse({
-    status: 200,
-    description: "File download initiated",
-  })
-  async downloadFile(@Param("filename") filename: string) {
-    // Dalam implementasi nyata, ini akan menggunakan express response untuk stream file
-    // Untuk sementara return info file
-    return {
-      filename,
-      message:
-        "File download endpoint - implementasi penuh memerlukan file streaming",
-    };
   }
 
   @Get("templates")

@@ -27,7 +27,7 @@ export interface ApiError {
 }
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const API_TIMEOUT = 30000; // 30 seconds
 
 console.log('API Configuration:', {
@@ -86,9 +86,9 @@ class ApiClient {
 
         // Transform error to consistent format
         const apiError: ApiError = {
-          message: error.response?.data?.message || error.message || 'An error occurred',
+          message: (error.response?.data as any)?.message || error.message || 'An error occurred',
           statusCode: error.response?.status || 500,
-          error: error.response?.data?.error,
+          error: (error.response?.data as any)?.error,
         };
 
         return Promise.reject(apiError);

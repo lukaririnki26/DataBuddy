@@ -1,155 +1,248 @@
-/**
- * Landing Page Component
- *
- * Halaman landing utama DataBuddy dengan informasi produk dan call-to-action.
- * Menampilkan fitur-fitur utama dan navigasi ke halaman login.
- */
-
 import React from 'react';
+import { useTheme, Box, Typography, Button, Container, Grid, Card, CardContent, alpha } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import {
+  AutoAwesome as AutoAwesomeIcon,
+  Analytics as AnalyticsIcon,
+  Security as SecurityIcon,
+  ArrowForward as ArrowForwardIcon
+} from '@mui/icons-material';
 
 const LandingPage: React.FC = () => {
-  console.log('LandingPage component is rendering at:', new Date().toISOString());
-  React.useEffect(() => {
-    console.log('LandingPage mounted successfully!');
-  }, []);
+  const theme = useTheme();
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-3/4 right-1/4 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
+    <Box sx={{
+      minHeight: '100vh',
+      bgcolor: theme.palette.background.default, // Use theme background which has the gradient
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Animated background elements - Recreated using Box for consistency */}
+      <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <Box sx={{
+          position: 'absolute', top: '25%', left: '25%', width: 288, height: 288,
+          bgcolor: theme.palette.secondary.main, borderRadius: '50%',
+          filter: 'blur(80px)', opacity: 0.2, mixBlendMode: 'multiply',
+          animation: 'blob 7s infinite'
+        }} />
+        <Box sx={{
+          position: 'absolute', top: '75%', right: '25%', width: 288, height: 288,
+          bgcolor: theme.palette.primary.main, borderRadius: '50%',
+          filter: 'blur(80px)', opacity: 0.2, mixBlendMode: 'multiply',
+          animation: 'blob 7s infinite 2s'
+        }} />
+        <Box sx={{
+          position: 'absolute', bottom: '25%', left: '33%', width: 288, height: 288,
+          bgcolor: theme.palette.error.main, borderRadius: '50%',
+          filter: 'blur(80px)', opacity: 0.2, mixBlendMode: 'multiply',
+          animation: 'blob 7s infinite 4s'
+        }} />
+      </Box>
 
       {/* Header */}
-      <header className="relative z-10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-xl">D</span>
-            </div>
-            <h1 className="text-2xl font-bold text-white">DataBuddy</h1>
-          </div>
-          <button
-            onClick={() => window.location.href = '/login'}
-            className="px-6 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white hover:bg-white/20 transition-all duration-300"
+      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 10, py: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{
+              width: 40, height: 40,
+              background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.main})`,
+              borderRadius: '12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: 'white' }}>D</Typography>
+            </Box>
+            <Typography variant="h5" fontWeight="bold" sx={{ color: 'text.primary' }}>DataBuddy</Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            onClick={() => navigate('/login')}
+            sx={{
+              borderRadius: '9999px',
+              borderColor: alpha(theme.palette.common.white, 0.2),
+              color: 'text.primary',
+              '&:hover': {
+                borderColor: alpha(theme.palette.common.white, 0.4),
+                bgcolor: alpha(theme.palette.common.white, 0.1)
+              }
+            }}
           >
             Sign In
-          </button>
-        </div>
-      </header>
+          </Button>
+        </Box>
+      </Container>
 
       {/* Hero Section */}
-      <main className="relative z-10 px-6 py-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="text-6xl md:text-8xl font-bold text-white mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Transform Data
-              </span>
-              <br />
-              <span className="text-white">Into Intelligence</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              DataBuddy is your AI-powered data management platform that automates workflows,
-              ensures data quality, and delivers actionable insights through intelligent pipelines.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => window.location.href = '/login'}
-                className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full text-white font-semibold text-lg hover:shadow-2xl hover:shadow-cyan-500/25 transform hover:scale-105 transition-all duration-300"
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 10, py: 15 }}>
+        <Box sx={{ textAlign: 'center', mb: 10 }}>
+          <Typography variant="h1" sx={{
+            fontSize: { xs: '3rem', md: '5rem' },
+            fontWeight: 800,
+            mb: 3,
+            lineHeight: 1.1
+          }}>
+            <Box component="span" sx={{
+              background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light}, #ec4899)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              Transform Data
+            </Box>
+            <br />
+            <Box component="span" sx={{ color: 'text.primary' }}>Into Intelligence</Box>
+          </Typography>
+          <Typography variant="h5" sx={{
+            color: 'text.secondary',
+            mb: 6,
+            maxWidth: 'md',
+            mx: 'auto',
+            lineHeight: 1.6
+          }}>
+            DataBuddy is your AI-powered data management platform that automates workflows,
+            ensures data quality, and delivers actionable insights through intelligent pipelines.
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'center' }}>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => navigate('/login')}
+              sx={{
+                px: 6, py: 2,
+                borderRadius: '9999px',
+                fontSize: '1.2rem',
+                background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.dark})`,
+              }}
+            >
+              Start Building Pipelines
+            </Button>
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              sx={{
+                px: 6, py: 2,
+                borderRadius: '9999px',
+                fontSize: '1.2rem',
+                borderColor: alpha(theme.palette.common.white, 0.2),
+                color: 'text.primary',
+                '&:hover': {
+                  borderColor: alpha(theme.palette.common.white, 0.4),
+                  bgcolor: alpha(theme.palette.common.white, 0.1)
+                }
+              }}
+            >
+              Explore Features
+            </Button>
+          </Box>
+        </Box>
+
+        {/* Features Grid */}
+        <Grid container spacing={4} id="features" sx={{ mb: 15 }}>
+          {[
+            {
+              title: 'Smart Pipelines',
+              desc: 'Build intelligent data processing workflows with drag-and-drop simplicity. Automate processes with AI assistance.',
+              icon: <AutoAwesomeIcon sx={{ fontSize: 32, color: 'white' }} />,
+              gradient: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.primary.dark})`
+            },
+            {
+              title: 'Real-time Analytics',
+              desc: 'Monitor pipeline performance, data quality metrics, and system health with beautiful dashboards.',
+              icon: <AnalyticsIcon sx={{ fontSize: 32, color: 'white' }} />,
+              gradient: `linear-gradient(to right, ${theme.palette.secondary.light}, ${theme.palette.secondary.dark})`
+            },
+            {
+              title: 'Enterprise Security',
+              desc: 'Bank-grade security with role-based access control, audit logs, and encrypted data processing.',
+              icon: <SecurityIcon sx={{ fontSize: 32, color: 'white' }} />,
+              gradient: `linear-gradient(to right, #f472b6, #ef4444)`
+            }
+          ].map((feature) => (
+            <Grid item xs={12} md={4} key={feature.title}>
+              <Card sx={{
+                height: '100%',
+                bgcolor: alpha(theme.palette.background.paper, 0.05),
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                transition: 'all 0.3s',
+                '&:hover': {
+                  transform: 'translateY(-8px)',
+                  bgcolor: alpha(theme.palette.background.paper, 0.1)
+                }
+              }}>
+                <CardContent sx={{ p: 4 }}>
+                  <Box sx={{
+                    width: 64, height: 64, mb: 3, borderRadius: '16px',
+                    background: feature.gradient,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {feature.icon}
+                  </Box>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: 'text.primary' }}>
+                    {feature.title}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                    {feature.desc}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* CTA Section */}
+        <Box sx={{ textAlign: 'center', mb: 10 }}>
+          <Box sx={{
+            background: `linear-gradient(to right, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
+            backdropFilter: 'blur(10px)',
+            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            borderRadius: '3rem',
+            p: { xs: 6, md: 10 },
+            maxWidth: 'md',
+            mx: 'auto'
+          }}>
+            <Typography variant="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+              Ready to Revolutionize Your Data Workflow?
+            </Typography>
+            <Typography variant="h5" sx={{ color: 'text.secondary', mb: 6 }}>
+              Join thousands of data professionals who trust DataBuddy.
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, justifyContent: 'center' }}>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => navigate('/login')}
+                sx={{
+                  px: 6, py: 2,
+                  borderRadius: '9999px',
+                  background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.dark})`,
+                }}
               >
-                Start Building Pipelines
-              </button>
-              <button
-                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-semibold text-lg hover:bg-white/20 transition-all duration-300"
+                Get Started Free
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={() => window.open('https://github.com', '_blank')}
+                sx={{
+                  px: 6, py: 2,
+                  borderRadius: '9999px',
+                  borderColor: alpha(theme.palette.common.white, 0.2),
+                  color: 'text.primary',
+                  '&:hover': {
+                    borderColor: alpha(theme.palette.common.white, 0.4),
+                    bgcolor: alpha(theme.palette.common.white, 0.1)
+                  }
+                }}
               >
-                Explore Features
-              </button>
-            </div>
-          </div>
-
-          {/* Features Grid */}
-          <div id="features" className="grid md:grid-cols-3 gap-8 mb-20">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-              <div className="w-16 h-16 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Smart Pipelines</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Build intelligent data processing workflows with drag-and-drop simplicity.
-                Automate ETL processes, data validation, and transformation with AI assistance.
-              </p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-xl flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Real-time Analytics</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Monitor pipeline performance, data quality metrics, and system health
-                with beautiful dashboards and instant notifications.
-              </p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
-              <div className="w-16 h-16 bg-gradient-to-r from-pink-400 to-red-500 rounded-xl flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Enterprise Security</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Bank-grade security with role-based access control, audit logs,
-                and encrypted data processing for compliance and peace of mind.
-              </p>
-            </div>
-          </div>
-
-          {/* CTA Section */}
-          <div className="text-center">
-            <div className="bg-gradient-to-r from-cyan-500/20 to-purple-500/20 backdrop-blur-sm border border-white/20 rounded-3xl p-12 max-w-4xl mx-auto">
-              <h2 className="text-4xl font-bold text-white mb-6">
-                Ready to Revolutionize Your Data Workflow?
-              </h2>
-              <p className="text-xl text-gray-300 mb-8">
-                Join thousands of data professionals who trust DataBuddy for their mission-critical operations.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={() => window.location.href = '/login'}
-                  className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full text-white font-semibold text-lg hover:shadow-2xl hover:shadow-cyan-500/25 transform hover:scale-105 transition-all duration-300"
-                >
-                  Get Started Free
-                </button>
-                <button
-                  onClick={() => window.open('https://github.com', '_blank')}
-                  className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-semibold text-lg hover:bg-white/20 transition-all duration-300"
-                >
-                  View Documentation
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="relative z-10 px-6 py-8 border-t border-white/10">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-gray-400">
-            © 2024 DataBuddy. Built for the future of data management.
-          </p>
-        </div>
-      </footer>
-    </div>
+                View Documentation
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

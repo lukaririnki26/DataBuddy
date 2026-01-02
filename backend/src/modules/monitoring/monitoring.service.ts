@@ -12,7 +12,7 @@ import { Repository, Between, MoreThan } from "typeorm";
 import { InjectConnection } from "@nestjs/typeorm";
 import { Connection } from "typeorm";
 import { Inject } from "@nestjs/common";
-import { Pipeline } from "../../entities/pipeline.entity";
+import { Pipeline, PipelineStatus } from "../../entities/pipeline.entity";
 import { DataImport } from "../../entities/data-import.entity";
 import { DataExport } from "../../entities/data-export.entity";
 import { User } from "../../entities/user.entity";
@@ -63,7 +63,7 @@ export class MonitoringService {
     private userRepository: Repository<User>,
     @InjectConnection()
     private connection: Connection,
-  ) {}
+  ) { }
 
   /**
    * Mendapatkan data dashboard monitoring lengkap
@@ -148,7 +148,7 @@ export class MonitoringService {
       totalImports,
       totalExports,
     ] = await Promise.all([
-      this.pipelineRepository.count({ where: { isActive: true } }),
+      this.pipelineRepository.count({ where: { status: PipelineStatus.ACTIVE } }),
       this.pipelineRepository.count(),
       this.userRepository.count(),
       this.dataImportRepository.count(),
@@ -225,13 +225,27 @@ export class MonitoringService {
     return recentExecutions.slice(0, limit);
   }
 
+  async getRecentImports(limit: number): Promise<DataImport[]> {
+    return this.dataImportRepository.find({
+      take: limit,
+      order: { createdAt: "DESC" },
+    });
+  }
+
+  async getRecentExports(limit: number): Promise<DataExport[]> {
+    return this.dataExportRepository.find({
+      take: limit,
+      order: { createdAt: "DESC" },
+    });
+  }
+
   /**
    * Mendapatkan pipeline dengan performa terbaik
    */
   async getTopPipelines(limit: number = 5): Promise<any[]> {
     // Query untuk mendapatkan pipeline dengan eksekusi terbanyak dan sukses rate tertinggi
     const pipelines = await this.pipelineRepository.find({
-      relations: ["creator"],
+      relations: ["createdBy"],
       take: limit,
       order: { createdAt: "DESC" },
     });
@@ -307,7 +321,7 @@ export class MonitoringService {
     // Dalam implementasi nyata, simpan ke tabel pipeline_execution_log
     this.logger.log(
       `Pipeline execution logged: ${pipelineId}, Success: ${executionResult.success}, ` +
-        `Processed: ${executionResult.processedItems}, Time: ${executionResult.executionTime}ms`,
+      `Processed: ${executionResult.processedItems}, Time: ${executionResult.executionTime}ms`,
     );
 
     // Note: Database logging will be implemented in future version with execution logs table

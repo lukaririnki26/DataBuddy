@@ -1,20 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Users,
   UserPlus,
   Search,
   MoreVertical,
-  Shield,
-  Mail,
-  Calendar,
   Trash2,
   Edit2,
-  CheckCircle,
-  XCircle,
   Clock,
-  Filter,
+  History,
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Avatar,
+  Chip,
+  useTheme,
+  alpha
+} from '@mui/material';
 
 interface User {
   id: string;
@@ -27,7 +41,8 @@ interface User {
 }
 
 const UsersPage: React.FC = () => {
-  const { success, error: toastError, info } = useToast();
+  const { info } = useToast();
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<User[]>([
     {
@@ -60,16 +75,21 @@ const UsersPage: React.FC = () => {
   ]);
 
   const getRoleBadge = (role: string) => {
-    const configs = {
-      admin: { bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/20' },
-      editor: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
-      viewer: { bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' },
-    };
-    const config = configs[role as keyof typeof configs] || configs.viewer;
+    let color: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = 'default';
+    switch (role) {
+      case 'admin': color = 'secondary'; break;
+      case 'editor': color = 'primary'; break;
+      default: color = 'default';
+    }
+
     return (
-      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${config.bg} ${config.text} ${config.border}`}>
-        {role}
-      </span>
+      <Chip
+        label={role}
+        size="small"
+        color={color}
+        variant="outlined"
+        sx={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.625rem', height: 24 }}
+      />
     );
   };
 
@@ -80,97 +100,129 @@ const UsersPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0f172a] bg-gradient-to-br from-slate-900 via-indigo-900/40 to-slate-900">
-      <div className="relative z-10 p-8 space-y-8 max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-black bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent">
+    <Box sx={{
+      minHeight: '100vh',
+      bgcolor: theme.palette.background.default,
+      p: { xs: 2, md: 4 }
+    }}>
+      <Box sx={{ maxWidth: 'lg', mx: 'auto' }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 3, mb: 4 }}>
+          <Box>
+            <Typography variant="h3" fontWeight="900" sx={{
+              background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 1
+            }}>
               Personnel Control
-            </h1>
-            <p className="text-slate-400 text-lg font-medium">Manage access protocols and user authorizations</p>
-          </div>
+            </Typography>
+            <Typography variant="h6" color="text.secondary" fontWeight="medium">
+              Manage access protocols and user authorizations
+            </Typography>
+          </Box>
 
-          <button
+          <Button
             onClick={() => info('Registration', 'Personnel creation is currently handled via Genesis Protocol')}
-            className="inline-flex items-center px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold shadow-2xl hover:scale-105 transition-all"
+            variant="contained"
+            startIcon={<UserPlus size={20} />}
+            sx={{
+              background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              borderRadius: '1rem',
+              fontWeight: 'bold',
+              boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`
+            }}
           >
-            <UserPlus className="w-5 h-5 mr-3" />
             Provision User
-          </button>
-        </div>
+          </Button>
+        </Box>
 
-        <div className="relative group max-w-2xl">
-          <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-blue-400 transition-colors">
-            <Search className="w-5 h-5" />
-          </div>
-          <input
-            type="text"
+        <Box sx={{ mb: 4, maxWidth: 600 }}>
+          <TextField
             placeholder="Search personnel by identity or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-6 py-4 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder-slate-600"
+            variant="filled"
+            fullWidth
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={20} color={theme.palette.text.secondary} />
+                </InputAdornment>
+              ),
+              disableUnderline: true,
+              sx: { borderRadius: '1.5rem' }
+            }}
           />
-        </div>
+        </Box>
 
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/10 bg-white/5">
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Identity</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Authorization</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Status</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Last Active</th>
-                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
+        <TableContainer component={Paper} sx={{
+          borderRadius: '2.5rem',
+          bgcolor: alpha(theme.palette.common.white, 0.05),
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+          boxShadow: 'none'
+        }}>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ '& th': { borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`, bgcolor: alpha(theme.palette.common.white, 0.02) } }}>
+                <TableCell sx={{ pl: 4, py: 3 }}><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Identity</Typography></TableCell>
+                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Authorization</Typography></TableCell>
+                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Status</Typography></TableCell>
+                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Last Active</Typography></TableCell>
+                <TableCell align="right" sx={{ pr: 4 }}><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Actions</Typography></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="group hover:bg-white/5 transition-all">
-                  <td className="px-8 py-6">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center text-blue-400 font-bold shadow-xl">
+                <TableRow key={user.id} hover sx={{ '& td': { borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }, '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.05) } }}>
+                  <TableCell sx={{ pl: 4, py: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Avatar sx={{ bgcolor: theme.palette.primary.dark, color: theme.palette.primary.light, fontWeight: 'bold' }}>
                         {user.firstName[0]}{user.lastName[0]}
-                      </div>
-                      <div>
-                        <div className="text-white font-bold group-hover:text-blue-200 transition-colors">{user.firstName} {user.lastName}</div>
-                        <div className="text-slate-500 text-xs font-medium">{user.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">{getRoleBadge(user.role)}</td>
-                  <td className="px-8 py-6">
-                    <span className={`inline-flex items-center ${user.status === 'active' ? 'text-emerald-400' : 'text-red-400'} text-xs font-bold`}>
-                      <div className={`w-1.5 h-1.5 rounded-full mr-2 ${user.status === 'active' ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`}></div>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6">
-                    <div className="flex items-center text-slate-400 text-xs font-medium">
-                      <History className="w-3.5 h-3.5 mr-2" />
-                      {new Date(user.lastLogin).toLocaleDateString()}
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <button className="p-3 hover:bg-white/10 rounded-xl text-slate-500 hover:text-white transition-all"><Edit2 className="w-4 h-4" /></button>
-                      <button className="p-3 hover:bg-red-500/10 rounded-xl text-slate-500 hover:text-red-400 transition-all"><Trash2 className="w-4 h-4" /></button>
-                    </div>
-                  </td>
-                </tr>
+                      </Avatar>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight="bold" sx={{ color: 'white' }}>{user.firstName} {user.lastName}</Typography>
+                        <Typography variant="caption" color="text.secondary">{user.email}</Typography>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell>{getRoleBadge(user.role)}</TableCell>
+                  <TableCell>
+                    <Chip
+                      icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: user.status === 'active' ? theme.palette.success.main : theme.palette.error.main, ml: 1 }} />}
+                      label={user.status}
+                      size="small"
+                      sx={{
+                        bgcolor: user.status === 'active' ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
+                        color: user.status === 'active' ? theme.palette.success.light : theme.palette.error.main,
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        fontSize: '0.625rem',
+                        height: 24,
+                        pl: 0.5
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                      <History size={14} />
+                      <Typography variant="caption">{new Date(user.lastLogin).toLocaleDateString()}</Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right" sx={{ pr: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
+                      <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'white', bgcolor: alpha(theme.palette.common.white, 0.1) } }}><Edit2 size={16} /></IconButton>
+                      <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.1) } }}><Trash2 size={16} /></IconButton>
+                    </Box>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </Box>
   );
 };
-
-// Simple History icon replacement since I forgot to import it
-const History = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
 
 export default UsersPage;

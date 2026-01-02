@@ -19,16 +19,35 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "types": [
+      "vite/client"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@/components/*": ["src/components/*"],
-      "@/pages/*": ["src/pages/*"],
-      "@/hooks/*": ["src/hooks/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/store/*": ["src/store/*"],
-      "@/types/*": ["src/types/*"],
-      "@/services/*": ["src/services/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@/components/*": [
+        "src/components/*"
+      ],
+      "@/pages/*": [
+        "src/pages/*"
+      ],
+      "@/hooks/*": [
+        "src/hooks/*"
+      ],
+      "@/utils/*": [
+        "src/utils/*"
+      ],
+      "@/store/*": [
+        "src/store/*"
+      ],
+      "@/types/*": [
+        "src/types/*"
+      ],
+      "@/services/*": [
+        "src/services/*"
+      ]
     }
   },
   "include": [
