@@ -7,11 +7,10 @@
 
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Box, Container } from '@mui/material';
+import { Box } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
-import Navbar from './components/layout/Navbar';
-import Sidebar from './components/layout/Sidebar';
+import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import { ToastProvider } from './context/ToastContext';
 import { SocketProvider } from './context/SocketContext';
@@ -28,30 +27,6 @@ import MonitoringPage from './pages/MonitoringPage';
 import UsersPage from './pages/UsersPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
-
-// Layout wrapper component
-const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#0f172a' }}>
-      <Sidebar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100vh',
-          marginLeft: '288px', // Exact match for Sidebar 'w-72'
-        }}
-      >
-        <Navbar />
-        <Box sx={{ flexGrow: 1, p: 0 }}>
-          {children}
-        </Box>
-      </Box>
-    </Box>
-  );
-};
 
 const App: React.FC = () => {
   const { isAuthenticated, isLoading } = useSelector((state: RootState) => ({
