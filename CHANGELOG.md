@@ -5,6 +5,14 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5] - 2026-01-02
+
+### Fixed
+- **Layout Visibility**: Resolved issue where main content was hidden behind the fixed Navbar by implementing proper toolbar spacing.
+- **Sidebar Interaction**: Fixed unresponsive sidebar collapse button by adjusting z-index overlapping.
+- **UI Aesthetics**: Improved the visual styling of user and notification dropdowns with enhanced glassmorphism and better contrast.
+- **Mobile Friendliness**: Optimized responsiveness for mobile layouts.
+
 ## [1.3.4] - 2026-01-02
 
 ### Changed

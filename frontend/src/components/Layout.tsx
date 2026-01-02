@@ -55,14 +55,15 @@ const Layout: React.FC = () => {
           p: { xs: 2, md: 4 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
-          mt: '64px', // Navbar height
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          overflowX: 'hidden'
+          overflowX: 'hidden',
+          position: 'relative'
         }}
       >
+        <Toolbar /> {/* Spacer for Fixed Navbar */}
         <Outlet />
       </Box>
     </Box>

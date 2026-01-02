@@ -213,31 +213,39 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
           PaperProps={{
             sx: {
               mt: 1.5,
-              borderRadius: '1rem',
-              minWidth: 200,
-              bgcolor: alpha(theme.palette.background.paper, 0.9),
+              borderRadius: '16px',
+              minWidth: 240,
+              bgcolor: alpha('#0f172a', 0.95), // Deeper dark for better contrast
               backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
             }
           }}
         >
-          <Box sx={{ px: 2, py: 1.5 }}>
-            <Typography variant="subtitle2">{user?.firstName} {user?.lastName}</Typography>
+          <Box sx={{ px: 3, py: 2, bgcolor: alpha(theme.palette.primary.main, 0.1) }}>
+            <Typography variant="subtitle1" fontWeight="bold">{user?.firstName} {user?.lastName}</Typography>
             <Typography variant="caption" color="text.secondary">{user?.email}</Typography>
+            <Box sx={{ mt: 1, display: 'inline-block', px: 1, py: 0.5, bgcolor: alpha(theme.palette.primary.main, 0.2), borderRadius: '6px' }}>
+              <Typography variant="caption" color="primary.light" fontWeight="bold" sx={{ textTransform: 'uppercase' }}>
+                {user?.role}
+              </Typography>
+            </Box>
           </Box>
-          <Divider sx={{ my: 1, borderColor: alpha(theme.palette.common.white, 0.1) }} />
-          <MenuItem onClick={() => { navigate('/profile'); setUserMenuAnchorEl(null); }}>
-            <ListItemIcon><User size={16} /></ListItemIcon>
-            Profile
-          </MenuItem>
-          <MenuItem onClick={() => { navigate('/settings'); setUserMenuAnchorEl(null); }}>
-            <ListItemIcon><Settings size={16} /></ListItemIcon>
-            Settings
-          </MenuItem>
-          <MenuItem onClick={handleLogout} sx={{ color: theme.palette.error.main }}>
-            <ListItemIcon><LogOut size={16} color={theme.palette.error.main} /></ListItemIcon>
-            Logout
-          </MenuItem>
+          <Divider sx={{ borderColor: alpha(theme.palette.common.white, 0.1) }} />
+          <Box sx={{ p: 1 }}>
+            <MenuItem onClick={() => { navigate('/profile'); setUserMenuAnchorEl(null); }} sx={{ borderRadius: '8px' }}>
+              <ListItemIcon><User size={18} /></ListItemIcon>
+              Profile
+            </MenuItem>
+            <MenuItem onClick={() => { navigate('/settings'); setUserMenuAnchorEl(null); }} sx={{ borderRadius: '8px' }}>
+              <ListItemIcon><Settings size={18} /></ListItemIcon>
+              Settings
+            </MenuItem>
+            <MenuItem onClick={handleLogout} sx={{ color: theme.palette.error.light, borderRadius: '8px', mt: 1 }}>
+              <ListItemIcon><LogOut size={18} color={theme.palette.error.light} /></ListItemIcon>
+              Logout
+            </MenuItem>
+          </Box>
         </MuiMenu>
 
         {/* Notifications Menu (Simplified) */}

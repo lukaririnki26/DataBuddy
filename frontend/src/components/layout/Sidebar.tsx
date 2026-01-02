@@ -141,9 +141,20 @@ const Sidebar: React.FC<SidebarProps> = ({
           p: 2,
           borderTop: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
           display: 'flex',
-          justifyContent: collapsed ? 'center' : 'flex-end'
+          justifyContent: collapsed ? 'center' : 'flex-end',
+          position: 'sticky',
+          bottom: 0,
+          bgcolor: 'background.paper',
+          zIndex: 10
         }}>
-          <IconButton onClick={onCollapse} sx={{ bgcolor: alpha(theme.palette.common.white, 0.05) }}>
+          <IconButton
+            onClick={onCollapse}
+            sx={{
+              bgcolor: alpha(theme.palette.common.white, 0.05),
+              '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1) },
+              cursor: 'pointer'
+            }}
+          >
             {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </IconButton>
         </Box>
