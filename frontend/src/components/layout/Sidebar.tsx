@@ -71,11 +71,12 @@ const Sidebar: React.FC<SidebarProps> = ({
     }}>
       {/* Logo/Branding */}
       <Box sx={{
-        p: 3,
+        p: isMobile ? 2 : 3,
         display: 'flex',
         alignItems: 'center',
         justifyContent: isClosed && !isMobile ? 'center' : 'flex-start',
-        gap: 1.5
+        gap: 2,
+        mb: isMobile ? 1 : 0
       }}>
         {!isClosed || isMobile ? (
           <>
@@ -149,16 +150,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                     py: 1.5,
                     borderRadius: '12px',
                     transition: 'all 0.2s',
-                    bgcolor: isActive ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                    bgcolor: isActive ? alpha(theme.palette.primary.main, 0.15) : (isMobile ? alpha('#ffffff', 0.03) : 'transparent'),
                     '&.Mui-selected': {
-                      bgcolor: alpha(theme.palette.primary.main, 0.15),
+                      bgcolor: alpha(theme.palette.primary.main, 0.2),
                       '&:hover': {
-                        bgcolor: alpha(theme.palette.primary.main, 0.2),
+                        bgcolor: alpha(theme.palette.primary.main, 0.25),
                       }
                     },
                     '&:hover': {
-                      bgcolor: alpha(theme.palette.common.white, 0.05),
-                      transform: 'scale(1.02)'
+                      bgcolor: alpha(theme.palette.common.white, 0.08),
+                      transform: 'translateX(4px)'
                     }
                   }}
                 >
