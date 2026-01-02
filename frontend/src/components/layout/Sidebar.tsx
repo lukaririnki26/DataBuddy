@@ -29,6 +29,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
+  Menu,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -193,16 +194,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           justifyContent: collapsed ? 'center' : 'flex-end',
           bgcolor: 'background.paper',
         }}>
-          <IconButton
-            onClick={onCollapse}
-            sx={{
-              bgcolor: alpha(theme.palette.common.white, 0.05),
-              '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1) },
-              cursor: 'pointer'
-            }}
-          >
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </IconButton>
+          <Tooltip title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'} placement="right">
+            <IconButton
+              onClick={onCollapse}
+              sx={{
+                bgcolor: alpha(theme.palette.common.white, 0.05),
+                '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1) },
+                cursor: 'pointer'
+              }}
+            >
+              <Menu size={20} />
+            </IconButton>
+          </Tooltip>
         </Box>
       )}
     </Box>
