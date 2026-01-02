@@ -46,8 +46,9 @@ const STEP_TYPES = [
     color: 'info',
     category: 'Input',
     configSchema: {
-      filePath: { type: 'string', required: true },
-      fileType: { type: 'string', enum: ['csv', 'xlsx', 'json'], required: true },
+      filePath: { type: 'string', label: 'File Path', placeholder: '/data/input/source.csv', required: true },
+      fileType: { type: 'select', label: 'File Type', options: ['csv', 'xlsx', 'json'], required: true },
+      delimiter: { type: 'string', label: 'Delimiter', placeholder: ',' },
     },
   },
   {
@@ -57,6 +58,11 @@ const STEP_TYPES = [
     icon: <RefreshCw size={20} />,
     color: 'secondary',
     category: 'Processing',
+    configSchema: {
+      operation: { type: 'select', label: 'Operation', options: ['filter', 'map', 'sort', 'rename'], required: true },
+      targetColumn: { type: 'string', label: 'Target Column', placeholder: 'email' },
+      expression: { type: 'string', label: 'Expression / Value', placeholder: "value != null" },
+    },
   },
   {
     type: 'validate',
@@ -65,6 +71,11 @@ const STEP_TYPES = [
     icon: <CheckCircle size={20} />,
     color: 'success',
     category: 'Processing',
+    configSchema: {
+      ruleType: { type: 'select', label: 'Validation Rule', options: ['not_null', 'unique', 'regex', 'range'], required: true },
+      column: { type: 'string', label: 'Column to Validate', placeholder: 'user_id' },
+      threshold: { type: 'string', label: 'Threshold / Pattern', placeholder: '^[A-Za-z0-9]+$' },
+    },
   },
   {
     type: 'write',
@@ -73,6 +84,11 @@ const STEP_TYPES = [
     icon: <Save size={20} />,
     color: 'warning',
     category: 'Output',
+    configSchema: {
+      destinationType: { type: 'select', label: 'Destination Type', options: ['file', 'database', 'api'], required: true },
+      outputPath: { type: 'string', label: 'Output Path / Connection String', placeholder: '/data/output/result.json' },
+      format: { type: 'select', label: 'Output Format', options: ['json', 'csv', 'sql'], required: true },
+    },
   },
 ];
 
@@ -478,9 +494,52 @@ const PipelineBuilderPage: React.FC = () => {
                     variant="filled"
                   />
                 </Box>
-                <Box sx={{ p: 3, borderRadius: '1.5rem', bgcolor: alpha(theme.palette.info.main, 0.1), border: `1px solid ${alpha(theme.palette.info.main, 0.2)}` }}>
-                  <Typography variant="subtitle2" fontWeight="bold" color="info.light" gutterBottom>Neural Configuration</Typography>
-                  <Typography variant="caption" color="text.secondary">Defining hardware and logic constraints for this specific operational node. Advanced variables will appear below.</Typography>
+
+                <Box sx={{ p: 3, borderRadius: '1.5rem', bgcolor: alpha(theme.palette.info.main, 0.05), border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Settings size={16} color={theme.palette.info.main} />
+                    <Typography variant="subtitle2" fontWeight="bold" color="info.main">Neural Configuration</Typography>
+                  </Box>
+
+                  {(() => {
+                    const template = STEP_TYPES.find(t => t.type === selectedStepData.type);
+                    if (!template || !template.configSchema) return <Typography variant="caption">No configuration available.</Typography>;
+
+                    return Object.entries(template.configSchema).map(([key, schema]: [string, any]) => (
+                      <Box key={key}>
+                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: 1, display: 'block' }}>{schema.label || key}</Typography>
+                        {schema.type === 'select' ? (
+                          <TextField
+                            select
+                            fullWidth
+                            value={selectedStepData.config[key] || ''}
+                            onChange={(e) => {
+                              const newConfig = { ...selectedStepData.config, [key]: e.target.value };
+                              setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, config: newConfig } : s));
+                            }}
+                            variant="filled"
+                            SelectProps={{ native: true }}
+                          >
+                            <option value="" disabled>Select {schema.label}</option>
+                            {schema.options.map((opt: string) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </TextField>
+                        ) : (
+                          <TextField
+                            fullWidth
+                            value={selectedStepData.config[key] || ''}
+                            onChange={(e) => {
+                              const newConfig = { ...selectedStepData.config, [key]: e.target.value };
+                              setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, config: newConfig } : s));
+                            }}
+                            placeholder={schema.placeholder}
+                            variant="filled"
+                          />
+                        )}
+                      </Box>
+                    ));
+                  })()}
                 </Box>
               </Box>
             </>
