@@ -78,9 +78,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
         bgcolor: alpha(theme.palette.background.default, 0.8),
         borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
         boxShadow: 'none',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10,
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between' }}>
