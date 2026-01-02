@@ -15,7 +15,8 @@ import {
   useTheme,
   alpha,
   Divider,
-  Toolbar
+  Toolbar,
+  Typography
 } from '@mui/material';
 import {
   BarChart3,
@@ -27,6 +28,7 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  Database,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -71,6 +73,53 @@ const Sidebar: React.FC<SidebarProps> = ({
     }}>
       {/* Spacer for AppBar */}
       <Toolbar />
+
+      {/* Logo/Branding */}
+      <Box sx={{
+        p: 3,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
+        gap: 1.5,
+        mb: 2
+      }}>
+        {!collapsed || isMobile ? (
+          <>
+            <Box sx={{ position: 'relative', display: 'flex' }}>
+              <Database size={32} color={theme.palette.primary.main} />
+              <Box sx={{
+                position: 'absolute', inset: 0,
+                bgcolor: alpha(theme.palette.primary.main, 0.3),
+                filter: 'blur(10px)',
+                pointerEvents: 'none'
+              }} />
+            </Box>
+            <Typography
+              variant="h5"
+              fontWeight="900"
+              sx={{
+                background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              DataBuddy
+            </Typography>
+          </>
+        ) : (
+          <Box sx={{ position: 'relative', display: 'flex' }}>
+            <Database size={28} color={theme.palette.primary.main} />
+            <Box sx={{
+              position: 'absolute', inset: 0,
+              bgcolor: alpha(theme.palette.primary.main, 0.3),
+              filter: 'blur(8px)',
+              pointerEvents: 'none'
+            }} />
+          </Box>
+        )}
+      </Box>
+
+      <Divider sx={{ mx: 2, mb: 2 }} />
 
       {/* Navigation List */}
       <List sx={{ flex: 1, p: 2, gap: 1, display: 'flex', flexDirection: 'column' }}>

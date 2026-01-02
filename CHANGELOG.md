@@ -5,6 +5,13 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.11] - 2026-01-03
+
+### Changed
+- **Navbar UI**: Removed logo/branding from Navbar. Removed border for cleaner look.
+- **Sidebar Branding**: Added DataBuddy logo and name to top of Sidebar with support for collapsed state.
+- **Profile Button**: Simplified profile button to show only avatar icon, removed name/role text for cleaner UI.
+
 ## [1.3.10] - 2026-01-03
 
 ### Changed

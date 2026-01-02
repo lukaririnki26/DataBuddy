@@ -76,7 +76,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
       sx={{
         backdropFilter: 'blur(12px)',
         bgcolor: alpha(theme.palette.background.default, 0.8),
-        borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
         boxShadow: 'none',
       }}
     >
@@ -91,32 +90,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
           >
             <Menu />
           </IconButton>
-
-          {/* Branding - visible on all screens */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mr: { xs: 1, sm: 4 } }}>
-            <Box sx={{ position: 'relative', display: 'flex' }}>
-              <Database size={28} color={theme.palette.primary.main} />
-              <Box sx={{
-                position: 'absolute', inset: 0,
-                bgcolor: alpha(theme.palette.primary.main, 0.3),
-                filter: 'blur(8px)',
-                pointerEvents: 'none'
-              }} />
-            </Box>
-            <Typography
-              variant="h6"
-              fontWeight="bold"
-              sx={{
-                background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                display: 'block', // Always show
-                fontSize: { xs: '1rem', sm: '1.25rem' }
-              }}
-            >
-              DataBuddy
-            </Typography>
-          </Box>
 
           {/* Search Bar */}
           <Box
@@ -179,27 +152,24 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
             aria-haspopup="true"
             onClick={(e) => setUserMenuAnchorEl(e.currentTarget)}
             color="inherit"
-            sx={{ ml: 1, borderRadius: '12px', p: 0.5, border: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}
+            sx={{
+              ml: 1,
+              borderRadius: '12px',
+              p: 1,
+              '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.05) }
+            }}
           >
             <Avatar
               sx={{
-                width: 32, height: 32,
+                width: 36,
+                height: 36,
                 bgcolor: theme.palette.primary.main,
-                fontSize: '0.875rem',
+                fontSize: '0.9rem',
                 fontWeight: 'bold'
               }}
             >
               {user?.firstName?.[0]}
             </Avatar>
-            <Box sx={{ ml: 1.5, mr: 1, display: { xs: 'none', sm: 'block' }, textAlign: 'left' }}>
-              <Typography variant="subtitle2" lineHeight={1.2}>
-                {user?.firstName}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
-                {user?.role}
-              </Typography>
-            </Box>
-            <ChevronDown size={14} style={{ marginRight: 8 }} />
           </IconButton>
         </Box>
 
