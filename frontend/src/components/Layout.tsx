@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Box, CssBaseline, useMediaQuery, useTheme } from '@mui/material';
+import { Box, CssBaseline, useMediaQuery, useTheme, Toolbar, styled } from '@mui/material';
 import Navbar from './layout/Navbar';
 import Sidebar from './layout/Sidebar';
+
+const DrawerHeader = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  padding: theme.spacing(0, 1),
+  // necessary for content to be below app bar
+  ...theme.mixins.toolbar,
+}));
 
 const Layout: React.FC = () => {
   const theme = useTheme();
@@ -63,7 +72,7 @@ const Layout: React.FC = () => {
           position: 'relative'
         }}
       >
-        <Toolbar /> {/* Spacer for Fixed Navbar */}
+        <DrawerHeader /> {/* Spacer for Fixed Navbar */}
         <Outlet />
       </Box>
     </Box>
