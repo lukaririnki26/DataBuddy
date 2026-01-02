@@ -65,7 +65,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      bgcolor: 'background.paper',
+      bgcolor: isMobile ? '#1e293b' : 'background.paper',
+      backdropFilter: isMobile ? 'none' : 'blur(20px)',
       overflow: 'hidden'
     }}>
       {/* Logo/Branding */}
@@ -234,8 +235,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: 280,
-            bgcolor: 'background.paper',
+            bgcolor: '#0f172a',
+            backgroundImage: 'none',
             borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            boxShadow: '10px 0 25px rgba(0,0,0,0.5)',
+          },
+          '& .MuiBackdrop-root': {
+            backdropFilter: 'blur(4px)',
+            bgcolor: alpha('#000000', 0.6),
           },
         }}
       >

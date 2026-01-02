@@ -86,9 +86,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
             aria-label="open drawer"
             edge="start"
             onClick={onMenuClick}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{
+              mr: 2,
+              display: { md: 'none' },
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              borderRadius: '12px',
+              p: 1.5
+            }}
           >
-            <Menu />
+            <Menu size={24} />
           </IconButton>
 
           {/* Search Bar */}
