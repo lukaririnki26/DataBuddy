@@ -103,9 +103,8 @@ const UsersPage: React.FC = () => {
     <Box sx={{
       minHeight: '100vh',
       bgcolor: theme.palette.background.default,
-      p: { xs: 2, md: 4 }
     }}>
-      <Box sx={{ maxWidth: 'lg', mx: 'auto' }}>
+      <Box sx={{ width: '100%' }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 3, mb: 4 }}>
           <Box>
             <Typography variant="h3" fontWeight="900" sx={{

@@ -51,7 +51,7 @@ const SettingsPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#0f172a] bg-gradient-to-br from-slate-900 via-indigo-900/40 to-slate-900">
-            <div className="relative z-10 p-8 space-y-8 max-w-7xl mx-auto">
+            <div className="relative z-10 p-8 space-y-8 w-full">
                 <div className="flex flex-col space-y-2">
                     <h1 className="text-4xl font-black bg-gradient-to-r from-white via-cyan-200 to-blue-200 bg-clip-text text-transparent">
                         System Configuration

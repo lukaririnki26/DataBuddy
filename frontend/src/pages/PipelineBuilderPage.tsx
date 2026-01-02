@@ -305,7 +305,7 @@ const PipelineBuilderPage: React.FC = () => {
       <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 10 }}>
         {/* Canvas */}
         <Box sx={{ flex: 1, overflowY: 'auto', p: 4 }}>
-          <Box sx={{ maxWidth: 'md', mx: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
             {/* Config Panel */}
             <Card sx={{
               borderRadius: '2rem',

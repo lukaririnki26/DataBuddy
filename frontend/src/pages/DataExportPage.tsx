@@ -115,9 +115,8 @@ const DataExportPage: React.FC = () => {
         <Box sx={{
             minHeight: '100vh',
             bgcolor: theme.palette.background.default,
-            p: { xs: 2, md: 4 }
         }}>
-            <Box sx={{ maxWidth: 'xl', mx: 'auto', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {/* Header */}
                 <Box>
                     <Typography variant="h3" fontWeight="900" sx={{

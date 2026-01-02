@@ -130,7 +130,7 @@ const PipelinesPage: React.FC = () => {
         }} />
       </Box>
 
-      <Box sx={{ position: 'relative', zIndex: 10, maxWidth: 'lg', mx: 'auto' }}>
+      <Box sx={{ position: 'relative', zIndex: 10, width: '100%' }}>
         {/* Header Section */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: { lg: 'center' }, gap: 3, mb: 4 }}>
           <Box>

@@ -72,13 +72,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           isMobile={isMobile}
         />
 
-        {/* Page Content - Constrained for better layout */}
+        {/* Page Content - Standardized padding and left alignment */}
         <Box sx={{
           flex: 1,
-          p: 0,
-          maxWidth: '100%',
+          p: 2,
           width: '100%',
-          mx: 'auto',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
           {children}
         </Box>
