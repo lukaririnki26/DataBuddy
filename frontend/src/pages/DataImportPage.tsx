@@ -235,7 +235,7 @@ const DataImportPage: React.FC = () => {
     <Box sx={{
       minHeight: '100vh',
       background: theme.palette.background.default,
-      p: { xs: 2, md: 4 }
+      
     }}>
       {/* Background Ambience */}
       <Box sx={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
