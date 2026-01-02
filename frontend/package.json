@@ -1,6 +1,6 @@
 {
   "name": "databuddy-frontend",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "private": true,
   "dependencies": {
     "@types/node": "^16.18.39",
