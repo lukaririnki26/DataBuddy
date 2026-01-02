@@ -47,13 +47,14 @@ const Layout: React.FC = () => {
       {/* Main Content Area - Scrollable */}
       <Box
         component="main"
+        key={`main-content-${drawerWidth}`}
         sx={{
           flexGrow: 1,
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
+            duration: theme.transitions.duration.standard,
           }),
           overflowY: 'auto',
           height: '100vh'

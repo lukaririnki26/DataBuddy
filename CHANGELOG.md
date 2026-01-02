@@ -5,6 +5,18 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-01-03
+
+### Fixed
+- **CRITICAL: Sidebar Toggle Now Works!** - Added `key` attribute to force re-render when drawerWidth changes.
+- **Smooth Animation**: Matched transition durations to 'standard' for synchronized sidebar and main content animation.
+- **Performance**: Added `willChange: 'width'` for better animation performance.
+
+### Technical Details
+- Main content Box now has `key={main-content-${drawerWidth}}` to force React re-render
+- Both Sidebar and Layout use `duration: theme.transitions.duration.standard`
+- Desktop drawer has `willChange: 'width'` CSS optimization
+
 ## [1.3.15] - 2026-01-03
 
 ### Fixed

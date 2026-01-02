@@ -213,7 +213,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }}>
           <Tooltip title={isClosed ? 'Open Sidebar' : 'Close Sidebar'} placement="right">
             <IconButton
-              onClick={onToggle}
+              onClick={handleToggleClick}
               sx={{
                 bgcolor: alpha(theme.palette.common.white, 0.05),
                 '&:hover': {
@@ -265,6 +265,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: drawerWidth,
+            willChange: 'width',
             transition: theme.transitions.create('width', {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.standard,
