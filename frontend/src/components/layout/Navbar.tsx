@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../../store';
 import { logoutUser } from '../../store/slices/authSlice';
-import { useNotifications, useNotificationStats } from '../../hooks/useNotifications';
+import { useNotifications } from '../../hooks/useNotifications';
 import {
   AppBar,
   Toolbar,
@@ -31,7 +31,8 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  Info
+  Info,
+  Database
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -75,16 +76,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
     <AppBar
       position="fixed"
       sx={{
-        width: { md: `calc(100% - ${drawerWidth}px)` },
-        ml: { md: `${drawerWidth}px` },
+        zIndex: (theme) => theme.zIndex.drawer + 1,
         backdropFilter: 'blur(12px)',
         bgcolor: alpha(theme.palette.background.default, 0.8),
         borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
         boxShadow: 'none',
-        transition: theme.transitions.create(['width', 'margin'], {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.leavingScreen,
-        }),
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -99,6 +95,27 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
             <Menu />
           </IconButton>
 
+          {/* Branding - visible on all screens now that navbar is full width */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 4 }}>
+            <Box sx={{ position: 'relative', display: 'flex' }}>
+              <Database size={28} color={theme.palette.primary.main} />
+              <Box sx={{
+                position: 'absolute', inset: 0,
+                bgcolor: alpha(theme.palette.primary.main, 0.3),
+                filter: 'blur(8px)',
+                pointerEvents: 'none'
+              }} />
+            </Box>
+            <Typography variant="h6" fontWeight="bold" sx={{
+              display: { xs: 'none', sm: 'block' },
+              background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              DataBuddy
+            </Typography>
+          </Box>
+
           {/* Search Bar */}
           <Box
             component="form"
@@ -111,6 +128,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
               mr: 2,
               ml: 0,
               width: '100%',
+              display: { xs: 'none', sm: 'block' }, // Hide on very small screens if needed, or adjust
               [theme.breakpoints.up('sm')]: { ml: 1, width: 'auto' },
             }}
           >

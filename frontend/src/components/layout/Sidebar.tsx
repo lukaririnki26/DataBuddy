@@ -10,12 +10,12 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Typography,
   IconButton,
   Tooltip,
   useTheme,
   alpha,
-  Divider
+  Divider,
+  Toolbar
 } from '@mui/material';
 import {
   BarChart3,
@@ -25,10 +25,8 @@ import {
   Users,
   Activity,
   Zap,
-  Database,
   ChevronLeft,
   ChevronRight,
-  Menu
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -71,43 +69,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       color: 'text.primary',
       overflowX: 'hidden',
     }}>
-      {/* Brand Header */}
-      <Box sx={{
-        h: 64, // match navbar height
-        p: 2,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: collapsed && !isMobile ? 'center' : 'space-between',
-        borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ position: 'relative', display: 'flex' }}>
-            <Database size={28} color={theme.palette.primary.main} />
-            <Box sx={{
-              position: 'absolute', inset: 0,
-              bgcolor: alpha(theme.palette.primary.main, 0.3),
-              filter: 'blur(8px)',
-              pointerEvents: 'none'
-            }} />
-          </Box>
-          {(!collapsed || isMobile) && (
-            <Typography variant="h6" fontWeight="bold" sx={{
-              background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              DataBuddy
-            </Typography>
-          )}
-        </Box>
-
-        {/* Mobile Close Button */}
-        {isMobile && (
-          <IconButton onClick={onClose}>
-            <ChevronLeft />
-          </IconButton>
-        )}
-      </Box>
+      {/* Spacer for AppBar */}
+      <Toolbar />
 
       {/* Navigation List */}
       <List sx={{ flex: 1, p: 2, gap: 1, display: 'flex', flexDirection: 'column' }}>
