@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
 import { RootState } from '../../store';
 import { logoutUser } from '../../store/slices/authSlice';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -14,6 +15,7 @@ import {
   Badge,
   Avatar,
   Box,
+  Button,
   useTheme,
   alpha,
   Divider,
@@ -290,7 +292,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
           </Box>
         </MuiMenu>
 
-        {/* Notifications Menu (Simplified) */}
+        {/* Notifications Menu (Enhanced) */}
         <MuiMenu
           anchorEl={notificationsAnchorEl}
           open={isNotificationsOpen}
@@ -298,38 +300,116 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
           PaperProps={{
             sx: {
               mt: 1.5,
-              width: 360,
-              maxHeight: 480,
-              borderRadius: '1rem',
-              bgcolor: alpha(theme.palette.background.paper, 0.9),
+              width: { xs: 'calc(100vw - 32px)', sm: 400 },
+              maxHeight: 520,
+              borderRadius: '1.25rem',
+              bgcolor: alpha('#0f172a', 0.95), // Deeper dark for premium feel
               backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              overflow: 'hidden',
+              '& .MuiList-root': { p: 0 }
             }
           }}
         >
-          <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
-            <Typography variant="subtitle1" fontWeight="bold">Notifications</Typography>
+          <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Typography variant="h6" fontWeight="800" sx={{ letterSpacing: '-0.01em' }}>Intelligence Feed</Typography>
+              {unread > 0 && (
+                <Box sx={{ bgcolor: 'primary.main', px: 1, py: 0.25, borderRadius: '4px' }}>
+                  <Typography variant="caption" fontWeight="bold" color="white">{unread}</Typography>
+                </Box>
+              )}
+            </Box>
             {unread > 0 && (
-              <Typography variant="caption" color="primary" sx={{ cursor: 'pointer' }} onClick={() => markAllAsRead()}>
-                Mark all as read
-              </Typography>
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => markAllAsRead()}
+                sx={{ fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+              >
+                Clear Unread
+              </Button>
             )}
           </Box>
-          <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
+          <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
             {notifications.length === 0 ? (
-              <Box sx={{ p: 4, textAlign: 'center' }}>
-                <Typography color="text.secondary">No new notifications</Typography>
+              <Box sx={{ py: 8, px: 4, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ p: 2, borderRadius: '50%', bgcolor: alpha(theme.palette.common.white, 0.03) }}>
+                  <Bell size={32} opacity={0.2} />
+                </Box>
+                <Typography variant="body2" color="text.secondary">Your neural feed is clear.</Typography>
               </Box>
             ) : (
-              notifications.map(n => (
-                <MenuItem key={n.id} onClick={() => markAsRead(n.id)} sx={{ whiteSpace: 'normal', py: 1.5, borderLeft: !n.isRead ? `3px solid ${theme.palette.primary.main}` : '3px solid transparent' }}>
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight={!n.isRead ? 'bold' : 'normal'}>{n.title}</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>{n.message}</Typography>
-                  </Box>
-                </MenuItem>
-              ))
+              notifications.map(n => {
+                const getIcon = () => {
+                  if (n.type.includes('FAILED') || n.type.includes('ALERT')) return <AlertCircle size={18} />;
+                  if (n.type.includes('COMPLETED')) return <CheckCircle size={18} />;
+                  if (n.type.includes('STARTED')) return <Clock size={18} />;
+                  return <Info size={18} />;
+                };
+
+                const getColor = () => {
+                  if (n.type.includes('FAILED')) return theme.palette.error.main;
+                  if (n.type.includes('ALERT')) return theme.palette.warning.main;
+                  if (n.type.includes('COMPLETED')) return theme.palette.success.main;
+                  if (n.type.includes('STARTED')) return theme.palette.info.main;
+                  return theme.palette.primary.main;
+                };
+
+                const color = getColor();
+
+                return (
+                  <MenuItem
+                    key={n.id}
+                    onClick={() => markAsRead(n.id)}
+                    sx={{
+                      whiteSpace: 'normal',
+                      py: 2,
+                      px: 2.5,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 2,
+                      borderLeft: !n.isRead ? `4px solid ${color}` : '4px solid transparent',
+                      bgcolor: !n.isRead ? alpha(color, 0.03) : 'transparent',
+                      '&:hover': {
+                        bgcolor: alpha(theme.palette.common.white, 0.03)
+                      },
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <Box sx={{
+                      p: 1,
+                      borderRadius: '10px',
+                      bgcolor: alpha(color, 0.1),
+                      color: color,
+                      display: 'flex',
+                      flexShrink: 0
+                    }}>
+                      {getIcon()}
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
+                        <Typography variant="subtitle2" fontWeight={!n.isRead ? 'bold' : '600'} sx={{ lineHeight: 1.2, flex: 1, pr: 1 }}>
+                          {n.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+                          {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', lineHeight: 1.4 }}>
+                        {n.message}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                );
+              })
             )}
+          </Box>
+          <Box sx={{ p: 1.5, borderTop: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, textAlign: 'center' }}>
+            <Button fullWidth size="small" variant="text" sx={{ borderRadius: '8px', py: 1, color: 'text.secondary', fontWeight: 'bold' }}>
+              View All Communications
+            </Button>
           </Box>
         </MuiMenu>
       </Toolbar>
