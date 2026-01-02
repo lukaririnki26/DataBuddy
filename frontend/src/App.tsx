@@ -71,9 +71,9 @@ const App: React.FC = () => {
               path="/dashboard"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <DashboardPage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -82,9 +82,9 @@ const App: React.FC = () => {
               path="/pipelines"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <PipelinesPage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -93,9 +93,9 @@ const App: React.FC = () => {
               path="/pipelines/builder/:id?"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <PipelineBuilderPage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -104,9 +104,9 @@ const App: React.FC = () => {
               path="/data/import"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <DataImportPage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -115,9 +115,9 @@ const App: React.FC = () => {
               path="/data/export"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <DataExportPage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -126,9 +126,9 @@ const App: React.FC = () => {
               path="/monitoring"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <MonitoringPage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -138,9 +138,9 @@ const App: React.FC = () => {
               path="/profile"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <ProfilePage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -149,9 +149,9 @@ const App: React.FC = () => {
               path="/settings"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <SettingsPage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -161,9 +161,9 @@ const App: React.FC = () => {
               path="/admin/users"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <UsersPage />
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
@@ -173,7 +173,7 @@ const App: React.FC = () => {
               path="*"
               element={
                 <PrivateRoute>
-                  <AppLayout>
+                  <Layout>
                     <div className="min-h-[80vh] flex items-center justify-center relative">
                       <div className="absolute inset-0 overflow-hidden">
                         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
@@ -214,7 +214,7 @@ const App: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </AppLayout>
+                  </Layout>
                 </PrivateRoute>
               }
             />
