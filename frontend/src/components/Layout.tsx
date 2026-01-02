@@ -22,16 +22,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const drawerWidth = isClosed ? 80 : 280;
 
   const handleDrawerToggle = () => {
-    console.log('Mobile toggle clicked, current mobileOpen:', mobileOpen);
     setMobileOpen(!mobileOpen);
   };
 
   const handleSidebarToggle = () => {
-    console.log('Sidebar toggle clicked, current isClosed:', isClosed);
     setIsClosed(!isClosed);
   };
-
-  console.log('Layout render - isClosed:', isClosed, 'drawerWidth:', drawerWidth, 'isMobile:', isMobile);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>

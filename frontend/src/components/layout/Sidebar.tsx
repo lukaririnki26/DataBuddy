@@ -50,21 +50,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const { user } = useSelector((state: RootState) => state.auth);
 
-  // Debug logging
-  console.log('=== Sidebar Render ===');
-  console.log('isClosed:', isClosed);
-  console.log('drawerWidth:', drawerWidth);
-  console.log('isMobile:', isMobile);
-  console.log('onToggle type:', typeof onToggle);
-  console.log('onToggle:', onToggle);
-
-  const handleToggleClick = () => {
-    console.log('🔥 HAMBURGER CLICKED! Current isClosed:', isClosed);
-    console.log('Calling onToggle...');
-    onToggle();
-    console.log('onToggle called!');
-  };
-
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
     { name: 'Data Import', href: '/data/import', icon: Upload },
@@ -213,7 +198,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }}>
           <Tooltip title={isClosed ? 'Open Sidebar' : 'Close Sidebar'} placement="right">
             <IconButton
-              onClick={handleToggleClick}
+              onClick={onToggle}
               sx={{
                 bgcolor: alpha(theme.palette.common.white, 0.05),
                 '&:hover': {
