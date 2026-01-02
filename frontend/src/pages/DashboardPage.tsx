@@ -115,7 +115,7 @@ const DashboardPage: React.FC = () => {
 
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', ml: 0, mr: 'auto' }}>
       {/* Header */}
       <Grid container spacing={3} alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
         <Grid item>

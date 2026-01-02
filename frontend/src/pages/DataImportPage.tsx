@@ -251,7 +251,7 @@ const DataImportPage: React.FC = () => {
         }} />
       </Box>
 
-      <Box sx={{ position: 'relative', zIndex: 10, width: '100%' }}>
+      <Box sx={{ position: 'relative', zIndex: 10, width: '100%', ml: 0, mr: 'auto' }}>
         {/* Header */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: { lg: 'center' }, gap: 3, mb: 4 }}>
           <Box>

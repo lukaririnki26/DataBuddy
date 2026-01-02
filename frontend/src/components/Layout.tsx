@@ -49,11 +49,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         key={`main-content-${drawerWidth}`}
         sx={{
           flexGrow: 1,
-          width: {
-            xs: '100%',
-            md: `calc(100% - ${drawerWidth}px)`
-          },
-          ml: { md: `${drawerWidth}px` },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.standard,
@@ -63,6 +58,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           height: '100vh',
           display: 'flex',
           flexDirection: 'column',
+          width: '100%',
         }}
       >
         {/* Navbar - Scrolls with content */}
