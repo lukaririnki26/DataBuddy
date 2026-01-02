@@ -5,14 +5,25 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.2] - 2026-01-02
+## [1.2.0] - 2026-01-02
+
+### Added
+- **Premium Monitoring Dashboard**: Real-time system health alerts and performance topology using `recharts`.
+- **Data Export Center**: "Signal Uplink" operations for multi-format (CSV, XLSX, JSON) data extraction.
+- **Global Toast System**: Sophisticated, non-blocking notification system with glassmorphic aesthetic.
+
+### Improved
+- **Premium UX Overhaul**: Comprehensive dark mode transformation with glassmorphism, vibrant gradients, and futuristic animations.
+- **Dashboard Command Center**: Interactive metrics mapped directly to functional modules.
+- **Unified Navigation**: Pruned sidebar and synchronized all system routes for a seamless experience.
+- **Performance**: Optimized rendering with memoization and defensive coding patterns.
 
 ### Fixed
-- **TypeORM Migrations**: Added missing columns (`filePath`, `filename`, `mimeType`, `errors`, `columns`, `expiresAt`) to align with entity definitions.
-- **Seeder Sync**: Refactored seeders to use Entity repositories and synchronized `StepType` enum values with the database.
-- **JWT Configuration**: Fixed `secretOrPrivateKey must have a value` error by correctly configuring global `JwtModule` and refactoring `AuthService` to use `ConfigService`.
-- **Environment Variables**: Optimized `.env` loading and matched key names between backend service and migrations.
-- **Port Conflicts**: Resolved issues with multiple backend processes competing for port 3001.
+- **Infinite Render Loop**: Resolved a critical performance bug in `DataExportPage` caused by non-memoized filter objects.
+- **Runtime Reference Errors**: Fixed missing icon imports that were causing page crashes.
+- **Layout Stability**: Corrected main content margins and background ambience for a consistent full-bleed experience.
+
+## [1.1.2] - 2026-01-02
 
 ## [1.1.1] - 2025-01-01
 

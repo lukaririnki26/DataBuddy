@@ -52,18 +52,17 @@ const Layout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-950 font-sans text-slate-200 selection:bg-indigo-500/30 selection:text-indigo-200">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-gray-600 bg-opacity-75 md:hidden" />
+        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" />
       )}
 
       {/* Sidebar */}
       <div
         id="sidebar"
-        className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 md:static md:inset-0`}
+        className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-500 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } md:translate-x-0 md:static md:inset-0`}
       >
         <Sidebar
           collapsed={sidebarCollapsed}
@@ -72,9 +71,8 @@ const Layout: React.FC = () => {
       </div>
 
       {/* Main content area */}
-      <div className={`flex flex-col min-h-screen transition-all duration-300 ${
-        sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
-      }`}>
+      <div className={`flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-72'
+        }`}>
         {/* Top navbar */}
         <Navbar
           onMenuClick={toggleSidebar}
@@ -82,7 +80,7 @@ const Layout: React.FC = () => {
         />
 
         {/* Main content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-auto">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

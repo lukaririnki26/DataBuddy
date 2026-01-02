@@ -24,6 +24,7 @@ export interface ImportHistoryItem {
   skippedRows: number;
   createdAt: string;
   completedAt?: string;
+  errorMessage?: string;
 }
 
 export interface ExportHistoryItem {

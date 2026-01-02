@@ -90,15 +90,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="backdrop-blur-md bg-slate-900/80 border-b border-white/10 sticky top-0 z-30 transition-all duration-300">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Left side - Menu button and search */}
           <div className="flex items-center">
             {/* Mobile menu button */}
             <button
               onClick={onMenuClick}
-              className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 focus:outline-none transition-all duration-200"
             >
               {sidebarOpen ? (
                 <X className="h-6 w-6" />
@@ -108,18 +108,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
             </button>
 
             {/* Search */}
-            <div className="hidden md:block ml-4">
-              <form onSubmit={handleSearch} className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
+            <div className="hidden md:block ml-6">
+              <form onSubmit={handleSearch} className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
                 </div>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Search pipelines, data, users..."
+                  className="block w-80 pl-11 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl leading-5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 backdrop-blur-sm transition-all duration-300"
+                  placeholder="Universal Research..."
                 />
+                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 rounded-full"></div>
               </form>
             </div>
           </div>
@@ -130,12 +131,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-2 text-gray-400 hover:text-gray-500 relative focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 rounded-md"
+                className="p-2.5 text-slate-400 hover:text-white relative focus:outline-none rounded-xl hover:bg-white/10 transition-all duration-200"
               >
                 <Bell className="h-6 w-6" />
                 {unread > 0 && (
-                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
-                    {unread > 99 ? '99+' : unread}
+                  <span className="absolute top-1 right-1 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-[10px] font-bold text-white items-center justify-center">
+                      {unread > 99 ? '99' : unread}
+                    </span>
                   </span>
                 )}
               </button>
@@ -164,9 +168,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
                         return (
                           <div
                             key={notification.id}
-                            className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                              !notification.isRead ? 'bg-blue-50' : ''
-                            }`}
+                            className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.isRead ? 'bg-blue-50' : ''
+                              }`}
                             onClick={() => markAsRead(notification.id)}
                           >
                             <div className="flex items-start">
@@ -219,14 +222,18 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, sidebarOpen = false }) => 
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="flex items-center group p-1.5 rounded-xl hover:bg-white/10 transition-all duration-200"
               >
-                <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center">
-                  <span className="text-sm font-medium text-white">
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                  <span className="text-sm font-bold text-white tracking-wider">
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
                   </span>
                 </div>
-                <ChevronDown className="ml-2 h-4 w-4 text-gray-400" />
+                <div className="hidden sm:flex flex-col items-start ml-3">
+                  <span className="text-sm font-semibold text-white leading-tight">{user?.firstName}</span>
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">{user?.role}</span>
+                </div>
+                <ChevronDown className="ml-2 h-4 w-4 text-slate-500 group-hover:text-white transition-colors" />
               </button>
 
               {/* User dropdown */}

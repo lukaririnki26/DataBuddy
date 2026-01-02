@@ -15,46 +15,23 @@ import {
   Info,
   ArrowLeft,
   ArrowRight,
+  Database,
+  Search,
+  History as HistoryIcon,
 } from 'lucide-react';
 import { api } from '../services/api';
-import { dataService, ImportHistoryItem } from '../services/data.service';
-
-interface FileUploadResult {
-  fileId: string;
-  filename: string;
-  size: number;
-  mimeType: string;
-  rowCount: number;
-  columnCount: number;
-  columns: string[];
-  preview: any[];
-}
-
-interface ValidationResult {
-  isValid: boolean;
-  errors: Array<{
-    row: number;
-    column: string;
-    value: any;
-    error: string;
-  }>;
-  warnings: Array<{
-    row: number;
-    column: string;
-    message: string;
-  }>;
-}
-
-// ImportHistoryItem interface moved to data.service.ts
+import { dataService, ImportHistoryItem, FilePreviewResult, ValidationResult } from '../services/data.service';
+import { useToast } from '../context/ToastContext';
 
 const DataImportPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
+  const { success, error: toastError, info, warning } = useToast();
 
   // State management
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStep, setUploadStep] = useState<'upload' | 'preview' | 'validate' | 'import'>('upload');
-  const [uploadResult, setUploadResult] = useState<FileUploadResult | null>(null);
+  const [uploadResult, setUploadResult] = useState<FilePreviewResult | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [importHistory, setImportHistory] = useState<ImportHistoryItem[]>([]);
 
@@ -90,7 +67,6 @@ const DataImportPage: React.FC = () => {
       setImportHistory(history);
     } catch (error) {
       console.error('Failed to load import history:', error);
-      // Fallback to empty array if API fails
       setImportHistory([]);
     } finally {
       setLoadingHistory(false);
@@ -135,13 +111,13 @@ const DataImportPage: React.FC = () => {
 
     const maxSize = 50 * 1024 * 1024; // 50MB
 
-    if (!allowedTypes.includes(file.type.toLowerCase())) {
-      alert('Please select a CSV or Excel file');
+    if (!allowedTypes.includes(file.type.toLowerCase()) && !file.name.endsWith('.csv') && !file.name.endsWith('.xlsx')) {
+      warning('Invalid File Type', 'Please select a CSV or Excel file');
       return;
     }
 
     if (file.size > maxSize) {
-      alert('File size must be less than 50MB');
+      warning('File Too Large', 'File size must be less than 50MB');
       return;
     }
 
@@ -149,6 +125,7 @@ const DataImportPage: React.FC = () => {
     setUploadStep('upload');
     setUploadResult(null);
     setValidationResult(null);
+    info('File Loaded', `"${file.name}" is ready for preview`);
   };
 
   const handlePreview = async () => {
@@ -156,18 +133,18 @@ const DataImportPage: React.FC = () => {
 
     try {
       setUploading(true);
-
+      info('Processing', 'Analyzing file structure and content...');
       const result = await dataService.uploadFileForPreview(selectedFile, {
         hasHeader: hasHeader,
         encoding,
         delimiter: separator,
-        maxRows: 10, // Preview first 10 rows
+        maxRows: 10,
       });
-
       setUploadResult(result);
       setUploadStep('preview');
+      success('Processing Complete', 'Preview data generated successfully');
     } catch (error: any) {
-      alert(`Preview failed: ${error.message || 'Unknown error'}`);
+      toastError('Preview Failed', error.message || 'System encountered an error during file analysis');
     } finally {
       setUploading(false);
     }
@@ -178,51 +155,36 @@ const DataImportPage: React.FC = () => {
 
     try {
       setValidating(true);
-
+      info('Validation', 'Verifying data integrity and constraints...');
       const result = await dataService.validateData(uploadResult.fileId, validationRules);
-
       setValidationResult(result);
       setUploadStep('validate');
+      if (result.isValid) {
+        success('Validation Passed', 'Data conforms to all defined protocols');
+      } else {
+        warning('Validation Issues', 'Data contains inconsistencies that require attention');
+      }
     } catch (error: any) {
-      alert(`Validation failed: ${error.message || 'Unknown error'}`);
+      toastError('Validation Error', error.message || 'An unexpected protocol error occurred');
     } finally {
       setValidating(false);
     }
   };
 
   const handleImport = async () => {
-    if (!uploadResult) return;
+    if (!uploadResult || !selectedFile) return;
 
     try {
       setImporting(true);
-
-      // Create import record first
-      const importData = {
-        name: uploadResult.filename,
-        sourceType: 'file_upload',
-        fileFormat: uploadResult.mimeType.includes('csv') ? 'csv' : 'xlsx',
-        originalFileName: uploadResult.filename,
-      };
-
-      // Upload file first to get import ID
-      const uploadResponse = await api.uploadFile('/data/upload', selectedFile!);
+      info('Initializing Import', 'Commencing data transmission sequence...');
+      const uploadResponse = await api.uploadFile('/data/upload', selectedFile);
       const importId = uploadResponse.id;
-
-      // Process import with pipeline (if available)
       const result = await dataService.processImport(importId);
-
-      alert(`Import job queued successfully! Job ID: ${result.jobId}`);
-
-      // Reset form
-      setSelectedFile(null);
-      setUploadResult(null);
-      setValidationResult(null);
-      setUploadStep('upload');
-
-      // Reload history
+      success('Import Queued', `Sequence initialized successfully. Job ID: ${result.jobId}`);
+      resetImport();
       loadImportHistory();
     } catch (error: any) {
-      alert(`Import failed: ${error.message || 'Unknown error'}`);
+      toastError('Import Failed', error.message || 'Data transmission was interrupted');
     } finally {
       setImporting(false);
     }
@@ -245,632 +207,311 @@ const DataImportPage: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'processing': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      case 'processing': return <Settings className="w-4 h-4 animate-spin" />;
-      case 'failed': return <AlertCircle className="w-4 h-4" />;
-      default: return <Info className="w-4 h-4" />;
+      case 'completed': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'processing': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'failed': return 'bg-red-500/10 text-red-400 border-red-500/20';
+      default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233B82F6' fill-opacity='0.03'%3E%3Ccircle cx='50' cy='50' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
+    <div className="min-h-screen bg-[#0f172a] bg-gradient-to-br from-slate-900 via-indigo-900/40 to-slate-900">
+      {/* Background Ambience */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] animate-blob"></div>
+        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-[100px] animate-blob animation-delay-2000"></div>
+      </div>
 
-      <div className="relative z-10 space-y-8 p-8">
+      <div className="relative z-10 space-y-8 p-8 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent">
-              Data Import
+            <h1 className="text-4xl font-black bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent">
+              Data Transmission
             </h1>
-            <p className="text-slate-400 text-lg">
-              Upload and import data from CSV or Excel files with validation and preview
-            </p>
+            <p className="text-slate-400 text-lg font-medium">Ingest and analyze external datasets into the system core</p>
           </div>
 
           <button
             onClick={resetImport}
-            className="backdrop-blur-md bg-gradient-to-r from-slate-500/20 to-slate-600/20 border border-white/20 text-slate-300 px-4 py-2 rounded-xl hover:bg-gradient-to-r hover:from-slate-500/30 hover:to-slate-600/30 transition-all duration-300 hover:scale-105"
+            className="inline-flex items-center px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-bold transition-all transform hover:scale-105"
           >
-            <Upload className="w-4 h-4 mr-2" />
-            New Import
+            <Upload className="w-5 h-5 mr-3" />
+            Initialize New Uplink
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Import Process */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Step 1: File Upload */}
-            {uploadStep === 'upload' && (
-                <div>test</div>
-              )}
-
-            {/* upload step temporarily disabled */}
-                  <div className={`relative flex items-center justify-center w-10 h-10 rounded-xl text-sm font-bold backdrop-blur-sm ${
-                    selectedFile ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-slate-500/20 text-slate-300 border border-slate-500/30'
-                  }`}>
-                    1
-                    {selectedFile && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                    )}
+            {/* Step Indicators */}
+            <div className="flex items-center justify-between px-4">
+              {['upload', 'preview', 'validate', 'import'].map((step, idx) => {
+                const isActive = uploadStep === step;
+                const isPast = ['upload', 'preview', 'validate', 'import'].indexOf(uploadStep) > idx;
+                return (
+                  <div key={step} className="flex items-center">
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${isActive ? 'bg-blue-500 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]' :
+                      isPast ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' :
+                        'bg-slate-900 border-slate-700 text-slate-500'
+                      }`}>
+                      {isPast ? <CheckCircle className="w-4 h-4" /> : idx + 1}
+                    </div>
+                    {idx < 3 && <div className={`w-8 h-0.5 mx-2 bg-slate-800 ${isPast ? 'bg-emerald-500/20' : ''}`}></div>}
                   </div>
-                  <h3 className="ml-4 text-xl font-semibold text-white">Upload Data File</h3>
-                </div>
+                );
+              })}
+            </div>
 
+            {/* Step 1: Upload */}
+            {uploadStep === 'upload' && (
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8 animate-fadeInUp">
                 <div
-                  className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
-                    dragActive
-                      ? 'border-blue-400 bg-gradient-to-br from-blue-500/10 to-purple-500/10 scale-[1.02]'
-                      : 'border-white/30 hover:border-white/50'
-                  }`}
+                  className={`relative border-2 border-dashed rounded-[2rem] p-16 text-center transition-all duration-300 ${dragActive ? 'border-blue-400 bg-blue-500/10 scale-[1.02]' : 'border-white/10 hover:border-white/20'}`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
                   onDrop={handleDrop}
                 >
-                  {/* Glow effect when dragging */}
-                  {dragActive && (
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl animate-pulse"></div>
-                  )}
-
-                  <div className="relative z-10">
-                    <div className="relative inline-block mb-6">
-                      <Upload className={`mx-auto h-16 w-16 ${dragActive ? 'text-blue-400' : 'text-slate-500'}`} />
-                      {dragActive && (
-                        <div className="absolute inset-0 bg-blue-400/20 rounded-full blur-lg animate-pulse"></div>
-                      )}
+                  <div className="relative z-10 space-y-6">
+                    <div className="relative inline-flex p-6 bg-slate-900 rounded-3xl border border-white/10 shadow-2xl">
+                      <Upload className={`h-12 w-12 ${dragActive ? 'text-blue-400' : 'text-slate-500'}`} />
                     </div>
-
-                    <div className="space-y-4">
-                      <p className="text-lg text-slate-300">
-                        Drag and drop your file here, or{' '}
-                        <label className="text-blue-400 hover:text-blue-300 cursor-pointer font-semibold transition-colors">
-                          browse files
-                          <input
-                            type="file"
-                            className="hidden"
-                            accept=".csv,.xlsx,.xls"
-                            onChange={handleFileSelect}
-                          />
-                        </label>
-                      </p>
-                      <div className="flex items-center justify-center space-x-6 text-sm text-slate-500">
-                        <span className="flex items-center">
-                          <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                          CSV files
-                        </span>
-                        <span className="flex items-center">
-                          <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-                          Excel files
-                        </span>
-                        <span className="text-slate-400">Up to 50MB</span>
-                      </div>
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-black text-white">Select Distribution File</h3>
+                      <p className="text-slate-500 font-medium">Drag and drop or <span className="text-blue-400 hover:underline cursor-pointer"><label>browse nodes<input type="file" className="hidden" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} /></label></span></p>
+                    </div>
+                    <div className="flex items-center justify-center space-x-4">
+                      {['CSV', 'Excel', 'JSON'].map(ext => (
+                        <span key={ext} className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400">{ext}</span>
+                      ))}
                     </div>
                   </div>
                 </div>
 
                 {selectedFile && (
-                  <div className="mt-8">
-                    <div className="backdrop-blur-md bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-white/20 rounded-xl p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="p-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl border border-white/10">
-                            <FileText className="h-6 w-6 text-blue-400" />
-                          </div>
-                          <div>
-                            <p className="text-lg font-semibold text-white">{selectedFile.name}</p>
-                            <div className="flex items-center space-x-4 text-sm text-slate-400">
-                              <span>{formatFileSize(selectedFile.size)}</span>
-                              <span>•</span>
-                              <span>{selectedFile.type}</span>
-                            </div>
-                          </div>
+                  <div className="backdrop-blur-md bg-slate-900/40 border border-white/10 rounded-3xl p-8 space-y-8 animate-fadeInUp">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-6">
+                        <div className="p-4 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-2xl border border-white/10">
+                          <FileText className="h-8 w-8 text-blue-400" />
                         </div>
-                        <button
-                          onClick={handlePreview}
-                          disabled={uploading}
-                          className="backdrop-blur-md bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 text-blue-300 px-6 py-3 rounded-xl hover:bg-gradient-to-r hover:from-blue-500/30 hover:to-purple-500/30 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                        >
-                          {uploading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400 mr-2"></div>
-                              Processing...
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="w-4 h-4 mr-2" />
-                              Preview Data
-                            </>
-                          )}
-                        </button>
+                        <div>
+                          <h4 className="text-xl font-bold text-white">{selectedFile.name}</h4>
+                          <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">{formatFileSize(selectedFile.size)} • Protocol: {selectedFile.type.split('/')[1] || 'binary'}</p>
+                        </div>
                       </div>
+                      <button
+                        onClick={handlePreview}
+                        disabled={uploading}
+                        className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-2xl hover:bg-blue-500 transition-all disabled:opacity-50"
+                      >
+                        {uploading ? <RefreshCw className="w-5 h-5 animate-spin mr-3" /> : <Play className="w-5 h-5 mr-3" />}
+                        Execute Analysis
+                      </button>
+                    </div>
 
-                    {/* File configuration options */}
-                    <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-white">
-                          Header Row
-                        </label>
-                        <select
-                          value={hasHeader.toString()}
-                          onChange={(e) => setHasHeader(e.target.value === 'true')}
-                          className="block w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 backdrop-blur-sm"
-                        >
-                          <option value="true" className="bg-slate-800">Has header row</option>
-                          <option value="false" className="bg-slate-800">No header row</option>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="space-y-3">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Metadata Header</label>
+                        <select value={hasHeader.toString()} onChange={(e) => setHasHeader(e.target.value === 'true')} className="w-full bg-slate-950/50 border border-white/10 text-white rounded-2xl px-6 py-4 outline-none focus:ring-1 focus:ring-blue-500">
+                          <option value="true" className="bg-slate-900">Header Present</option>
+                          <option value="false" className="bg-slate-900">Raw Data Stream</option>
                         </select>
                       </div>
-
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-white">
-                          Encoding
-                        </label>
-                        <select
-                          value={encoding}
-                          onChange={(e) => setEncoding(e.target.value)}
-                          className="block w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 backdrop-blur-sm"
-                        >
-                          <option value="utf8" className="bg-slate-800">UTF-8 (Recommended)</option>
-                          <option value="latin1" className="bg-slate-800">Latin-1</option>
-                          <option value="ascii" className="bg-slate-800">ASCII</option>
+                      <div className="space-y-3">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Data Encoding</label>
+                        <select value={encoding} onChange={(e) => setEncoding(e.target.value)} className="w-full bg-slate-950/50 border border-white/10 text-white rounded-2xl px-6 py-4 outline-none focus:ring-1 focus:ring-blue-500">
+                          <option value="utf8" className="bg-slate-900">Universal (UTF-8)</option>
+                          <option value="latin1" className="bg-slate-900">Legacy (Latin-1)</option>
                         </select>
                       </div>
-
-                      <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-white">
-                          Separator
-                        </label>
-                        <select
-                          value={separator}
-                          onChange={(e) => setSeparator(e.target.value)}
-                          className="block w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 backdrop-blur-sm"
-                        >
-                          <option value="," className="bg-slate-800">Comma (,)</option>
-                          <option value=";" className="bg-slate-800">Semicolon (;)</option>
-                          <option value="\t" className="bg-slate-800">Tab</option>
-                          <option value="|" className="bg-slate-800">Pipe (|)</option>
+                      <div className="space-y-3">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Field Segregation</label>
+                        <select value={separator} onChange={(e) => setSeparator(e.target.value)} className="w-full bg-slate-950/50 border border-white/10 text-white rounded-2xl px-6 py-4 outline-none focus:ring-1 focus:ring-blue-500">
+                          <option value="," className="bg-slate-900">Comma (Default)</option>
+                          <option value=";" className="bg-slate-900">Semicolon</option>
                         </select>
                       </div>
                     </div>
-                </div>
-              )
-            </div>
-          )}
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Step 2: Data Preview */}
+            {/* Step 2: Preview */}
             {uploadStep === 'preview' && uploadResult && (
-              <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center">
-                    <div className="relative flex items-center justify-center w-10 h-10 rounded-xl text-sm font-bold bg-green-500/20 text-green-300 border border-green-500/30 backdrop-blur-sm">
-                      2
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8 animate-fadeInUp">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black text-white italic tracking-tighter">Content Analysis</h3>
+                  <div className="flex items-center space-x-2">
+                    <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                      <span className="text-blue-400 font-black tracking-widest">{uploadResult.rowCount.toLocaleString()} NODES</span>
                     </div>
-                    <h3 className="ml-4 text-xl font-semibold text-white">Data Preview</h3>
-                  </div>
-                  <button
-                    onClick={() => setUploadStep('upload')}
-                    className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="mb-8">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="backdrop-blur-sm bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                      <div className="text-2xl font-bold text-blue-300">{uploadResult.rowCount.toLocaleString()}</div>
-                      <div className="text-sm text-blue-200">Total Rows</div>
-                    </div>
-                    <div className="backdrop-blur-sm bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
-                      <div className="text-2xl font-bold text-purple-300">{uploadResult.columnCount}</div>
-                      <div className="text-sm text-purple-200">Columns</div>
-                    </div>
-                    <div className="backdrop-blur-sm bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-                      <div className="text-2xl font-bold text-green-300">{formatFileSize(uploadResult.preview.reduce((acc, row) => acc + JSON.stringify(row).length, 0))}</div>
-                      <div className="text-sm text-green-200">Sample Size</div>
+                    <div className="px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                      <span className="text-purple-400 font-black tracking-widest">{uploadResult.columnCount} VECTORS</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Data preview table */}
-                <div className="backdrop-blur-md bg-slate-900/50 border border-white/10 rounded-xl overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                      <thead className="bg-gradient-to-r from-slate-800/50 to-slate-700/50">
-                        <tr>
-                          {uploadResult.columns.map((column, index) => (
-                            <th
-                              key={index}
-                              className="px-4 py-3 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider border-b border-white/10"
-                            >
-                              {column}
-                            </th>
-                          ))}
+                <div className="bg-slate-950/50 border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                  <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-white/5">
+                          {uploadResult.columns.map((column, i) => <th key={i} className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/10">{column}</th>)}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        {uploadResult.preview.slice(0, 5).map((row, rowIndex) => (
-                          <tr key={rowIndex} className="hover:bg-white/5 transition-colors">
-                            {uploadResult.columns.map((column, colIndex) => (
-                              <td
-                                key={colIndex}
-                                className="px-4 py-3 text-sm text-slate-300 whitespace-nowrap"
-                              >
-                                <span className="font-mono bg-slate-800/50 px-2 py-1 rounded border border-white/10">
-                                  {row[column]?.toString() || ''}
-                                </span>
-                              </td>
-                            ))}
+                        {uploadResult.preview.slice(0, 5).map((row, i) => (
+                          <tr key={i} className="hover:bg-white/5 transition-colors">
+                            {uploadResult.columns.map((col, j) => <td key={j} className="px-6 py-4 text-sm text-slate-400 font-medium whitespace-nowrap">{row[col]?.toString() || ''}</td>)}
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-
-                  <div className="px-4 py-3 bg-slate-800/30 border-t border-white/10">
-                    <p className="text-xs text-slate-400 text-center">
-                      Showing first 5 rows of {uploadResult.rowCount.toLocaleString()} total rows
-                    </p>
-                  </div>
                 </div>
 
-                <div className="mt-8 flex justify-between">
-                  <button
-                    onClick={() => setUploadStep('upload')}
-                    className="backdrop-blur-md bg-gradient-to-r from-slate-500/20 to-slate-600/20 border border-slate-500/30 text-slate-300 px-6 py-3 rounded-xl hover:bg-gradient-to-r hover:from-slate-500/30 hover:to-slate-600/30 transition-all duration-300 font-medium"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Upload
-                  </button>
-                  <button
-                    onClick={() => setUploadStep('validate')}
-                    className="backdrop-blur-md bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 text-blue-300 px-6 py-3 rounded-xl hover:bg-gradient-to-r hover:from-blue-500/30 hover:to-purple-500/30 transition-all duration-300 hover:scale-105 font-medium"
-                  >
-                    Continue to Validation
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </button>
-                </div>
-            </div>
-          )}
-
-          {/* Step 3: Data Validation */}
-          {uploadStep === 'validate' && uploadResult && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                    3
-                  </div>
-                  <h3 className="ml-3 text-lg font-medium text-gray-900">Data Validation</h3>
-                </div>
-                <button
-                  onClick={() => setUploadStep('preview')}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Validation rules form */}
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Required Columns (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={validationRules.requiredColumns.join(', ')}
-                    onChange={(e) => setValidationRules(prev => ({
-                      ...prev,
-                      requiredColumns: e.target.value.split(',').map(s => s.trim()).filter(s => s)
-                    }))}
-                    placeholder="e.g., name, email, id"
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Data Types
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {uploadResult.columns.map(column => (
-                      <div key={column} className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600 w-32">{column}:</span>
-                        <select
-                          value={validationRules.dataTypes[column] || ''}
-                          onChange={(e) => setValidationRules(prev => ({
-                            ...prev,
-                            dataTypes: {
-                              ...prev.dataTypes,
-                              [column]: e.target.value as 'string' | 'number' | 'date' | 'boolean'
-                            }
-                          }))}
-                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                        >
-                          <option value="">Any</option>
-                          <option value="string">String</option>
-                          <option value="number">Number</option>
-                          <option value="date">Date</option>
-                          <option value="boolean">Boolean</option>
-                        </select>
-                      </div>
-                    ))}
-                  </div>
+                <div className="flex justify-between items-center pt-4">
+                  <button onClick={() => setUploadStep('upload')} className="px-8 py-4 text-slate-400 font-black uppercase tracking-widest hover:text-white transition-all">Abort Protocol</button>
+                  <button onClick={() => setUploadStep('validate')} className="px-12 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black shadow-2xl hover:scale-105 transition-all">Validate Sequence</button>
                 </div>
               </div>
+            )}
 
-              {/* Validation results */}
-              {validationResult && (
-                <div className="border-t pt-6">
-                  <div className="flex items-center mb-4">
-                    {validationResult.isValid ? (
-                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                    ) : (
-                      <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
-                    )}
-                    <span className={`text-sm font-medium ${
-                      validationResult.isValid ? 'text-green-700' : 'text-red-700'
-                    }`}>
-                      {validationResult.isValid ? 'Validation passed' : 'Validation failed'}
-                    </span>
+            {/* Step 3: Validate */}
+            {uploadStep === 'validate' && (
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8 animate-fadeInUp">
+                <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                  <h3 className="text-2xl font-black text-white">Integrity Protocol</h3>
+                  <button onClick={() => setUploadStep('preview')} className="p-2 text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Mandatory Vector Map</label>
+                    <input
+                      type="text"
+                      value={validationRules.requiredColumns.join(', ')}
+                      onChange={(e) => setValidationRules(prev => ({ ...prev, requiredColumns: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+                      className="w-full bg-slate-950/50 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none focus:ring-1 focus:ring-indigo-500"
+                      placeholder="e.g. unique_id, timestamp, payload..."
+                    />
                   </div>
 
-                  {validationResult.errors.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-red-700 mb-2">Errors ({validationResult.errors.length})</h4>
-                      <div className="max-h-32 overflow-y-auto space-y-1">
-                        {validationResult.errors.slice(0, 10).map((error, index) => (
-                          <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                            Row {error.row}, Column "{error.column}": {error.error}
-                          </div>
-                        ))}
-                        {validationResult.errors.length > 10 && (
-                          <div className="text-xs text-red-600">
-                            ... and {validationResult.errors.length - 10} more errors
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {validationResult.warnings.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-yellow-700 mb-2">Warnings ({validationResult.warnings.length})</h4>
-                      <div className="max-h-32 overflow-y-auto space-y-1">
-                        {validationResult.warnings.slice(0, 5).map((warning, index) => (
-                          <div key={index} className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
-                            Row {warning.row}, Column "{warning.column}": {warning.message}
-                          </div>
-                        ))}
+                  {validationResult && (
+                    <div className={`p-8 rounded-[2rem] border-2 backdrop-blur-xl animate-scaleIn ${validationResult.isValid ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                      <div className="flex items-center space-x-4 mb-4">
+                        <div className={`p-3 rounded-2xl ${validationResult.isValid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                          {validationResult.isValid ? <CheckCircle className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
+                        </div>
+                        <div>
+                          <h4 className={`text-xl font-black ${validationResult.isValid ? 'text-emerald-400' : 'text-red-400'}`}>{validationResult.isValid ? 'SYSTEM INTEGRITY VERIFIED' : 'INTEGRITY BREACH IDENTIFIED'}</h4>
+                          <p className="text-sm font-medium text-slate-500">{validationResult.isValid ? 'All vectors conform to system architecture' : 'Protocol violations detected in data stream'}</p>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
-              )}
 
-              <div className="mt-6 flex justify-between">
-                <button
-                  onClick={() => setUploadStep('preview')}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700"
-                >
-                  Back
-                </button>
-                <div className="space-x-2">
-                  <button
-                    onClick={handleValidate}
-                    disabled={validating}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {validating ? 'Validating...' : 'Validate'}
-                  </button>
-                  {validationResult?.isValid && (
-                    <button
-                      onClick={() => setUploadStep('import')}
-                      className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700"
-                    >
-                      Continue to Import
+                <div className="flex justify-between items-center pt-4">
+                  <button onClick={() => setUploadStep('preview')} className="px-8 py-4 text-slate-400 font-black uppercase tracking-widest hover:text-white transition-all">Reverse Node</button>
+                  <div className="flex items-center space-x-4">
+                    <button onClick={handleValidate} disabled={validating} className="px-8 py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black hover:bg-white/10 transition-all">
+                      {validating ? 'Verifying...' : 'Initiate Scan'}
                     </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Import Configuration */}
-          {uploadStep === 'import' && uploadResult && validationResult?.isValid && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    4
-                  </div>
-                  <h3 className="ml-3 text-lg font-medium text-gray-900">Import Configuration</h3>
-                </div>
-                <button
-                  onClick={() => setUploadStep('validate')}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Import Summary</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">File:</span>
-                      <span className="ml-2 font-medium">{uploadResult.filename}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Rows:</span>
-                      <span className="ml-2 font-medium">{uploadResult.rowCount.toLocaleString()}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Columns:</span>
-                      <span className="ml-2 font-medium">{uploadResult.columnCount}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Validation:</span>
-                      <span className="ml-2 font-medium text-green-600">Passed</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 p-4 rounded-md">
-                  <div className="flex items-start">
-                    <Info className="w-5 h-5 text-blue-500 mr-2 mt-0.5" />
-                    <div className="text-sm text-blue-700">
-                      <p className="font-medium">Ready to import!</p>
-                      <p className="mt-1">
-                        Your data has been validated and is ready to be imported.
-                        The import will be processed in the background and you will receive a notification when complete.
-                      </p>
-                    </div>
+                    {validationResult?.isValid && (
+                      <button onClick={() => setUploadStep('import')} className="px-12 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-2xl hover:bg-indigo-500 transition-all animate-glow">
+                        Begin Transmission
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
+            )}
 
-              <div className="mt-6 flex justify-between">
-                <button
-                  onClick={() => setUploadStep('validate')}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handleImport}
-                  disabled={importing}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
-                >
-                  {importing ? (
-                    <>
-                      <Settings className="w-4 h-4 mr-2 animate-spin" />
-                      Importing...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4 mr-2" />
-                      Start Import
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-          {/* Import History Sidebar */}
-          <div className="space-y-8">
-            <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-white">Import History</h3>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-green-400">Live</span>
+            {/* Step 4: Import */}
+            {uploadStep === 'import' && uploadResult && (
+              <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-12 space-y-10 text-center animate-fadeInUp">
+                <div className="relative inline-flex p-8 bg-blue-500/10 rounded-[3rem] border border-blue-500/20 shadow-[0_0_50px_rgba(59,130,246,0.2)]">
+                  <Database className="w-16 h-16 text-blue-400 animate-pulse" />
                 </div>
-              </div>
-
-              {loadingHistory ? (
-                <div className="space-y-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="backdrop-blur-sm bg-slate-800/50 border border-white/10 rounded-xl p-4 animate-pulse">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-slate-700 rounded-lg"></div>
-                        <div className="flex-1">
-                          <div className="h-4 bg-slate-700 rounded w-3/4 mb-2"></div>
-                          <div className="h-3 bg-slate-700 rounded w-1/2"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : importHistory.length > 0 ? (
-                <div className="space-y-4">
-                  {importHistory.map((item) => (
-                    <div key={item.id} className="group backdrop-blur-md bg-gradient-to-r from-slate-800/30 to-slate-700/30 border border-white/10 rounded-xl p-4 hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                      <div className="flex items-start space-x-4">
-                        <div className={`p-2 rounded-xl backdrop-blur-sm border ${getStatusColor(item.status)}`}>
-                          {getStatusIcon(item.status)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-white group-hover:text-blue-200 transition-colors truncate">
-                            {item.filename}
-                          </p>
-                          <div className="flex items-center space-x-4 text-xs text-slate-400 mt-1">
-                            <span>{new Date(item.uploadedAt).toLocaleString()}</span>
-                            {item.rowCount && (
-                              <>
-                                <span>•</span>
-                                <span>{item.rowCount.toLocaleString()} rows</span>
-                              </>
-                            )}
-                          </div>
-                          {item.errorMessage && (
-                            <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-                              <p className="text-xs text-red-300">{item.errorMessage}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="relative inline-block mb-6">
-                    <FileText className="mx-auto h-16 w-16 text-slate-500" />
-                    <div className="absolute inset-0 bg-blue-400/10 rounded-full blur-xl animate-pulse"></div>
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-white mb-2">No imports yet</h3>
-                  <p className="text-slate-400 mb-6 max-w-sm mx-auto">
-                    Your import history will appear here once you start importing data files
+                <div className="space-y-4 max-w-md mx-auto">
+                  <h3 className="text-3xl font-black text-white">Final Synchronization</h3>
+                  <p className="text-slate-400 font-medium leading-relaxed">
+                    Ready to distribute <span className="text-blue-400 font-black">{uploadResult.rowCount.toLocaleString()} records</span> from uplink node <span className="text-white italic">"{uploadResult.filename}"</span> into primary system storage.
                   </p>
-
-                  <div className="inline-flex items-center text-sm text-blue-400">
-                    <Info className="w-4 h-4 mr-2" />
-                    Start by uploading a CSV or Excel file
-                  </div>
                 </div>
-              )}
+                <div className="flex justify-center items-center space-x-6">
+                  <button onClick={() => setUploadStep('validate')} className="px-12 py-4 text-slate-500 font-black uppercase tracking-widest hover:text-white transition-all">Cancel Sequence</button>
+                  <button onClick={handleImport} disabled={importing} className="px-16 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-[2rem] font-black text-lg shadow-2xl hover:shadow-blue-500/40 hover:scale-105 transition-all">
+                    {importing ? 'Synchronizing...' : 'Authorize Uplink'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-            {/* Quick Actions */}
-            <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-6">Quick Actions</h3>
+          {/* Sidebar */}
+          <div className="space-y-8">
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xl font-black text-white italic tracking-tighter">Transmission Logs</h3>
+                <HistoryIcon className="w-5 h-5 text-slate-500" />
+              </div>
               <div className="space-y-4">
-                <button
-                  onClick={resetImport}
-                  className="w-full group flex items-center backdrop-blur-md bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 text-blue-300 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-purple-500/20 transition-all duration-300 hover:scale-105"
-                >
-                  <Upload className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                  <span className="font-medium">Start New Import</span>
-                </button>
-
-                <button className="w-full group flex items-center backdrop-blur-md bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 text-green-300 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-green-500/20 hover:to-emerald-500/20 transition-all duration-300 hover:scale-105">
-                  <Download className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                  <span className="font-medium">Download Template</span>
-                </button>
-
-                <button className="w-full group flex items-center backdrop-blur-md bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 text-purple-300 px-4 py-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-300 hover:scale-105">
-                  <Settings className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
-                  <span className="font-medium">Import Settings</span>
-                </button>
+                {importHistory.map((item) => (
+                  <div key={item.id} className="p-5 rounded-3xl bg-slate-900/40 border border-white/5 group hover:border-white/10 transition-all">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-bold text-white group-hover:text-blue-200 transition-colors truncate max-w-[120px]">{item.name}</span>
+                      <span className={`px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${getStatusColor(item.status)}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                      <span className="text-slate-400">{item.totalRows} NODES</span>
+                    </div>
+                  </div>
+                ))}
+                {importHistory.length === 0 && !loadingHistory && (
+                  <div className="py-12 text-center space-y-2">
+                    <Database className="w-8 h-8 text-slate-700 mx-auto" />
+                    <p className="text-[10px] font-black tracking-widest text-slate-600 uppercase">Log Empty</p>
+                  </div>
+                )}
               </div>
             </div>
+
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8">
+              <h3 className="text-xl font-black text-white italic tracking-tighter">System Directives</h3>
+              <div className="space-y-4">
+                <button onClick={resetImport} className="w-full flex items-center p-5 bg-blue-500/10 border border-blue-500/20 rounded-3xl group hover:bg-blue-500/20 transition-all">
+                  <div className="p-3 bg-slate-900 rounded-xl mr-4 group-hover:scale-110 transition-transform">
+                    <Upload className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white">Initialize Uplink</div>
+                    <div className="text-[10px] font-black text-slate-500 uppercase">Primary Data Ingest</div>
+                  </div>
+                </button>
+                <a
+                  href="https://github.com/lukaririnki26/DataBuddy/blob/main/docs/database-setup.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center p-5 bg-purple-500/10 border border-purple-500/20 rounded-3xl group hover:bg-purple-500/20 transition-all text-left"
+                >
+                  <div className="p-3 bg-slate-900 rounded-xl mr-4 group-hover:scale-110 transition-transform">
+                    <Download className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white">Fetch Blueprint</div>
+                    <div className="text-[10px] font-black text-slate-500 uppercase">Schema Template</div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

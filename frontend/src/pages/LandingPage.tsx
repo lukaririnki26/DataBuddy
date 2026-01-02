@@ -11,8 +11,6 @@ const LandingPage: React.FC = () => {
   console.log('LandingPage component is rendering at:', new Date().toISOString());
   React.useEffect(() => {
     console.log('LandingPage mounted successfully!');
-    // Temporary alert to confirm JavaScript is working
-    setTimeout(() => alert('Landing page loaded!'), 1000);
   }, []);
 
   return (

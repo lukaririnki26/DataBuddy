@@ -16,7 +16,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
+  background-color: #0f172a;
+  color: #ffffff;
 }
 
 code {
@@ -30,8 +31,13 @@ code {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .slide-in {
@@ -43,6 +49,7 @@ code {
     transform: translateX(-20px);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -51,22 +58,22 @@ code {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  border: 2px solid #0f172a;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Loading spinner */
@@ -80,8 +87,13 @@ code {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Dropzone styles */
@@ -231,12 +243,15 @@ code {
   0% {
     transform: translate(0px, 0px) scale(1);
   }
+
   33% {
     transform: translate(30px, -50px) scale(1.1);
   }
+
   66% {
     transform: translate(-20px, 20px) scale(0.9);
   }
+
   100% {
     transform: translate(0px, 0px) scale(1);
   }
@@ -247,6 +262,7 @@ code {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -254,18 +270,24 @@ code {
 }
 
 @keyframes glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(59, 130, 246, 0.4);
   }
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
   }
@@ -285,6 +307,20 @@ code {
 
 .animate-pulse-glow {
   animation: pulse-glow 2s infinite;
+}
+
+@keyframes toastProgress {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
+
+.animate-toastProgress {
+  animation: toastProgress 5s linear forwards;
 }
 
 .animation-delay-2000 {
@@ -318,18 +354,20 @@ code {
 /* Holographic effects */
 .holographic {
   background: linear-gradient(45deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.1) 50%,
-    transparent 70%
-  );
+      transparent 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 70%);
   background-size: 200% 200%;
   animation: holographic 3s ease-in-out infinite;
 }
 
 @keyframes holographic {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
@@ -355,9 +393,12 @@ code {
 }
 
 @keyframes cyber-flow {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }

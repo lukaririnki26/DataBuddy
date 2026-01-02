@@ -16,9 +16,8 @@ import {
   Settings,
   Users,
   Activity,
-  FileText,
-  Database,
   Zap,
+  Database,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -37,22 +36,24 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse }) => {
     { name: 'Pipelines', href: '/pipelines', icon: Settings },
     { name: 'Pipeline Builder', href: '/pipelines/builder', icon: Zap },
     { name: 'Monitoring', href: '/monitoring', icon: Activity },
-    { name: 'Templates', href: '/templates', icon: FileText },
     { name: 'Users', href: '/admin/users', icon: Users, adminOnly: true },
   ];
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-white shadow-lg transition-all duration-300 ${
-      collapsed ? 'w-16' : 'w-64'
-    }`}>
-      {/* Logo/Brand */}
-      <div className={`flex items-center justify-center h-16 px-4 bg-indigo-600 border-b border-indigo-700 ${
-        collapsed ? 'px-2' : ''
+    <div className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[#0f172a] border-r border-white/10 shadow-2xl transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'
       }`}>
+      {/* Logo/Brand */}
+      <div className={`flex items-center justify-center h-20 px-4 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border-b border-white/10 ${collapsed ? 'px-2' : ''
+        }`}>
         <div className="flex items-center">
-          <Database className={`text-white ${collapsed ? 'h-8 w-8' : 'h-8 w-8 mr-3'}`} />
+          <div className="relative">
+            <Database className={`text-indigo-400 ${collapsed ? 'h-8 w-8' : 'h-8 w-8 mr-3'}`} />
+            <div className="absolute inset-0 bg-indigo-400/20 blur-lg rounded-full animate-pulse"></div>
+          </div>
           {!collapsed && (
-            <h1 className="text-xl font-bold text-white">DataBuddy</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+              DataBuddy
+            </h1>
           )}
         </div>
       </div>
@@ -70,16 +71,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse }) => {
             <Link
               key={item.name}
               to={item.href}
-              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                isActive
-                  ? 'bg-indigo-100 text-indigo-700 border-r-2 border-indigo-700'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              } ${collapsed ? 'justify-center px-2' : ''}`}
+              className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 ${isActive
+                ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-white border border-white/20 shadow-lg shadow-indigo-500/10'
+                : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                } ${collapsed ? 'justify-center px-2' : 'mx-2'}`}
               title={collapsed ? item.name : undefined}
             >
-              <Icon className={`flex-shrink-0 ${
-                collapsed ? 'h-6 w-6' : 'h-5 w-5 mr-3'
-              } ${isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500'}`} />
+              <Icon className={`flex-shrink-0 transition-transform duration-300 group-hover:scale-110 ${collapsed ? 'h-6 w-6' : 'h-5 w-5 mr-3'
+                } ${isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
               {!collapsed && (
                 <span className="truncate">{item.name}</span>
               )}
@@ -90,12 +89,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse }) => {
 
       {/* Footer dengan system info */}
       {!collapsed && (
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <div className="text-xs text-gray-500">
-            <p className="font-medium text-gray-700 mb-1">System Status</p>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>All systems operational</span>
+        <div className="p-4 border-t border-white/10 bg-black/20">
+          <div className="text-xs">
+            <p className="font-medium text-slate-300 mb-2 uppercase tracking-wider">System Status</p>
+            <div className="flex items-center space-x-2 backdrop-blur-md bg-green-500/10 border border-green-500/20 px-3 py-2 rounded-lg">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-green-400 font-medium">All systems active</span>
             </div>
           </div>
         </div>
