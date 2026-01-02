@@ -191,10 +191,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           borderTop: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
           display: 'flex',
           justifyContent: collapsed ? 'center' : 'flex-end',
-          position: 'sticky',
-          bottom: 0,
           bgcolor: 'background.paper',
-          zIndex: 10
         }}>
           <IconButton
             onClick={onCollapse}

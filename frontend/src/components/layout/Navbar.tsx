@@ -186,7 +186,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
             sx: {
               mt: 1.5,
               borderRadius: '16px',
-              minWidth: 240,
+              minWidth: 260,
               bgcolor: alpha('#0f172a', 0.95), // Deeper dark for better contrast
               backdropFilter: 'blur(20px)',
               border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
@@ -194,28 +194,92 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
             }
           }}
         >
-          <Box sx={{ px: 3, py: 2, bgcolor: alpha(theme.palette.primary.main, 0.1) }}>
-            <Typography variant="subtitle1" fontWeight="bold">{user?.firstName} {user?.lastName}</Typography>
-            <Typography variant="caption" color="text.secondary">{user?.email}</Typography>
-            <Box sx={{ mt: 1, display: 'inline-block', px: 1, py: 0.5, bgcolor: alpha(theme.palette.primary.main, 0.2), borderRadius: '6px' }}>
-              <Typography variant="caption" color="primary.light" fontWeight="bold" sx={{ textTransform: 'uppercase' }}>
+          <Box sx={{ px: 3, py: 2.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Avatar
+                sx={{
+                  width: 48,
+                  height: 48,
+                  bgcolor: theme.palette.primary.main,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                {user?.firstName?.[0]}
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle1" fontWeight="bold" lineHeight={1.3}>
+                  {user?.firstName} {user?.lastName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                  {user?.email}
+                </Typography>
+              </Box>
+            </Box>
+            <Box sx={{
+              display: 'inline-block',
+              px: 2,
+              py: 0.5,
+              bgcolor: alpha(theme.palette.primary.main, 0.15),
+              borderRadius: '8px',
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`
+            }}>
+              <Typography variant="caption" color="primary.light" fontWeight="bold" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {user?.role}
               </Typography>
             </Box>
           </Box>
           <Divider sx={{ borderColor: alpha(theme.palette.common.white, 0.1) }} />
-          <Box sx={{ p: 1 }}>
-            <MenuItem onClick={() => { navigate('/profile'); setUserMenuAnchorEl(null); }} sx={{ borderRadius: '8px' }}>
-              <ListItemIcon><User size={18} /></ListItemIcon>
-              Profile
+          <Box sx={{ p: 1.5 }}>
+            <MenuItem
+              onClick={() => { navigate('/profile'); setUserMenuAnchorEl(null); }}
+              sx={{
+                borderRadius: '10px',
+                py: 1.5,
+                px: 2,
+                mb: 0.5,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.1)
+                }
+              }}
+            >
+              <ListItemIcon><User size={20} /></ListItemIcon>
+              <Typography variant="body2" fontWeight={500}>Profile</Typography>
             </MenuItem>
-            <MenuItem onClick={() => { navigate('/settings'); setUserMenuAnchorEl(null); }} sx={{ borderRadius: '8px' }}>
-              <ListItemIcon><Settings size={18} /></ListItemIcon>
-              Settings
+            <MenuItem
+              onClick={() => { navigate('/settings'); setUserMenuAnchorEl(null); }}
+              sx={{
+                borderRadius: '10px',
+                py: 1.5,
+                px: 2,
+                mb: 0.5,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.1)
+                }
+              }}
+            >
+              <ListItemIcon><Settings size={20} /></ListItemIcon>
+              <Typography variant="body2" fontWeight={500}>Settings</Typography>
             </MenuItem>
-            <MenuItem onClick={handleLogout} sx={{ color: theme.palette.error.light, borderRadius: '8px', mt: 1 }}>
-              <ListItemIcon><LogOut size={18} color={theme.palette.error.light} /></ListItemIcon>
-              Logout
+          </Box>
+
+          <Divider sx={{ borderColor: alpha(theme.palette.common.white, 0.1) }} />
+
+          <Box sx={{ p: 1.5 }}>
+            <MenuItem
+              onClick={handleLogout}
+              sx={{
+                color: theme.palette.error.light,
+                borderRadius: '10px',
+                py: 1.5,
+                px: 2,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.error.main, 0.1)
+                }
+              }}
+            >
+              <ListItemIcon><LogOut size={20} color={theme.palette.error.light} /></ListItemIcon>
+              <Typography variant="body2" fontWeight={500}>Logout</Typography>
             </MenuItem>
           </Box>
         </MuiMenu>
