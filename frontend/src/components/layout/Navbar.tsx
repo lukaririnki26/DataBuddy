@@ -5,7 +5,6 @@ import { RootState } from '../../store';
 import { logoutUser } from '../../store/slices/authSlice';
 import { useNotifications } from '../../hooks/useNotifications';
 import {
-  AppBar,
   Toolbar,
   IconButton,
   Typography,
@@ -73,14 +72,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
   const userMenuId = 'primary-search-account-menu';
 
   return (
-    <AppBar
-      position="fixed"
+    <Box
       sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1,
         backdropFilter: 'blur(12px)',
         bgcolor: alpha(theme.palette.background.default, 0.8),
         borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
         boxShadow: 'none',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -296,7 +296,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
           </Box>
         </MuiMenu>
       </Toolbar>
-    </AppBar>
+    </Box>
   );
 };
 

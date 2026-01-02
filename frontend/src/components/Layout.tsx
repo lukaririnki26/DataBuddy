@@ -1,17 +1,8 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Box, CssBaseline, useMediaQuery, useTheme, Toolbar, styled } from '@mui/material';
+import { Box, CssBaseline, useMediaQuery, useTheme } from '@mui/material';
 import Navbar from './layout/Navbar';
 import Sidebar from './layout/Sidebar';
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
-  ...theme.mixins.toolbar,
-}));
 
 const Layout: React.FC = () => {
   const theme = useTheme();
@@ -39,14 +30,7 @@ const Layout: React.FC = () => {
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       <CssBaseline />
 
-      {/* Navbar */}
-      <Navbar
-        onMenuClick={handleDrawerToggle}
-        drawerWidth={drawerWidth}
-        isMobile={isMobile}
-      />
-
-      {/* Sidebar */}
+      {/* Sidebar - Fixed */}
       <Sidebar
         mobileOpen={mobileOpen}
         onClose={handleDrawerToggle}
@@ -56,24 +40,32 @@ const Layout: React.FC = () => {
         isMobile={isMobile}
       />
 
-      {/* Main Content */}
+      {/* Main Content Area - Scrollable */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, md: 4 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          overflowX: 'hidden',
-          position: 'relative'
+          overflowY: 'auto',
+          height: '100vh'
         }}
       >
-        <DrawerHeader /> {/* Spacer for Fixed Navbar */}
-        <Outlet />
+        {/* Navbar - Scrolls with content */}
+        <Navbar
+          onMenuClick={handleDrawerToggle}
+          drawerWidth={drawerWidth}
+          isMobile={isMobile}
+        />
+
+        {/* Page Content */}
+        <Box sx={{ p: { xs: 2, md: 4 } }}>
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );
