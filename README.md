@@ -1,9 +1,19 @@
 # DataBuddy - Data Management Platform
 
+DataBuddy is a state-of-the-art data management and pipeline processing platform designed with a futuristic "System Command Center" aesthetic. It provides a highly interactive, glassmorphic interface for managing complex data workflows with ease.
+
+## ✨ Key Features
+
+- **Futuristic UI/UX**: Unified glassmorphic design system with deep 32px blurs and high-contrast typography.
+- **Pipeline Architecture**: Modular drag-and-drop pipeline builder for data transformation and validation.
+- **Real-time Monitoring**: Mission-critical dashboard for system health and data throughput.
+- **SPA Experience**: Seamless navigation and persistent system state through Single Page Application architecture.
+- **Secure by Design**: Integrated JWT authentication and role-based access control (RBAC).
+
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v16+)
+- Node.js (v18+)
 - PostgreSQL (port 5432)
 - Redis (port 6379)
 
@@ -12,7 +22,7 @@
 1. **Prerequisites:**
    - PostgreSQL running on port 5432 (username: postgres, password: postgres)
    - Redis running on port 6379
-   - Node.js v16+ and npm
+   - Node.js v18+ and npm
 
 2. **Clone and Install:**
    ```bash
@@ -59,10 +69,10 @@ After running the database setup, you can login with these accounts:
 
 | Service | Port | Description |
 |---------|------|-------------|
-| Frontend (Vite) | 3000 | React 18 + TypeScript + Redux Toolkit + Material UI + Tailwind CSS |
-| Backend (NestJS) | 3001 | API server |
+| Frontend (Vite) | 3000 | React 18 + TypeScript + Redux Toolkit + Material UI 5 |
+| Backend (NestJS) | 3001 | API server + WebSocket Gateway |
 | PostgreSQL | 5432 | Database |
-| Redis | 6379 | Cache & queues |
+| Redis | 6379 | Cache & Queues |
 
 ### Environment Variables
 

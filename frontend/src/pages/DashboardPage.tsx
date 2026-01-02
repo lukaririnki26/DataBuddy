@@ -117,18 +117,19 @@ const DashboardPage: React.FC = () => {
   return (
     <Box sx={{ width: '100%', ml: 0, mr: 'auto' }}>
       {/* Header */}
-      <Grid container spacing={3} alignItems="center" justifyContent="space-between" sx={{ mb: 4 }}>
+      <Grid container spacing={3} alignItems="center" justifyContent="space-between" sx={{ mb: 6 }}>
         <Grid item>
           <Typography variant="h3" fontWeight="900" sx={{
             background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
+            letterSpacing: '-0.02em',
             mb: 1
           }}>
-            System Command Center
+            Operational Intelligence
           </Typography>
-          <Typography variant="h6" color="text.secondary" fontWeight={500}>
-            Monitoring global data orchestration and system health
+          <Typography variant="h6" color="text.secondary" fontWeight={500} sx={{ opacity: 0.7 }}>
+            Monitoring global neurological data and platform equilibrium
           </Typography>
         </Grid>
         <Grid item>
@@ -170,13 +171,18 @@ const DashboardPage: React.FC = () => {
                 display: 'block',
                 textDecoration: 'none',
                 height: '100%',
-                p: 3,
-                borderRadius: '2rem',
-                bgcolor: alpha(theme.palette.common.white, 0.05),
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                transition: 'all 0.3s',
-                '&:hover': { transform: 'scale(1.05)', bgcolor: alpha(theme.palette.common.white, 0.08) }
+                p: 3.5,
+                borderRadius: '2.5rem',
+                bgcolor: alpha(theme.palette.common.white, 0.03),
+                backdropFilter: 'blur(32px)',
+                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                '&:hover': {
+                  transform: 'translateY(-8px) scale(1.02)',
+                  bgcolor: alpha(theme.palette.common.white, 0.06),
+                  borderColor: alpha(stat.color, 0.3),
+                  boxShadow: `0 20px 40px ${alpha(theme.palette.common.black, 0.4)}`
+                }
               }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>

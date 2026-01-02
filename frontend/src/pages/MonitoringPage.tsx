@@ -87,17 +87,18 @@ const MonitoringPage: React.FC = () => {
         }}>
             <Box sx={{ width: '100%' }}>
                 {/* Header */}
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 3, mb: 4 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 3, mb: 6 }}>
                     <Box>
                         <Typography variant="h3" fontWeight="900" sx={{
                             background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
+                            letterSpacing: '-0.02em',
                             mb: 0.5
                         }}>
-                            NEURAL MONITORING
+                            Neural Monitoring
                         </Typography>
-                        <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                        <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ opacity: 0.7 }}>
                             Real-time system health and performance architecture
                         </Typography>
                     </Box>
@@ -184,9 +185,10 @@ const MonitoringPage: React.FC = () => {
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             <Card sx={{
                                 borderRadius: '2.5rem',
-                                bgcolor: alpha(theme.palette.common.white, 0.05),
-                                backdropFilter: 'blur(20px)',
-                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                                bgcolor: alpha(theme.palette.common.white, 0.03),
+                                backdropFilter: 'blur(32px)',
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
                                 overflow: 'visible'
                             }}>
                                 <CardContent sx={{ p: 4, position: 'relative' }}>
@@ -195,14 +197,14 @@ const MonitoringPage: React.FC = () => {
                                     </Box>
 
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                                        <Typography variant="h6" fontWeight="bold" fontStyle="italic">Performance Topology</Typography>
+                                        <Typography variant="h5" fontWeight="900" fontStyle="italic">Performance Topology</Typography>
                                         <Box sx={{ display: 'flex', gap: 3 }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: theme.palette.primary.main }} />
+                                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: theme.palette.primary.main, boxShadow: `0 0 10px ${theme.palette.primary.main}` }} />
                                                 <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Throughput</Typography>
                                             </Box>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: theme.palette.secondary.main }} />
+                                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: theme.palette.secondary.main, boxShadow: `0 0 10px ${theme.palette.secondary.main}` }} />
                                                 <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Latency</Typography>
                                             </Box>
                                         </Box>
@@ -242,7 +244,13 @@ const MonitoringPage: React.FC = () => {
 
                             <Grid container spacing={3}>
                                 <Grid item xs={12} md={6}>
-                                    <Card sx={{ borderRadius: '2rem', bgcolor: alpha(theme.palette.common.white, 0.05), border: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
+                                    <Card sx={{
+                                        borderRadius: '2rem',
+                                        bgcolor: alpha(theme.palette.common.white, 0.03),
+                                        backdropFilter: 'blur(32px)',
+                                        border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                                        boxShadow: '0 20px 40px -12px rgba(0,0,0,0.5)'
+                                    }}>
                                         <CardContent sx={{ p: 4 }}>
                                             <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', mb: 3, display: 'block' }}>Resource Allocation</Typography>
                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -253,21 +261,27 @@ const MonitoringPage: React.FC = () => {
                                     </Card>
                                 </Grid>
                                 <Grid item xs={12} md={6}>
-                                    <Card sx={{ borderRadius: '2rem', bgcolor: alpha(theme.palette.common.white, 0.05), border: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
+                                    <Card sx={{
+                                        borderRadius: '2rem',
+                                        bgcolor: alpha(theme.palette.common.white, 0.03),
+                                        backdropFilter: 'blur(32px)',
+                                        border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                                        boxShadow: '0 20px 40px -12px rgba(0,0,0,0.5)'
+                                    }}>
                                         <CardContent sx={{ p: 4 }}>
                                             <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', mb: 3, display: 'block' }}>Database Synchrony</Typography>
                                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                                         <Database size={16} color={theme.palette.primary.light} />
-                                                        <Typography variant="caption" fontWeight="bold">Main Node</Typography>
+                                                        <Typography variant="caption" fontWeight="900">Main Node</Typography>
                                                     </Box>
                                                     <Chip label="Connected" size="small" sx={{ bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.light, fontWeight: 900, fontSize: '0.625rem', height: 20 }} />
                                                 </Box>
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                                         <Network size={16} color={theme.palette.secondary.light} />
-                                                        <Typography variant="caption" fontWeight="bold">Cache Layer</Typography>
+                                                        <Typography variant="caption" fontWeight="900">Cache Layer</Typography>
                                                     </Box>
                                                     <Chip label="Connected" size="small" sx={{ bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.light, fontWeight: 900, fontSize: '0.625rem', height: 20 }} />
                                                 </Box>
@@ -284,16 +298,17 @@ const MonitoringPage: React.FC = () => {
                         <Card sx={{
                             height: '100%',
                             borderRadius: '2.5rem',
-                            bgcolor: alpha(theme.palette.common.white, 0.05), // Use common.white for glassmorphism
-                            backdropFilter: 'blur(20px)',
-                            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                            bgcolor: alpha(theme.palette.common.white, 0.03),
+                            backdropFilter: 'blur(32px)',
+                            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                            boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)',
                             display: 'flex', flexDirection: 'column'
                         }}>
                             <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                         <Terminal size={20} color={theme.palette.primary.light} />
-                                        <Typography variant="h6" fontWeight="bold" fontStyle="italic">Neural Logs</Typography>
+                                        <Typography variant="h5" fontWeight="900" fontStyle="italic">Neural Logs</Typography>
                                     </Box>
                                     <Activity size={16} color={theme.palette.text.secondary} />
                                 </Box>
@@ -372,11 +387,16 @@ const HealthCard: React.FC<HealthCardProps> = ({ title, value, icon: Icon, color
     return (
         <Card sx={{
             borderRadius: '2rem',
-            bgcolor: alpha(theme.palette.common.white, 0.05),
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-            transition: 'all 0.3s',
-            '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.08) }
+            bgcolor: alpha(theme.palette.common.white, 0.03),
+            backdropFilter: 'blur(32px)',
+            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+            boxShadow: '0 20px 40px -12px rgba(0,0,0,0.5)',
+            transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            '&:hover': {
+                bgcolor: alpha(theme.palette.common.white, 0.06),
+                transform: 'translateY(-4px)',
+                boxShadow: '0 30px 60px -12px rgba(0,0,0,0.6)'
+            }
         }}>
             <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -392,10 +412,10 @@ const HealthCard: React.FC<HealthCardProps> = ({ title, value, icon: Icon, color
                         <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: color, animation: 'pulse 2s infinite' }} />
                     </Box>
                 </Box>
-                <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', mb: 0.5, opacity: 0.7 }}>
                     {title}
                 </Typography>
-                <Typography variant="h5" fontWeight="bold" sx={{ opacity: loading ? 0.5 : 1 }}>
+                <Typography variant="h4" fontWeight="900" sx={{ opacity: loading ? 0.3 : 1, color: 'white' }}>
                     {value}
                 </Typography>
             </CardContent>

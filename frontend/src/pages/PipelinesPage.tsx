@@ -134,10 +134,16 @@ const PipelinesPage: React.FC = () => {
         {/* Header Section */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: { lg: 'center' }, gap: 3, mb: 4 }}>
           <Box>
-            <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>
+            <Typography variant="h3" fontWeight="900" sx={{
+              background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
+              mb: 1
+            }}>
               Operational Blueprints
             </Typography>
-            <Typography variant="h6" color="text.secondary" fontWeight="medium">
+            <Typography variant="h6" color="text.secondary" fontWeight="medium" sx={{ opacity: 0.7 }}>
               Manage and monitor your intelligent data processing sequences
             </Typography>
           </Box>
@@ -195,10 +201,11 @@ const PipelinesPage: React.FC = () => {
           <Box sx={{
             display: 'flex',
             p: 0.5,
-            bgcolor: alpha(theme.palette.common.white, 0.05),
-            backdropFilter: 'blur(10px)',
-            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
             borderRadius: '2.5rem',
+            bgcolor: alpha(theme.palette.common.white, 0.03),
+            backdropFilter: 'blur(32px)',
+            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
             overflow: 'hidden'
           }}>
             {['all', 'active', 'draft'].map((type) => (
@@ -236,13 +243,15 @@ const PipelinesPage: React.FC = () => {
                   position: 'relative',
                   overflow: 'hidden',
                   borderRadius: '2.5rem',
-                  bgcolor: alpha(theme.palette.common.white, 0.05),
-                  backdropFilter: 'blur(20px)',
-                  border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                  transition: 'all 0.3s',
+                  bgcolor: alpha(theme.palette.common.white, 0.03),
+                  backdropFilter: 'blur(32px)',
+                  border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                   '&:hover': {
-                    transform: 'scale(1.02)',
-                    boxShadow: `0 20px 50px rgba(0,0,0,0.3)`
+                    transform: 'translateY(-8px) scale(1.02)',
+                    bgcolor: alpha(theme.palette.common.white, 0.06),
+                    boxShadow: `0 40px 80px -20px rgba(0,0,0,0.6)`,
+                    borderColor: alpha(theme.palette.primary.main, 0.3)
                   }
                 }}>
                   <CardContent sx={{ p: 4, height: '100%' }}>

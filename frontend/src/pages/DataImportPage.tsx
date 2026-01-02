@@ -259,12 +259,13 @@ const DataImportPage: React.FC = () => {
               background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
               mb: 1
             }}>
-              Data Transmission
+              Neural Ingestion
             </Typography>
-            <Typography variant="h6" color="text.secondary" fontWeight="medium">
-              Ingest and analyze external datasets into the system core
+            <Typography variant="h6" color="text.secondary" fontWeight="medium" sx={{ opacity: 0.7 }}>
+              Synchronizing external datasets into the system core architecture
             </Typography>
           </Box>
 
@@ -313,9 +314,10 @@ const DataImportPage: React.FC = () => {
             {uploadStep === 'upload' && (
               <Card sx={{
                 borderRadius: '2.5rem',
-                bgcolor: alpha(theme.palette.common.white, 0.05),
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+                bgcolor: alpha(theme.palette.common.white, 0.03),
+                backdropFilter: 'blur(32px)',
+                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
               }}>
                 <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <Box

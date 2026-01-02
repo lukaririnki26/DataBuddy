@@ -1,6 +1,6 @@
 {
   "name": "databuddy-backend",
-  "version": "1.2.0",
+  "version": "1.7.0",
   "description": "Backend API for DataBuddy - Data management and processing platform",
   "author": "",
   "private": true,

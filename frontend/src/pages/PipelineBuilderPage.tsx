@@ -260,14 +260,15 @@ const PipelineBuilderPage: React.FC = () => {
             <ArrowLeft size={20} />
           </IconButton>
           <Box>
-            <Typography variant="h6" fontWeight="bold" sx={{
+            <Typography variant="h6" fontWeight="900" sx={{
               background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
               WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em'
             }}>
               {id && id !== 'new' ? 'Pipeline Editor' : 'Pipeline Genesis'}
             </Typography>
-            <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', opacity: 0.7 }}>
               Constructing Intelligent Workflows
             </Typography>
           </Box>
@@ -309,9 +310,10 @@ const PipelineBuilderPage: React.FC = () => {
             {/* Config Panel */}
             <Card sx={{
               borderRadius: '2rem',
-              bgcolor: alpha(theme.palette.common.white, 0.05),
-              backdropFilter: 'blur(10px)',
-              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+              bgcolor: alpha(theme.palette.common.white, 0.03),
+              backdropFilter: 'blur(32px)',
+              border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
             }}>
               <CardContent sx={{ p: 4 }}>
                 <Grid container spacing={3}>
@@ -378,10 +380,15 @@ const PipelineBuilderPage: React.FC = () => {
                         sx={{
                           borderRadius: '1.5rem',
                           cursor: 'pointer',
-                          bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.05),
-                          border: isSelected ? `1px solid ${theme.palette.primary.main}` : `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                          transition: 'all 0.2s',
-                          '&:hover': { bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.common.white, 0.08) }
+                          bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.03),
+                          backdropFilter: 'blur(32px)',
+                          border: isSelected ? `1px solid ${theme.palette.primary.main}` : `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                          transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                          '&:hover': {
+                            transform: 'translateY(-4px) scale(1.01)',
+                            bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.common.white, 0.06),
+                            boxShadow: `0 20px 40px ${alpha(theme.palette.common.black, 0.4)}`
+                          }
                         }}
                       >
                         <CardContent sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', '&:last-child': { pb: 3 } }}>
@@ -430,14 +437,15 @@ const PipelineBuilderPage: React.FC = () => {
 
         {/* Right Panel */}
         <Box sx={{
-          width: 400,
-          borderLeft: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-          bgcolor: alpha(theme.palette.background.default, 0.8),
-          backdropFilter: 'blur(20px)',
+          width: 450,
+          borderLeft: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+          bgcolor: alpha(theme.palette.background.default, 0.7),
+          backdropFilter: 'blur(32px)',
           position: 'absolute', right: 0, top: 0, bottom: 0,
           transform: showStepPalette || selectedStepData ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s ease-in-out',
+          transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
           display: 'flex', flexDirection: 'column',
+          boxShadow: '-20px 0 50px rgba(0,0,0,0.5)',
           p: 4
         }}>
           {showStepPalette ? (

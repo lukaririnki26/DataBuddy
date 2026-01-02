@@ -5,6 +5,32 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-01-03
+
+### Added
+- **Premium "Command Center" Polish**: Finalized comprehensive UI overhaul across all remaining pages (`Profile`, `Settings`, `Monitoring`, `Pipeline Builder`).
+- **Neural Design Standards**: Standardized deep **32px backdrop blur** glassmorphism and **900-weight typography** with futuristic gradients.
+- **Mission-Critical Dashboards**: Significant upgrades to `Neural Monitoring` (Real-time charts) and `Signal Uplink` (Data Export).
+- **Blueprint Editor 2.0**: Enhanced Pipeline Builder with sophisticated side panels and interactive operation cards.
+
+### Changed
+- **Pure MUI Architecture**: Fully refactored core pages from mixed Tailwind to pure Material UI for maximum design consistency.
+- **Sophisticated Transitions**: Implemented custom Cubic-Bezier animations for all interactive elements.
+
+## [1.6.0] - 2026-01-03
+
+### Changed
+- **SPA Architecture Conversion**: Migrated the entire frontend from traditional page loads to a robust Single Page Application structure.
+- **Persistent Navigation**: Sidebar state and layout now persist flawlessly during route transitions.
+- **Fluid Layout**: Standardized "mepet" (left-aligned) content alignment with a consistent 16px gap relative to the sidebar.
+
+## [1.5.0] - 2026-01-02
+
+### Improved
+- **Design System Foundation**: Introduced the "Command Center" design tokens for glassmorphism and typography.
+- **Module Synchronization**: Standardized Stat cards and Headers across `Dashboard`, `DataImport`, and `DataExport`.
+- **System-Wide Consistency**: Audited and fixed alignment and padding issues in core functional modules.
+
 ## [1.4.0] - 2026-01-03
 
 ### Fixed

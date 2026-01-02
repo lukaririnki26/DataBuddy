@@ -118,7 +118,7 @@ const DataExportPage: React.FC = () => {
         }}>
             <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {/* Header */}
-                <Box>
+                <Box sx={{ mb: 6 }}>
                     <Typography variant="h3" fontWeight="900" sx={{
                         background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
                         WebkitBackgroundClip: 'text',
@@ -130,7 +130,7 @@ const DataExportPage: React.FC = () => {
                     }}>
                         Signal Uplink
                     </Typography>
-                    <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                    <Typography variant="subtitle1" color="text.secondary" fontWeight="medium" sx={{ opacity: 0.7 }}>
                         Coordinate and authorize global data extraction protocols
                     </Typography>
                 </Box>
@@ -141,9 +141,10 @@ const DataExportPage: React.FC = () => {
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             <Card sx={{
                                 borderRadius: '2.5rem',
-                                bgcolor: alpha(theme.palette.common.white, 0.05),
-                                backdropFilter: 'blur(20px)',
-                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+                                bgcolor: alpha(theme.palette.common.white, 0.03),
+                                backdropFilter: 'blur(32px)',
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
                             }}>
                                 <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

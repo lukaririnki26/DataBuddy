@@ -162,27 +162,31 @@ const LandingPage: React.FC = () => {
             <Grid item xs={12} md={4} key={feature.title}>
               <Card sx={{
                 height: '100%',
-                bgcolor: alpha(theme.palette.background.paper, 0.05),
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                transition: 'all 0.3s',
+                bgcolor: alpha(theme.palette.background.paper, 0.03),
+                backdropFilter: 'blur(32px)',
+                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                borderRadius: '2rem',
+                transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                 '&:hover': {
-                  transform: 'translateY(-8px)',
-                  bgcolor: alpha(theme.palette.background.paper, 0.1)
+                  transform: 'translateY(-12px) scale(1.02)',
+                  bgcolor: alpha(theme.palette.background.paper, 0.08),
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                  boxShadow: `0 20px 40px ${alpha(theme.palette.primary.main, 0.1)}`
                 }
               }}>
-                <CardContent sx={{ p: 4 }}>
+                <CardContent sx={{ p: 5 }}>
                   <Box sx={{
-                    width: 64, height: 64, mb: 3, borderRadius: '16px',
+                    width: 72, height: 72, mb: 4, borderRadius: '20px',
                     background: feature.gradient,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: `0 8px 32px ${alpha(theme.palette.primary.main, 0.2)}`
                   }}>
                     {feature.icon}
                   </Box>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: 'text.primary' }}>
+                  <Typography variant="h5" fontWeight="900" gutterBottom sx={{ color: 'text.primary', letterSpacing: '-0.02em' }}>
                     {feature.title}
                   </Typography>
-                  <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                  <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.7, opacity: 0.8 }}>
                     {feature.desc}
                   </Typography>
                 </CardContent>

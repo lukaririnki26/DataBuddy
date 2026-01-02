@@ -111,11 +111,12 @@ const UsersPage: React.FC = () => {
               background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
               mb: 1
             }}>
               Personnel Control
             </Typography>
-            <Typography variant="h6" color="text.secondary" fontWeight="medium">
+            <Typography variant="h6" color="text.secondary" fontWeight="medium" sx={{ opacity: 0.7 }}>
               Manage access protocols and user authorizations
             </Typography>
           </Box>
@@ -156,10 +157,11 @@ const UsersPage: React.FC = () => {
 
         <TableContainer component={Paper} sx={{
           borderRadius: '2.5rem',
-          bgcolor: alpha(theme.palette.common.white, 0.05),
-          backdropFilter: 'blur(20px)',
-          border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-          boxShadow: 'none'
+          bgcolor: alpha(theme.palette.common.white, 0.03),
+          backdropFilter: 'blur(32px)',
+          border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+          overflow: 'hidden'
         }}>
           <Table>
             <TableHead>

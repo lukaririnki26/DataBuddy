@@ -160,19 +160,32 @@ const LoginPage: React.FC = () => {
         {/* Right Side: Auth Form */}
         <Grid item xs={12} lg={6}>
           <Box sx={{
-            bgcolor: alpha(theme.palette.background.paper, 0.05),
-            backdropFilter: 'blur(30px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '2.5rem',
-            p: 6,
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+            bgcolor: alpha('#0f172a', 0.6), // Slightly deeper base
+            backdropFilter: 'blur(32px)',
+            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            borderRadius: '3rem',
+            p: { xs: 4, md: 8 },
+            boxShadow: '0 40px 100px -20px rgba(0,0,0,0.7)',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '3rem',
+              padding: '1px',
+              background: `linear-gradient(135deg, ${alpha(theme.palette.common.white, 0.2)}, transparent, ${alpha(theme.palette.primary.main, 0.2)})`,
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              maskComposite: 'exclude',
+              pointerEvents: 'none'
+            }
           }}>
-            <Box sx={{ mb: 5 }}>
-              <Typography variant="h3" gutterBottom sx={{ fontWeight: 800 }}>
-                {isLogin ? 'Access Identity' : 'Provision Protocol'}
+            <Box sx={{ mb: 6 }}>
+              <Typography variant="h3" gutterBottom sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
+                {isLogin ? 'Neural Gateway' : 'Node Creation'}
               </Typography>
-              <Typography color="text.secondary" fontWeight={500}>
-                {isLogin ? 'Provide your verification tokens to proceed' : 'Create a new node in our global network'}
+              <Typography color="text.secondary" fontWeight={500} sx={{ opacity: 0.7 }}>
+                {isLogin ? 'Synchronize your unique signature' : 'Initialize a new intelligence unit'}
               </Typography>
             </Box>
 
