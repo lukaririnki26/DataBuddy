@@ -6,16 +6,16 @@
  * error rates, throughput, dan statistik penggunaan sistem.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThan } from 'typeorm';
-import { InjectConnection } from '@nestjs/typeorm';
-import { Connection } from 'typeorm';
-import { Inject } from '@nestjs/common';
-import { Pipeline } from '../../entities/pipeline.entity';
-import { DataImport } from '../../entities/data-import.entity';
-import { DataExport } from '../../entities/data-export.entity';
-import { User } from '../../entities/user.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between, MoreThan } from "typeorm";
+import { InjectConnection } from "@nestjs/typeorm";
+import { Connection } from "typeorm";
+import { Inject } from "@nestjs/common";
+import { Pipeline } from "../../entities/pipeline.entity";
+import { DataImport } from "../../entities/data-import.entity";
+import { DataExport } from "../../entities/data-export.entity";
+import { User } from "../../entities/user.entity";
 
 export interface PipelineExecutionStats {
   totalExecutions: number;
@@ -68,13 +68,15 @@ export class MonitoringService {
   /**
    * Mendapatkan data dashboard monitoring lengkap
    */
-  async getDashboardData(timeRange: string = '24h'): Promise<MonitoringDashboardData> {
+  async getDashboardData(
+    timeRange: string = "24h",
+  ): Promise<MonitoringDashboardData> {
     const now = new Date();
     const timeRangeMap = {
-      '1h': 1 * 60 * 60 * 1000,
-      '24h': 24 * 60 * 60 * 1000,
-      '7d': 7 * 24 * 60 * 60 * 1000,
-      '30d': 30 * 24 * 60 * 60 * 1000,
+      "1h": 1 * 60 * 60 * 1000,
+      "24h": 24 * 60 * 60 * 1000,
+      "7d": 7 * 24 * 60 * 60 * 1000,
+      "30d": 30 * 24 * 60 * 60 * 1000,
     };
 
     const startTime = new Date(now.getTime() - timeRangeMap[timeRange]);
@@ -108,7 +110,9 @@ export class MonitoringService {
   /**
    * Mendapatkan statistik eksekusi pipeline
    */
-  async getPipelineExecutionStats(startTime: Date): Promise<PipelineExecutionStats> {
+  async getPipelineExecutionStats(
+    startTime: Date,
+  ): Promise<PipelineExecutionStats> {
     // Query untuk mendapatkan data eksekusi pipeline dari database
     // Dalam implementasi nyata, ini akan query dari tabel pipeline_execution_log
     // Untuk sementara, kita return data dummy yang realistis
@@ -119,7 +123,8 @@ export class MonitoringService {
     const averageExecutionTime = 45000; // 45 detik
     const totalProcessedItems = 25000;
     const errorRate = (failedExecutions / totalExecutions) * 100;
-    const throughputPerMinute = totalProcessedItems / (totalExecutions * averageExecutionTime / 60000);
+    const throughputPerMinute =
+      totalProcessedItems / ((totalExecutions * averageExecutionTime) / 60000);
 
     return {
       totalExecutions,
@@ -185,35 +190,35 @@ export class MonitoringService {
 
     const recentExecutions = [
       {
-        id: 'exec-001',
-        pipelineId: 'pipe-001',
-        pipelineName: 'Data Import Pipeline',
-        status: 'success',
+        id: "exec-001",
+        pipelineId: "pipe-001",
+        pipelineName: "Data Import Pipeline",
+        status: "success",
         executedAt: new Date(Date.now() - 1000 * 60 * 5), // 5 menit yang lalu
         executionTime: 45000,
         processedItems: 1500,
         errors: 0,
       },
       {
-        id: 'exec-002',
-        pipelineId: 'pipe-002',
-        pipelineName: 'User Data Validation',
-        status: 'success',
+        id: "exec-002",
+        pipelineId: "pipe-002",
+        pipelineName: "User Data Validation",
+        status: "success",
         executedAt: new Date(Date.now() - 1000 * 60 * 15), // 15 menit yang lalu
         executionTime: 12000,
         processedItems: 800,
         errors: 0,
       },
       {
-        id: 'exec-003',
-        pipelineId: 'pipe-003',
-        pipelineName: 'Export to CSV',
-        status: 'failed',
+        id: "exec-003",
+        pipelineId: "pipe-003",
+        pipelineName: "Export to CSV",
+        status: "failed",
         executedAt: new Date(Date.now() - 1000 * 60 * 30), // 30 menit yang lalu
         executionTime: 30000,
         processedItems: 0,
         errors: 5,
-        errorMessage: 'File write permission denied',
+        errorMessage: "File write permission denied",
       },
     ];
 
@@ -226,21 +231,23 @@ export class MonitoringService {
   async getTopPipelines(limit: number = 5): Promise<any[]> {
     // Query untuk mendapatkan pipeline dengan eksekusi terbanyak dan sukses rate tertinggi
     const pipelines = await this.pipelineRepository.find({
-      relations: ['creator'],
+      relations: ["creator"],
       take: limit,
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
     });
 
     // Dalam implementasi nyata, join dengan execution stats
-    return pipelines.map(pipeline => ({
+    return pipelines.map((pipeline) => ({
       id: pipeline.id,
       name: pipeline.name,
       description: pipeline.description,
       totalExecutions: Math.floor(Math.random() * 50) + 10, // Dummy data
       successRate: Math.floor(Math.random() * 30) + 70, // 70-100%
       averageExecutionTime: Math.floor(Math.random() * 60000) + 10000, // 10-70 detik
-      lastExecuted: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random dalam 7 hari
-      createdBy: pipeline.createdBy?.fullName || 'Unknown',
+      lastExecuted: new Date(
+        Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000,
+      ), // Random dalam 7 hari
+      createdBy: pipeline.createdBy?.fullName || "Unknown",
     }));
   }
 
@@ -257,7 +264,7 @@ export class MonitoringService {
       date.setDate(date.getDate() - i);
 
       trends.push({
-        date: date.toISOString().split('T')[0],
+        date: date.toISOString().split("T")[0],
         errors: Math.floor(Math.random() * 20), // 0-20 errors per day
         warnings: Math.floor(Math.random() * 50), // 0-50 warnings per day
       });
@@ -300,7 +307,7 @@ export class MonitoringService {
     // Dalam implementasi nyata, simpan ke tabel pipeline_execution_log
     this.logger.log(
       `Pipeline execution logged: ${pipelineId}, Success: ${executionResult.success}, ` +
-      `Processed: ${executionResult.processedItems}, Time: ${executionResult.executionTime}ms`
+        `Processed: ${executionResult.processedItems}, Time: ${executionResult.executionTime}ms`,
     );
 
     // Note: Database logging will be implemented in future version with execution logs table
@@ -313,22 +320,23 @@ export class MonitoringService {
     const metrics = await this.getSystemMetrics();
 
     // Check database connection
-    let databaseStatus = 'disconnected';
+    let databaseStatus = "disconnected";
     try {
-      await this.connection.query('SELECT 1');
-      databaseStatus = 'connected';
+      await this.connection.query("SELECT 1");
+      databaseStatus = "connected";
     } catch (error) {
-      this.logger.error('Database connection check failed:', error);
-      databaseStatus = 'error';
+      this.logger.error("Database connection check failed:", error);
+      databaseStatus = "error";
     }
 
     // Check Redis connection (disabled - cache manager not available)
-    let redisStatus = 'unknown';
+    let redisStatus = "unknown";
 
     // Determine overall status
-    const overallStatus = (databaseStatus === 'connected' && redisStatus === 'connected')
-      ? 'healthy'
-      : 'degraded';
+    const overallStatus =
+      databaseStatus === "connected" && redisStatus === "connected"
+        ? "healthy"
+        : "degraded";
 
     return {
       status: overallStatus,
@@ -341,15 +349,15 @@ export class MonitoringService {
       services: {
         database: {
           status: databaseStatus,
-          type: 'PostgreSQL',
-          connection: this.connection.isConnected
+          type: "PostgreSQL",
+          connection: this.connection.isConnected,
         },
         cache: {
           status: redisStatus,
-          type: 'Redis',
-          available: true
-        }
-      }
+          type: "Redis",
+          available: true,
+        },
+      },
     };
   }
 
@@ -363,18 +371,22 @@ export class MonitoringService {
     try {
       // Clean up old import records (keep only last 1000 per user)
       const oldImports = await this.dataImportRepository
-        .createQueryBuilder('import')
-        .where('import.createdAt < :cutoffDate', { cutoffDate })
-        .andWhere('import.status IN (:...statuses)', { statuses: ['completed', 'failed', 'cancelled'] })
+        .createQueryBuilder("import")
+        .where("import.createdAt < :cutoffDate", { cutoffDate })
+        .andWhere("import.status IN (:...statuses)", {
+          statuses: ["completed", "failed", "cancelled"],
+        })
         .getMany();
 
       let deletedImports = 0;
       for (const importRecord of oldImports) {
         // Keep only recent records per user
         const recentCount = await this.dataImportRepository
-          .createQueryBuilder('import')
-          .where('import.createdById = :userId', { userId: importRecord.createdById })
-          .andWhere('import.createdAt >= :cutoffDate', { cutoffDate })
+          .createQueryBuilder("import")
+          .where("import.createdById = :userId", {
+            userId: importRecord.createdById,
+          })
+          .andWhere("import.createdAt >= :cutoffDate", { cutoffDate })
           .getCount();
 
         if (recentCount >= 100) {
@@ -385,17 +397,21 @@ export class MonitoringService {
 
       // Clean up old export records (keep only last 500 per user)
       const oldExports = await this.dataExportRepository
-        .createQueryBuilder('export')
-        .where('export.createdAt < :cutoffDate', { cutoffDate })
-        .andWhere('export.status IN (:...statuses)', { statuses: ['completed', 'failed', 'cancelled'] })
+        .createQueryBuilder("export")
+        .where("export.createdAt < :cutoffDate", { cutoffDate })
+        .andWhere("export.status IN (:...statuses)", {
+          statuses: ["completed", "failed", "cancelled"],
+        })
         .getMany();
 
       let deletedExports = 0;
       for (const exportRecord of oldExports) {
         const recentCount = await this.dataExportRepository
-          .createQueryBuilder('export')
-          .where('export.createdById = :userId', { userId: exportRecord.createdById })
-          .andWhere('export.createdAt >= :cutoffDate', { cutoffDate })
+          .createQueryBuilder("export")
+          .where("export.createdById = :userId", {
+            userId: exportRecord.createdById,
+          })
+          .andWhere("export.createdAt >= :cutoffDate", { cutoffDate })
           .getCount();
 
         if (recentCount >= 50) {
@@ -404,9 +420,11 @@ export class MonitoringService {
         }
       }
 
-      this.logger.log(`Cleaned up ${deletedImports} old import records and ${deletedExports} old export records older than ${retentionDays} days`);
+      this.logger.log(
+        `Cleaned up ${deletedImports} old import records and ${deletedExports} old export records older than ${retentionDays} days`,
+      );
     } catch (error) {
-      this.logger.error('Failed to cleanup old logs:', error);
+      this.logger.error("Failed to cleanup old logs:", error);
       throw error;
     }
   }

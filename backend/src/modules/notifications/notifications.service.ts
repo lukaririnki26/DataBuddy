@@ -6,11 +6,16 @@
  * progress updates, dan pesan sistem kepada pengguna.
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Notification, NotificationType, NotificationPriority, NotificationStatus } from '../../entities/notification.entity';
-import { User } from '../../entities/user.entity';
+import { Injectable, Logger, Inject } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import {
+  Notification,
+  NotificationType,
+  NotificationPriority,
+  NotificationStatus,
+} from "../../entities/notification.entity";
+import { User } from "../../entities/user.entity";
 
 export interface CreateNotificationDto {
   type: NotificationType;
@@ -58,7 +63,8 @@ export class NotificationsService {
       createdAt: new Date(),
     });
 
-    const savedNotification = await this.notificationRepository.save(notification);
+    const savedNotification =
+      await this.notificationRepository.save(notification);
 
     // Broadcast notifikasi ke WebSocket
     // TODO: Implement WebSocket broadcasting
@@ -74,7 +80,7 @@ export class NotificationsService {
   async notifyPipelineExecution(
     pipelineId: string,
     pipelineName: string,
-    status: 'started' | 'completed' | 'failed',
+    status: "started" | "completed" | "failed",
     userId: string,
     metadata?: any,
   ): Promise<void> {
@@ -84,19 +90,19 @@ export class NotificationsService {
     let type: NotificationType;
 
     switch (status) {
-      case 'started':
+      case "started":
         title = `Pipeline Started: ${pipelineName}`;
         message = `Pipeline "${pipelineName}" has started execution.`;
         priority = NotificationPriority.LOW;
         type = NotificationType.PIPELINE_STARTED;
         break;
-      case 'completed':
+      case "completed":
         title = `Pipeline Completed: ${pipelineName}`;
         message = `Pipeline "${pipelineName}" has completed successfully.`;
         priority = NotificationPriority.MEDIUM;
         type = NotificationType.PIPELINE_COMPLETED;
         break;
-      case 'failed':
+      case "failed":
         title = `Pipeline Failed: ${pipelineName}`;
         message = `Pipeline "${pipelineName}" execution failed. Check logs for details.`;
         priority = NotificationPriority.HIGH;
@@ -123,35 +129,44 @@ export class NotificationsService {
    * Membuat notifikasi data import/export
    */
   async notifyDataOperation(
-    operation: 'import' | 'export',
-    status: 'started' | 'completed' | 'failed',
+    operation: "import" | "export",
+    status: "started" | "completed" | "failed",
     userId: string,
     metadata?: any,
   ): Promise<void> {
-    const operationType = operation === 'import' ? 'Import' : 'Export';
+    const operationType = operation === "import" ? "Import" : "Export";
     let title: string;
     let message: string;
     let priority: NotificationPriority;
     let type: NotificationType;
 
     switch (status) {
-      case 'started':
+      case "started":
         title = `Data ${operationType} Started`;
         message = `Data ${operation.toLowerCase()} operation has started.`;
         priority = NotificationPriority.LOW;
-        type = operation === 'import' ? NotificationType.DATA_IMPORT_STARTED : NotificationType.DATA_EXPORT_STARTED;
+        type =
+          operation === "import"
+            ? NotificationType.DATA_IMPORT_STARTED
+            : NotificationType.DATA_EXPORT_STARTED;
         break;
-      case 'completed':
+      case "completed":
         title = `Data ${operationType} Completed`;
         message = `Data ${operation.toLowerCase()} operation completed successfully.`;
         priority = NotificationPriority.MEDIUM;
-        type = operation === 'import' ? NotificationType.IMPORT_COMPLETED : NotificationType.EXPORT_COMPLETED;
+        type =
+          operation === "import"
+            ? NotificationType.IMPORT_COMPLETED
+            : NotificationType.EXPORT_COMPLETED;
         break;
-      case 'failed':
+      case "failed":
         title = `Data ${operationType} Failed`;
         message = `Data ${operation.toLowerCase()} operation failed.`;
         priority = NotificationPriority.HIGH;
-        type = operation === 'import' ? NotificationType.IMPORT_FAILED : NotificationType.EXPORT_FAILED;
+        type =
+          operation === "import"
+            ? NotificationType.IMPORT_FAILED
+            : NotificationType.EXPORT_FAILED;
         break;
     }
 
@@ -216,57 +231,72 @@ export class NotificationsService {
     total: number;
     unread: number;
   }> {
-    const query = this.notificationRepository.createQueryBuilder('notification');
+    const query =
+      this.notificationRepository.createQueryBuilder("notification");
 
     // Filter berdasarkan user (jika tidak null, ambil notifikasi untuk user tersebut atau broadcast)
     if (filter.userId) {
-      query.where('(notification.userId = :userId OR notification.userId IS NULL)', {
-        userId: filter.userId,
-      });
+      query.where(
+        "(notification.userId = :userId OR notification.userId IS NULL)",
+        {
+          userId: filter.userId,
+        },
+      );
     }
 
     // Filter berdasarkan tipe
     if (filter.type) {
-      query.andWhere('notification.type = :type', { type: filter.type });
+      query.andWhere("notification.type = :type", { type: filter.type });
     }
 
     // Filter berdasarkan status baca
     if (filter.isRead !== undefined) {
-      query.andWhere('notification.isRead = :isRead', { isRead: filter.isRead });
+      query.andWhere("notification.isRead = :isRead", {
+        isRead: filter.isRead,
+      });
     }
 
     // Filter berdasarkan prioritas
     if (filter.priority) {
-      query.andWhere('notification.priority = :priority', { priority: filter.priority });
+      query.andWhere("notification.priority = :priority", {
+        priority: filter.priority,
+      });
     }
 
     // Filter notifikasi yang belum expired
-    query.andWhere('(notification.expiresAt IS NULL OR notification.expiresAt > :now)', {
-      now: new Date(),
-    });
+    query.andWhere(
+      "(notification.expiresAt IS NULL OR notification.expiresAt > :now)",
+      {
+        now: new Date(),
+      },
+    );
 
     // Pagination
     const limit = filter.limit || 20;
     const offset = filter.offset || 0;
 
-    query
-      .orderBy('notification.createdAt', 'DESC')
-      .limit(limit)
-      .offset(offset);
+    query.orderBy("notification.createdAt", "DESC").limit(limit).offset(offset);
 
     const [notifications, total] = await query.getManyAndCount();
 
     // Hitung jumlah notifikasi yang belum dibaca
-    const unreadQuery = this.notificationRepository.createQueryBuilder('notification');
+    const unreadQuery =
+      this.notificationRepository.createQueryBuilder("notification");
     if (filter.userId) {
-      unreadQuery.where('(notification.userId = :userId OR notification.userId IS NULL)', {
-        userId: filter.userId,
-      });
+      unreadQuery.where(
+        "(notification.userId = :userId OR notification.userId IS NULL)",
+        {
+          userId: filter.userId,
+        },
+      );
     }
-    unreadQuery.andWhere('notification.isRead = :isRead', { isRead: false });
-    unreadQuery.andWhere('(notification.expiresAt IS NULL OR notification.expiresAt > :now)', {
-      now: new Date(),
-    });
+    unreadQuery.andWhere("notification.isRead = :isRead", { isRead: false });
+    unreadQuery.andWhere(
+      "(notification.expiresAt IS NULL OR notification.expiresAt > :now)",
+      {
+        now: new Date(),
+      },
+    );
 
     const unread = await unreadQuery.getCount();
 
@@ -291,7 +321,7 @@ export class NotificationsService {
 
     // Pastikan user memiliki akses ke notifikasi ini
     if (notification.userId && notification.userId !== userId) {
-      throw new Error('Access denied to this notification');
+      throw new Error("Access denied to this notification");
     }
 
     notification.status = NotificationStatus.READ;
@@ -330,7 +360,10 @@ export class NotificationsService {
   /**
    * Menghapus notifikasi
    */
-  async deleteNotification(notificationId: string, userId: string): Promise<void> {
+  async deleteNotification(
+    notificationId: string,
+    userId: string,
+  ): Promise<void> {
     const notification = await this.notificationRepository.findOne({
       where: { id: notificationId },
     });
@@ -341,7 +374,7 @@ export class NotificationsService {
 
     // Pastikan user memiliki akses ke notifikasi ini
     if (notification.userId && notification.userId !== userId) {
-      throw new Error('Access denied to this notification');
+      throw new Error("Access denied to this notification");
     }
 
     await this.notificationRepository.remove(notification);
@@ -391,45 +424,57 @@ export class NotificationsService {
     byType: Record<string, number>;
     byPriority: Record<string, number>;
   }> {
-    const baseQuery = this.notificationRepository.createQueryBuilder('notification');
+    const baseQuery =
+      this.notificationRepository.createQueryBuilder("notification");
 
     if (userId) {
-      baseQuery.where('(notification.userId = :userId OR notification.userId IS NULL)', {
-        userId,
-      });
+      baseQuery.where(
+        "(notification.userId = :userId OR notification.userId IS NULL)",
+        {
+          userId,
+        },
+      );
     }
 
     // Total notifikasi
     const total = await baseQuery.getCount();
 
     // Notifikasi yang belum dibaca
-    const unread = await baseQuery.andWhere('notification.isRead = :isRead', { isRead: false }).getCount();
+    const unread = await baseQuery
+      .andWhere("notification.isRead = :isRead", { isRead: false })
+      .getCount();
 
     // Statistik berdasarkan tipe
     const byTypeResult = await this.notificationRepository
-      .createQueryBuilder('notification')
-      .select('notification.type', 'type')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('notification.type')
+      .createQueryBuilder("notification")
+      .select("notification.type", "type")
+      .addSelect("COUNT(*)", "count")
+      .groupBy("notification.type")
       .getRawMany();
 
-    const byType = byTypeResult.reduce((acc, row) => {
-      acc[row.type] = parseInt(row.count, 10);
-      return acc;
-    }, {} as Record<string, number>);
+    const byType = byTypeResult.reduce(
+      (acc, row) => {
+        acc[row.type] = parseInt(row.count, 10);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     // Statistik berdasarkan prioritas
     const byPriorityResult = await this.notificationRepository
-      .createQueryBuilder('notification')
-      .select('notification.priority', 'priority')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('notification.priority')
+      .createQueryBuilder("notification")
+      .select("notification.priority", "priority")
+      .addSelect("COUNT(*)", "count")
+      .groupBy("notification.priority")
       .getRawMany();
 
-    const byPriority = byPriorityResult.reduce((acc, row) => {
-      acc[row.priority] = parseInt(row.count, 10);
-      return acc;
-    }, {} as Record<string, number>);
+    const byPriority = byPriorityResult.reduce(
+      (acc, row) => {
+        acc[row.priority] = parseInt(row.count, 10);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return {
       total,

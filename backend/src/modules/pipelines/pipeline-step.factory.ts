@@ -4,7 +4,7 @@
  * Creates and manages pipeline step instances.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class PipelineStepFactory {

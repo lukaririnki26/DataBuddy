@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bull';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 
 export interface PipelineJobData {
   pipelineId: string;
@@ -19,7 +19,7 @@ export interface ImportJobData {
 export interface ExportJobData {
   exportConfig: {
     pipelineId?: string;
-    format: 'csv' | 'xlsx' | 'json';
+    format: "csv" | "xlsx" | "json";
     filename: string;
     filters?: Record<string, any>;
   };
@@ -40,8 +40,8 @@ export class QueueService {
   private readonly logger = new Logger(QueueService.name);
 
   constructor(
-    @InjectQueue('pipeline') private readonly pipelineQueue: Queue,
-    @InjectQueue('import') private readonly importQueue: Queue,
+    @InjectQueue("pipeline") private readonly pipelineQueue: Queue,
+    @InjectQueue("import") private readonly importQueue: Queue,
   ) {}
 
   /**
@@ -49,23 +49,21 @@ export class QueueService {
    */
   async addPipelineJob(data: PipelineJobData): Promise<string> {
     try {
-      const job = await this.pipelineQueue.add(
-        'execute-pipeline',
-        data,
-        {
-          priority: data.options?.priority || 0,
-          delay: data.options?.delay || 0,
-          attempts: data.options?.maxRetries || 3,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
-          },
-          removeOnComplete: 10, // Keep last 10 completed jobs
-          removeOnFail: 5, // Keep last 5 failed jobs
-        }
-      );
+      const job = await this.pipelineQueue.add("execute-pipeline", data, {
+        priority: data.options?.priority || 0,
+        delay: data.options?.delay || 0,
+        attempts: data.options?.maxRetries || 3,
+        backoff: {
+          type: "exponential",
+          delay: 2000,
+        },
+        removeOnComplete: 10, // Keep last 10 completed jobs
+        removeOnFail: 5, // Keep last 5 failed jobs
+      });
 
-      this.logger.log(`Pipeline job added to queue: ${job.id} for pipeline ${data.pipelineId}`);
+      this.logger.log(
+        `Pipeline job added to queue: ${job.id} for pipeline ${data.pipelineId}`,
+      );
       return job.id;
     } catch (error) {
       this.logger.error(`Failed to add pipeline job: ${error.message}`);
@@ -78,22 +76,20 @@ export class QueueService {
    */
   async addImportJob(data: ImportJobData): Promise<string> {
     try {
-      const job = await this.importQueue.add(
-        'process-import',
-        data,
-        {
-          priority: 5, // Higher priority for imports
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 5000,
-          },
-          removeOnComplete: 20,
-          removeOnFail: 10,
-        }
-      );
+      const job = await this.importQueue.add("process-import", data, {
+        priority: 5, // Higher priority for imports
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: 20,
+        removeOnFail: 10,
+      });
 
-      this.logger.log(`Import job added to queue: ${job.id} for import ${data.importId}`);
+      this.logger.log(
+        `Import job added to queue: ${job.id} for import ${data.importId}`,
+      );
       return job.id;
     } catch (error) {
       this.logger.error(`Failed to add import job: ${error.message}`);
@@ -106,22 +102,20 @@ export class QueueService {
    */
   async addExportJob(data: ExportJobData): Promise<string> {
     try {
-      const job = await this.pipelineQueue.add(
-        'process-export',
-        data,
-        {
-          priority: 3, // Medium priority for exports
-          attempts: 2,
-          backoff: {
-            type: 'exponential',
-            delay: 3000,
-          },
-          removeOnComplete: 15,
-          removeOnFail: 8,
-        }
-      );
+      const job = await this.pipelineQueue.add("process-export", data, {
+        priority: 3, // Medium priority for exports
+        attempts: 2,
+        backoff: {
+          type: "exponential",
+          delay: 3000,
+        },
+        removeOnComplete: 15,
+        removeOnFail: 8,
+      });
 
-      this.logger.log(`Export job added to queue: ${job.id} for user ${data.userId}`);
+      this.logger.log(
+        `Export job added to queue: ${job.id} for user ${data.userId}`,
+      );
       return job.id;
     } catch (error) {
       this.logger.error(`Failed to add export job: ${error.message}`);
@@ -134,11 +128,12 @@ export class QueueService {
    */
   async getJobStatus(queueName: string, jobId: string): Promise<any> {
     try {
-      const queue = queueName === 'pipeline' ? this.pipelineQueue : this.importQueue;
+      const queue =
+        queueName === "pipeline" ? this.pipelineQueue : this.importQueue;
       const job = await queue.getJob(jobId);
 
       if (!job) {
-        return { status: 'not_found' };
+        return { status: "not_found" };
       }
 
       const state = await job.getState();
@@ -169,7 +164,8 @@ export class QueueService {
    */
   async getQueueStats(queueName: string): Promise<any> {
     try {
-      const queue = queueName === 'pipeline' ? this.pipelineQueue : this.importQueue;
+      const queue =
+        queueName === "pipeline" ? this.pipelineQueue : this.importQueue;
 
       const [waiting, active, completed, failed, delayed] = await Promise.all([
         queue.getWaiting(),
@@ -186,7 +182,12 @@ export class QueueService {
         completed: completed.length,
         failed: failed.length,
         delayed: delayed.length,
-        total: waiting.length + active.length + completed.length + failed.length + delayed.length,
+        total:
+          waiting.length +
+          active.length +
+          completed.length +
+          failed.length +
+          delayed.length,
       };
     } catch (error) {
       this.logger.error(`Failed to get queue stats: ${error.message}`);
@@ -197,12 +198,16 @@ export class QueueService {
   /**
    * Clean up old completed jobs
    */
-  async cleanOldJobs(queueName: string, grace: number = 24 * 60 * 60 * 1000): Promise<void> {
+  async cleanOldJobs(
+    queueName: string,
+    grace: number = 24 * 60 * 60 * 1000,
+  ): Promise<void> {
     try {
-      const queue = queueName === 'pipeline' ? this.pipelineQueue : this.importQueue;
+      const queue =
+        queueName === "pipeline" ? this.pipelineQueue : this.importQueue;
 
-      await queue.clean(grace, 100, 'completed');
-      await queue.clean(grace, 50, 'failed');
+      await queue.clean(grace, 100, "completed");
+      await queue.clean(grace, 50, "failed");
 
       this.logger.log(`Cleaned old jobs from ${queueName} queue`);
     } catch (error) {

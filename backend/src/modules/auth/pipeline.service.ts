@@ -5,19 +5,28 @@
  * and management of data processing pipelines.
  */
 
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-import { Pipeline, PipelineStatus, PipelineType } from '../../entities/pipeline.entity';
-import { PipelineStep, StepType } from '../../entities/pipeline-step.entity';
-import { User } from '../../entities/user.entity';
-import { PipelineExecutor } from '../../utils/pipeline/pipeline-executor';
-import { PipelineStepHandler } from '../../interfaces/pipeline-step.interface';
-import { ReadFileStep } from '../../utils/pipeline/steps/read-file.step';
-import { TransformColumnsStep } from '../../utils/pipeline/steps/transform-columns.step';
-import { ValidateDataStep } from '../../utils/pipeline/steps/validate-data.step';
+import {
+  Pipeline,
+  PipelineStatus,
+  PipelineType,
+} from "../../entities/pipeline.entity";
+import { PipelineStep, StepType } from "../../entities/pipeline-step.entity";
+import { User } from "../../entities/user.entity";
+import { PipelineExecutor } from "../../utils/pipeline/pipeline-executor";
+import { PipelineStepHandler } from "../../interfaces/pipeline-step.interface";
+import { ReadFileStep } from "../../utils/pipeline/steps/read-file.step";
+import { TransformColumnsStep } from "../../utils/pipeline/steps/transform-columns.step";
+import { ValidateDataStep } from "../../utils/pipeline/steps/validate-data.step";
 
 @Injectable()
 export class PipelineService {
@@ -62,11 +71,11 @@ export class PipelineService {
   async getPipelineById(id: string): Promise<Pipeline> {
     const pipeline = await this.pipelineRepository.findOne({
       where: { id },
-      relations: ['steps', 'createdBy'],
+      relations: ["steps", "createdBy"],
     });
 
     if (!pipeline) {
-      throw new NotFoundException('Pipeline not found');
+      throw new NotFoundException("Pipeline not found");
     }
 
     return pipeline;
@@ -81,27 +90,29 @@ export class PipelineService {
       status?: string;
       type?: string;
       category?: string;
-    }
+    },
   ): Promise<Pipeline[]> {
     const query = this.pipelineRepository
-      .createQueryBuilder('pipeline')
-      .leftJoinAndSelect('pipeline.steps', 'steps')
-      .leftJoinAndSelect('pipeline.createdBy', 'createdBy')
-      .where('pipeline.createdById = :userId', { userId });
+      .createQueryBuilder("pipeline")
+      .leftJoinAndSelect("pipeline.steps", "steps")
+      .leftJoinAndSelect("pipeline.createdBy", "createdBy")
+      .where("pipeline.createdById = :userId", { userId });
 
     if (filters?.status) {
-      query.andWhere('pipeline.status = :status', { status: filters.status });
+      query.andWhere("pipeline.status = :status", { status: filters.status });
     }
 
     if (filters?.type) {
-      query.andWhere('pipeline.type = :type', { type: filters.type });
+      query.andWhere("pipeline.type = :type", { type: filters.type });
     }
 
     if (filters?.category) {
-      query.andWhere('pipeline.category = :category', { category: filters.category });
+      query.andWhere("pipeline.category = :category", {
+        category: filters.category,
+      });
     }
 
-    return await query.orderBy('pipeline.updatedAt', 'DESC').getMany();
+    return await query.orderBy("pipeline.updatedAt", "DESC").getMany();
   }
 
   /**
@@ -110,13 +121,13 @@ export class PipelineService {
   async updatePipeline(
     id: string,
     updateData: Partial<Pipeline>,
-    userId: string
+    userId: string,
   ): Promise<Pipeline> {
     const pipeline = await this.getPipelineById(id);
 
     // Check permissions
     if (pipeline.createdById !== userId) {
-      throw new BadRequestException('You can only update your own pipelines');
+      throw new BadRequestException("You can only update your own pipelines");
     }
 
     // Update pipeline
@@ -134,7 +145,7 @@ export class PipelineService {
 
     // Check permissions
     if (pipeline.createdById !== userId) {
-      throw new BadRequestException('You can only delete your own pipelines');
+      throw new BadRequestException("You can only delete your own pipelines");
     }
 
     await this.pipelineRepository.remove(pipeline);
@@ -151,22 +162,22 @@ export class PipelineService {
       config: any;
       order?: number;
     },
-    userId: string
+    userId: string,
   ): Promise<PipelineStep> {
     const pipeline = await this.getPipelineById(pipelineId);
 
     // Check permissions
     if (pipeline.createdById !== userId) {
-      throw new BadRequestException('You can only modify your own pipelines');
+      throw new BadRequestException("You can only modify your own pipelines");
     }
 
     // Determine order
     let order = stepData.order;
     if (order === undefined) {
       const maxOrder = await this.pipelineStepRepository
-        .createQueryBuilder('step')
-        .where('step.pipelineId = :pipelineId', { pipelineId })
-        .select('MAX(step.order)', 'maxOrder')
+        .createQueryBuilder("step")
+        .where("step.pipelineId = :pipelineId", { pipelineId })
+        .select("MAX(step.order)", "maxOrder")
         .getRawOne();
 
       order = (maxOrder?.maxOrder || 0) + 1;
@@ -188,20 +199,22 @@ export class PipelineService {
   async updatePipelineStep(
     stepId: string,
     updateData: Partial<PipelineStep>,
-    userId: string
+    userId: string,
   ): Promise<PipelineStep> {
     const step = await this.pipelineStepRepository.findOne({
       where: { id: stepId },
-      relations: ['pipeline'],
+      relations: ["pipeline"],
     });
 
     if (!step) {
-      throw new NotFoundException('Pipeline step not found');
+      throw new NotFoundException("Pipeline step not found");
     }
 
     // Check permissions
     if (step.pipeline.createdById !== userId) {
-      throw new BadRequestException('You can only modify your own pipeline steps');
+      throw new BadRequestException(
+        "You can only modify your own pipeline steps",
+      );
     }
 
     Object.assign(step, updateData);
@@ -214,16 +227,18 @@ export class PipelineService {
   async deletePipelineStep(stepId: string, userId: string): Promise<void> {
     const step = await this.pipelineStepRepository.findOne({
       where: { id: stepId },
-      relations: ['pipeline'],
+      relations: ["pipeline"],
     });
 
     if (!step) {
-      throw new NotFoundException('Pipeline step not found');
+      throw new NotFoundException("Pipeline step not found");
     }
 
     // Check permissions
     if (step.pipeline.createdById !== userId) {
-      throw new BadRequestException('You can only delete your own pipeline steps');
+      throw new BadRequestException(
+        "You can only delete your own pipeline steps",
+      );
     }
 
     await this.pipelineStepRepository.remove(step);
@@ -235,22 +250,24 @@ export class PipelineService {
   async executePipeline(
     pipelineId: string,
     inputData?: any,
-    userId?: string
+    userId?: string,
   ): Promise<any> {
     const pipeline = await this.getPipelineById(pipelineId);
 
     if (!pipeline.isActive) {
-      throw new BadRequestException('Pipeline is not active');
+      throw new BadRequestException("Pipeline is not active");
     }
 
     if (pipeline.steps.length === 0) {
-      throw new BadRequestException('Pipeline has no steps to execute');
+      throw new BadRequestException("Pipeline has no steps to execute");
     }
 
     // Validate pipeline
     const validation = pipeline.validate();
     if (!validation.isValid) {
-      throw new BadRequestException(`Pipeline validation failed: ${validation.errors.join(', ')}`);
+      throw new BadRequestException(
+        `Pipeline validation failed: ${validation.errors.join(", ")}`,
+      );
     }
 
     const executionStartTime = Date.now();
@@ -264,7 +281,7 @@ export class PipelineService {
         data: inputData || {},
         metadata: {
           startedAt: new Date(),
-          initiatedBy: userId || 'system',
+          initiatedBy: userId || "system",
         },
         stats: {
           recordsProcessed: 0,
@@ -280,17 +297,22 @@ export class PipelineService {
       };
 
       // Simplified pipeline execution - TODO: Implement full pipeline execution
-      const result = [{
-        success: true,
-        data: inputData || {},
-        stats: { recordsProcessed: 0, executionTimeMs: 0 },
-        executionId: `exec_${Date.now()}`
-      }];
+      const result = [
+        {
+          success: true,
+          data: inputData || {},
+          stats: { recordsProcessed: 0, executionTimeMs: 0 },
+          executionId: `exec_${Date.now()}`,
+        },
+      ];
 
       const executionTime = Date.now() - executionStartTime;
 
       // Update pipeline statistics
-      const totalRecords = result.reduce((sum, stepResult) => sum + (stepResult.stats?.recordsProcessed || 0), 0);
+      const totalRecords = result.reduce(
+        (sum, stepResult) => sum + (stepResult.stats?.recordsProcessed || 0),
+        0,
+      );
       pipeline.incrementExecutionCount(executionTime, totalRecords);
 
       await this.pipelineRepository.save(pipeline);
@@ -298,7 +320,7 @@ export class PipelineService {
       this.logger.log(`Pipeline executed successfully in ${executionTime}ms`);
 
       return {
-        success: result.every(r => r.success),
+        success: result.every((r) => r.success),
         executionId: `exec_${Date.now()}`,
         data: result[result.length - 1]?.data,
         stats: {
@@ -307,11 +329,13 @@ export class PipelineService {
         },
         executionTime,
       };
-
     } catch (error) {
       const executionTime = Date.now() - executionStartTime;
 
-      this.logger.error(`Pipeline execution failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Pipeline execution failed: ${error.message}`,
+        error.stack,
+      );
 
       // Update pipeline with failed execution
       pipeline.incrementExecutionCount(executionTime, 0);
@@ -329,7 +353,9 @@ export class PipelineService {
 
     // Check permissions
     if (pipeline.createdById !== userId) {
-      throw new BadRequestException('You can only view your own pipeline statistics');
+      throw new BadRequestException(
+        "You can only view your own pipeline statistics",
+      );
     }
 
     return {
@@ -346,7 +372,11 @@ export class PipelineService {
   /**
    * Clone pipeline
    */
-  async clonePipeline(pipelineId: string, newName?: string, userId?: string): Promise<Pipeline> {
+  async clonePipeline(
+    pipelineId: string,
+    newName?: string,
+    userId?: string,
+  ): Promise<Pipeline> {
     const originalPipeline = await this.getPipelineById(pipelineId);
 
     const clonedData = originalPipeline.clone(newName);
@@ -370,7 +400,7 @@ export class PipelineService {
           config: step.config,
           order: step.order,
         },
-        clonedPipeline.createdById
+        clonedPipeline.createdById,
       );
     }
 
@@ -381,7 +411,7 @@ export class PipelineService {
    * Get available step types
    */
   getAvailableStepTypes(): any[] {
-    return Array.from(this.stepHandlers.values()).map(handler => ({
+    return Array.from(this.stepHandlers.values()).map((handler) => ({
       type: handler.type,
       name: handler.name,
       description: handler.description,

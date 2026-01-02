@@ -5,6 +5,15 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-01-02
+
+### Fixed
+- **TypeORM Migrations**: Added missing columns (`filePath`, `filename`, `mimeType`, `errors`, `columns`, `expiresAt`) to align with entity definitions.
+- **Seeder Sync**: Refactored seeders to use Entity repositories and synchronized `StepType` enum values with the database.
+- **JWT Configuration**: Fixed `secretOrPrivateKey must have a value` error by correctly configuring global `JwtModule` and refactoring `AuthService` to use `ConfigService`.
+- **Environment Variables**: Optimized `.env` loading and matched key names between backend service and migrations.
+- **Port Conflicts**: Resolved issues with multiple backend processes competing for port 3001.
+
 ## [1.1.1] - 2025-01-01
 
 ### Fixed

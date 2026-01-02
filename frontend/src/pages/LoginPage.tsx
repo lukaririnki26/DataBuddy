@@ -16,13 +16,13 @@ const LoginPage: React.FC = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, token } = useSelector((state: RootState) => state.auth);
+  const { isLoading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       navigate('/dashboard');
     }
-  }, [token, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,21 +72,19 @@ const LoginPage: React.FC = () => {
           <div className="flex rounded-2xl bg-white/10 p-1 mb-8">
             <button
               onClick={() => setIsLogin(true)}
-              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                isLogin
+              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${isLogin
                   ? 'bg-white text-slate-900 shadow-lg'
                   : 'text-white hover:bg-white/10'
-              }`}
+                }`}
             >
               Sign In
             </button>
             <button
               onClick={() => setIsLogin(false)}
-              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${
-                !isLogin
+              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-300 ${!isLogin
                   ? 'bg-white text-slate-900 shadow-lg'
                   : 'text-white hover:bg-white/10'
-              }`}
+                }`}
             >
               Sign Up
             </button>

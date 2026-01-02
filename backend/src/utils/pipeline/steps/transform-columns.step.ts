@@ -5,27 +5,30 @@
  * or applying transformations to specific columns.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { PipelineContext } from '../../../interfaces/pipeline-context.interface';
-import { PipelineStepHandler } from '../../../interfaces/pipeline-step.interface';
-import { StepType } from '../../../entities/pipeline-step.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { Observable, of } from "rxjs";
+import { map } from "rxjs/operators";
+import { PipelineContext } from "../../../interfaces/pipeline-context.interface";
+import { PipelineStepHandler } from "../../../interfaces/pipeline-step.interface";
+import { StepType } from "../../../entities/pipeline-step.entity";
 
 @Injectable()
 export class TransformColumnsStep implements PipelineStepHandler {
   readonly type = StepType.TRANSFORM_COLUMNS;
-  readonly name = 'Transform Columns';
-  readonly description = 'Transform and manipulate data columns';
+  readonly name = "Transform Columns";
+  readonly description = "Transform and manipulate data columns";
   readonly configSchema = {
     transformations: {
-      type: 'array',
+      type: "array",
       items: {
-        type: 'object',
+        type: "object",
         properties: {
-          column: { type: 'string' },
-          operation: { type: 'string', enum: ['rename', 'uppercase', 'lowercase', 'trim'] },
-          newName: { type: 'string' },
+          column: { type: "string" },
+          operation: {
+            type: "string",
+            enum: ["rename", "uppercase", "lowercase", "trim"],
+          },
+          newName: { type: "string" },
         },
       },
     },
@@ -51,24 +54,24 @@ export class TransformColumnsStep implements PipelineStepHandler {
       const newRow = { ...row };
 
       switch (operation) {
-        case 'rename':
+        case "rename":
           if (newRow[column] !== undefined && newName) {
             newRow[newName] = newRow[column];
             delete newRow[column];
           }
           break;
-        case 'uppercase':
-          if (typeof newRow[column] === 'string') {
+        case "uppercase":
+          if (typeof newRow[column] === "string") {
             newRow[column] = newRow[column].toUpperCase();
           }
           break;
-        case 'lowercase':
-          if (typeof newRow[column] === 'string') {
+        case "lowercase":
+          if (typeof newRow[column] === "string") {
             newRow[column] = newRow[column].toLowerCase();
           }
           break;
-        case 'trim':
-          if (typeof newRow[column] === 'string') {
+        case "trim":
+          if (typeof newRow[column] === "string") {
             newRow[column] = newRow[column].trim();
           }
           break;
@@ -82,7 +85,7 @@ export class TransformColumnsStep implements PipelineStepHandler {
     const errors: string[] = [];
 
     if (!Array.isArray(config.transformations)) {
-      errors.push('transformations must be an array');
+      errors.push("transformations must be an array");
     }
 
     return {

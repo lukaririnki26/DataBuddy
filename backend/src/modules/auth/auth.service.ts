@@ -5,16 +5,22 @@
  * user registration, login, token generation, and password management.
  */
 
-import { Injectable, ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  BadRequestException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import * as bcrypt from "bcrypt";
 
-import { User, UserRole } from '../../entities/user.entity';
-import { RegisterDto } from '../../dto/auth/register.dto';
-import { ChangePasswordDto } from '../../dto/auth/change-password.dto';
-import { JwtPayload } from '../../interfaces/auth/jwt-payload.interface';
+import { User, UserRole } from "../../entities/user.entity";
+import { RegisterDto } from "../../dto/auth/register.dto";
+import { ChangePasswordDto } from "../../dto/auth/change-password.dto";
+import { JwtPayload } from "../../interfaces/auth/jwt-payload.interface";
 
 @Injectable()
 export class AuthService {
@@ -22,12 +28,15 @@ export class AuthService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
-  ) {}
+    private configService: ConfigService,
+  ) { }
 
   /**
    * Registers a new user account
    */
-  async register(registerDto: RegisterDto): Promise<{ user: User; tokens: any }> {
+  async register(
+    registerDto: RegisterDto,
+  ): Promise<{ user: User; tokens: any }> {
     const { email, password, firstName, lastName, role } = registerDto;
 
     // Check if user already exists
@@ -36,7 +45,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      throw new ConflictException("User with this email already exists");
     }
 
     // Create new user
@@ -63,32 +72,48 @@ export class AuthService {
   /**
    * Authenticates user with email and password
    */
-  async login(email: string, password: string): Promise<{ user: User; tokens: any }> {
-    console.log('Login attempt for email:', email);
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{ user: User; tokens: any }> {
+    console.log("Login attempt for email:", email);
     // Find user by email
     const user = await this.userRepository.findOne({
       where: { email: email.toLowerCase() },
-      select: ['id', 'email', 'firstName', 'lastName', 'password', 'role', 'status', 'lastLoginAt', 'lastLoginIp', 'preferences', 'createdAt', 'updatedAt']
+      select: [
+        "id",
+        "email",
+        "firstName",
+        "lastName",
+        "password",
+        "role",
+        "status",
+        "lastLoginAt",
+        "lastLoginIp",
+        "preferences",
+        "createdAt",
+        "updatedAt",
+      ],
     });
 
-    console.log('User found:', !!user);
+    console.log("User found:", !!user);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     // Validate password
-    console.log('User found:', !!user);
-    console.log('User password:', user?.password ? 'SET' : 'UNDEFINED');
-    console.log('User password value:', user?.password);
+    console.log("User found:", !!user);
+    console.log("User password:", user?.password ? "SET" : "UNDEFINED");
+    console.log("User password value:", user?.password);
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log('Password validation result:', isPasswordValid);
+    console.log("Password validation result:", isPasswordValid);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     // Check if user is active
     if (!user.isActive) {
-      throw new UnauthorizedException('Account is deactivated');
+      throw new UnauthorizedException("Account is deactivated");
     }
 
     // Update last login
@@ -107,7 +132,10 @@ export class AuthService {
   /**
    * Changes user password
    */
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<void> {
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
     const { currentPassword, newPassword, confirmPassword } = changePasswordDto;
 
     // Find user
@@ -116,24 +144,26 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException("User not found");
     }
 
     // Validate current password
     const isCurrentPasswordValid = await user.validatePassword(currentPassword);
     if (!isCurrentPasswordValid) {
-      throw new BadRequestException('Current password is incorrect');
+      throw new BadRequestException("Current password is incorrect");
     }
 
     // Check if new passwords match
     if (newPassword !== confirmPassword) {
-      throw new BadRequestException('New passwords do not match');
+      throw new BadRequestException("New passwords do not match");
     }
 
     // Check if new password is different from current
     const isSamePassword = await user.validatePassword(newPassword);
     if (isSamePassword) {
-      throw new BadRequestException('New password must be different from current password');
+      throw new BadRequestException(
+        "New password must be different from current password",
+      );
     }
 
     // Update password (will be hashed by entity hook)
@@ -148,12 +178,12 @@ export class AuthService {
     try {
       // Verify refresh token
       const payload = this.jwtService.verify(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: this.configService.get("jwt.refreshSecret"),
       }) as JwtPayload;
 
       // Ensure it's a refresh token
-      if (payload.type !== 'refresh') {
-        throw new UnauthorizedException('Invalid token type');
+      if (payload.type !== "refresh") {
+        throw new UnauthorizedException("Invalid token type");
       }
 
       // Find user
@@ -162,13 +192,13 @@ export class AuthService {
       });
 
       if (!user || !user.isActive) {
-        throw new UnauthorizedException('User not found or inactive');
+        throw new UnauthorizedException("User not found or inactive");
       }
 
       // Generate new tokens
       return await this.generateTokens(user);
     } catch (error) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
   }
 
@@ -184,13 +214,13 @@ export class AuthService {
       });
 
       if (!user || !user.isActive) {
-        throw new UnauthorizedException('User not found or inactive');
+        throw new UnauthorizedException("User not found or inactive");
       }
 
       delete user.password;
       return user;
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException("Invalid token");
     }
   }
 
@@ -206,21 +236,21 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
-      type: 'access',
+      type: "access",
     };
 
     const refreshPayload: JwtPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
-      type: 'refresh',
+      type: "refresh",
     };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
       this.jwtService.signAsync(refreshPayload, {
-        secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+        secret: this.configService.get("jwt.refreshSecret"),
+        expiresIn: this.configService.get("jwt.refreshExpiresIn") || "7d",
       }),
     ]);
 

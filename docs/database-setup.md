@@ -185,7 +185,7 @@ Migration akan membuat **6 tabel utama** dengan **15+ enum types**:
 6. **notifications** - System notifications untuk users
 
 #### Key Relationships:
-- `pipelines.creatorId → users.id`
+- `pipelines.createdById → users.id`
 - `pipeline_steps.pipelineId → pipelines.id`
 - `data_imports.createdById → users.id`
 - `data_exports.createdById → users.id`

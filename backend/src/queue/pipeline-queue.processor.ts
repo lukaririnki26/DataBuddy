@@ -1,9 +1,8 @@
-import { Processor } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
-import { Job } from 'bull';
-import { PipelineRunnerService } from '../../modules/pipelines/pipeline-runner.service';
-import { DataBuddyWebSocketGateway } from '../websocket/websocket.gateway';
-import { PipelineJobData, ExportJobData } from './queue.service';
+import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
+import { Injectable, Logger } from "@nestjs/common";
+import { Job } from "bullmq";
+import { PipelineRunnerService } from "../modules/pipelines/pipeline-runner.service";
+import { PipelineJobData, ExportJobData } from "./queue.service";
 
 /**
  * Pipeline Queue Processor - Handles background pipeline execution jobs
@@ -13,14 +12,11 @@ import { PipelineJobData, ExportJobData } from './queue.service';
  * - Data export jobs
  */
 @Injectable()
-@Processor('pipeline')
+@Processor("pipeline")
 export class PipelineQueueProcessor extends WorkerHost {
   private readonly logger = new Logger(PipelineQueueProcessor.name);
 
-  constructor(
-    private readonly pipelineRunner: PipelineRunnerService,
-    private readonly websocketGateway: DataBuddyWebSocketGateway,
-  ) {
+  constructor(private readonly pipelineRunner: PipelineRunnerService) {
     super();
   }
 
@@ -32,15 +28,15 @@ export class PipelineQueueProcessor extends WorkerHost {
 
     const executionId = `exec_${Date.now()}_${job.id}`;
 
-    this.logger.log(`Processing pipeline job ${job.id} for pipeline ${pipelineId} by user ${userId}`);
+    this.logger.log(
+      `Processing pipeline job ${job.id} for pipeline ${pipelineId} by user ${userId}`,
+    );
 
     try {
-      // Emit initial progress
-      this.websocketGateway.emitPipelineProgress(pipelineId, executionId, userId, {
-        status: 'started',
-        progress: 10,
-        currentStep: 'Initializing pipeline execution',
-      });
+      // Log initial progress (websocket integration TODO)
+      this.logger.log(
+        `Pipeline ${pipelineId} started - execution ${executionId}`,
+      );
 
       // Update job progress
       await job.updateProgress(10);
@@ -48,33 +44,26 @@ export class PipelineQueueProcessor extends WorkerHost {
       // Execute the pipeline
       const result = await this.pipelineRunner.execute(pipelineId, inputData);
 
-      // Emit execution progress
-      this.websocketGateway.emitPipelineProgress(pipelineId, executionId, userId, {
-        status: 'running',
-        progress: 80,
-        currentStep: 'Pipeline execution in progress',
-        processedItems: result.processedItems,
-      });
+      // Log execution progress (websocket integration TODO)
+      this.logger.log(
+        `Pipeline ${pipelineId} running - ${result.processedItems} items processed`,
+      );
 
       await job.updateProgress(80);
 
       // Log completion
       this.logger.log(
         `Pipeline job ${job.id} completed: ${result.processedItems} items processed, ` +
-        `${result.errors.length} errors, ${result.warnings.length} warnings`
+          `${result.errors.length} errors, ${result.warnings.length} warnings`,
       );
 
       await job.updateProgress(100);
 
-      // Emit completion
-      this.websocketGateway.emitPipelineCompleted(pipelineId, executionId, userId, {
-        success: result.success,
-        processedItems: result.processedItems,
-        errors: result.errors,
-        warnings: result.warnings,
-        executionTime: result.executionTime,
-        metadata: result.metadata,
-      });
+      // Log completion (websocket integration TODO)
+      this.logger.log(
+        `Pipeline ${pipelineId} completed - execution ${executionId}: ` +
+          `${result.processedItems} items, ${result.errors.length} errors`,
+      );
 
       return {
         success: result.success,
@@ -84,7 +73,6 @@ export class PipelineQueueProcessor extends WorkerHost {
         executionTime: result.executionTime,
         metadata: result.metadata,
       };
-
     } catch (error) {
       this.logger.error(`Pipeline job ${job.id} failed: ${error.message}`);
       throw error;
@@ -103,16 +91,23 @@ export class PipelineQueueProcessor extends WorkerHost {
       await job.updateProgress(10);
 
       // Execute pipeline for export
-      const result = await this.pipelineRunner.execute(exportConfig.pipelineId!, [{
-        exportFormat: exportConfig.format,
-        exportFilename: exportConfig.filename,
-        filters: exportConfig.filters,
-        userId,
-      }]);
+      const result = await this.pipelineRunner.execute(
+        exportConfig.pipelineId!,
+        [
+          {
+            exportFormat: exportConfig.format,
+            exportFilename: exportConfig.filename,
+            filters: exportConfig.filters,
+            userId,
+          },
+        ],
+      );
 
       await job.updateProgress(90);
 
-      this.logger.log(`Export job ${job.id} completed: ${result.processedItems} items exported`);
+      this.logger.log(
+        `Export job ${job.id} completed: ${result.processedItems} items exported`,
+      );
 
       await job.updateProgress(100);
 
@@ -124,7 +119,6 @@ export class PipelineQueueProcessor extends WorkerHost {
         errors: result.errors,
         warnings: result.warnings,
       };
-
     } catch (error) {
       this.logger.error(`Export job ${job.id} failed: ${error.message}`);
       throw error;
@@ -134,7 +128,7 @@ export class PipelineQueueProcessor extends WorkerHost {
   /**
    * Handle job completion
    */
-  @OnWorkerEvent('completed')
+  @OnWorkerEvent("completed")
   onCompleted(job: Job) {
     this.logger.log(`Job ${job.id} completed successfully`);
   }
@@ -142,7 +136,7 @@ export class PipelineQueueProcessor extends WorkerHost {
   /**
    * Handle job failure
    */
-  @OnWorkerEvent('failed')
+  @OnWorkerEvent("failed")
   onFailed(job: Job, err: Error) {
     this.logger.error(`Job ${job.id} failed with error: ${err.message}`);
   }
@@ -150,7 +144,7 @@ export class PipelineQueueProcessor extends WorkerHost {
   /**
    * Handle job progress updates
    */
-  @OnWorkerEvent('progress')
+  @OnWorkerEvent("progress")
   onProgress(job: Job, progress: number) {
     this.logger.debug(`Job ${job.id} progress: ${progress}%`);
   }
@@ -158,7 +152,7 @@ export class PipelineQueueProcessor extends WorkerHost {
   /**
    * Handle active job events
    */
-  @OnWorkerEvent('active')
+  @OnWorkerEvent("active")
   onActive(job: Job) {
     this.logger.log(`Job ${job.id} is now active`);
   }

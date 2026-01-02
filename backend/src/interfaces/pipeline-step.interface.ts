@@ -5,9 +5,9 @@
  * Each step type must implement this interface.
  */
 
-import { Observable } from 'rxjs';
-import { PipelineContext } from './pipeline-context.interface';
-import { StepType } from '../types/step-type';
+import { Observable } from "rxjs";
+import { PipelineContext } from "./pipeline-context.interface";
+import { StepType } from "../types/step-type";
 
 export interface PipelineStepHandler {
   /**

@@ -1,50 +1,57 @@
-import 'reflect-metadata';
-import { MigrationInterface, QueryRunner } from "typeorm";
-import { DataSource } from 'typeorm';
-import { config } from 'dotenv';
-import * as bcrypt from 'bcrypt';
+import "reflect-metadata";
+import { DataSource } from "typeorm";
+import { config } from "dotenv";
+import * as bcrypt from "bcrypt";
+
+// Entities
+import { User, UserRole, UserStatus } from "../entities/user.entity";
+import { Pipeline, PipelineStatus, PipelineType } from "../entities/pipeline.entity";
+import { PipelineStep, StepStatus, StepType } from "../entities/pipeline-step.entity";
+import { DataImport, ImportStatus, ImportSourceType, FileFormat } from "../entities/data-import.entity";
+import { DataExport, ExportStatus, ExportDestinationType } from "../entities/data-export.entity";
+import { Notification, NotificationType, NotificationPriority, NotificationStatus } from "../entities/notification.entity";
 
 // Load environment variables
-config({ path: '../../.env' });
+config({ path: "../../.env" });
 
 async function runSeeder() {
-  console.log('🌱 Starting DataBuddy Database Seeder...');
+  console.log("🌱 Starting DataBuddy Database Seeder...");
 
-  // Create database connection
+  // Create database connection  
   const dataSource = new DataSource({
-    type: 'postgres',
-    host: process.env.DATABASE_HOST || 'localhost',
-    port: parseInt(process.env.DATABASE_PORT || '5432'),
-    username: process.env.DATABASE_USERNAME || 'postgres',
-    password: process.env.DATABASE_PASSWORD || 'postgres',
-    database: process.env.DATABASE_NAME || 'databuddy',
-    synchronize: false, // Don't sync, use migrations
+    type: "postgres",
+    host: process.env.DATABASE_HOST || "localhost",
+    port: parseInt(process.env.DATABASE_PORT || "5432"),
+    username: process.env.DATABASE_USERNAME || "postgres",
+    password: process.env.DATABASE_PASSWORD || "postgres",
+    database: process.env.DATABASE_NAME || "databuddy",
+    synchronize: false,
     logging: false,
+    entities: [User, Pipeline, PipelineStep, DataImport, DataExport, Notification],
   });
 
   try {
     await dataSource.initialize();
-    console.log('✅ Database connection established');
+    console.log("✅ Database connection established");
 
     await seedData(dataSource);
 
-    console.log('\n🎉 Database seeding completed successfully!');
-    console.log('=====================================');
-    console.log('Created:');
-    console.log('  • 3 Users (Admin, Editor, Viewer)');
-    console.log('  • 3 Pipeline Templates');
-    console.log('  • 5 Pipeline Steps');
-    console.log('  • 2 Sample Data Imports');
-    console.log('  • 1 Sample Data Export');
-    console.log('  • 4 Welcome Notifications');
-    console.log('');
-    console.log('Login credentials:');
-    console.log('  Admin: admin@databuddy.com / admin123');
-    console.log('  Editor: editor@databuddy.com / editor123');
-    console.log('  Viewer: viewer@databuddy.com / viewer123');
-
+    console.log("\n🎉 Database seeding completed successfully!");
+    console.log("=====================================");
+    console.log("Created:");
+    console.log("  • 3 Users (Admin, Editor, Viewer)");
+    console.log("  • 3 Pipeline Templates");
+    console.log("  • 6 Pipeline Steps");
+    console.log("  • 2 Sample Data Imports");
+    console.log("  • 1 Sample Data Export");
+    console.log("  • 4 Welcome Notifications");
+    console.log("");
+    console.log("Login credentials:");
+    console.log("  Admin: admin@databuddy.com / admin123");
+    console.log("  Editor: editor@databuddy.com / editor123");
+    console.log("  Viewer: viewer@databuddy.com / viewer123");
   } catch (error) {
-    console.error('❌ Database seeding failed:', error);
+    console.error("❌ Database seeding failed:", error);
     throw error;
   } finally {
     await dataSource.destroy();
@@ -52,461 +59,378 @@ async function runSeeder() {
 }
 
 async function seedData(dataSource: DataSource) {
-    // Create query runner
-    const queryRunner = dataSource.createQueryRunner();
+  // Get repositories
+  const userRepo = dataSource.getRepository(User);
+  const pipelineRepo = dataSource.getRepository(Pipeline);
+  const pipelineStepRepo = dataSource.getRepository(PipelineStep);
+  const dataImportRepo = dataSource.getRepository(DataImport);
+  const dataExportRepo = dataSource.getRepository(DataExport);
+  const notificationRepo = dataSource.getRepository(Notification);
 
-    try {
-        // Start transaction
-        await queryRunner.startTransaction();
+  // Check if data already exists
+  const existingUsers = await userRepo.count();
+  if (existingUsers > 0) {
+    console.log("⚠️  Data already exists. Skipping seeding.");
+    return;
+  }
 
-        // Import entities
-        const { User } = await import('../entities/user.entity');
-        const { Pipeline } = await import('../entities/pipeline.entity');
-        const { PipelineStep } = await import('../entities/pipeline-step.entity');
-        const { DataImport } = await import('../entities/data-import.entity');
-        const { DataExport } = await import('../entities/data-export.entity');
-        const { Notification } = await import('../entities/notification.entity');
+  // ============================================================
+  // SEED USERS
+  // ============================================================
+  console.log("\n📦 Seeding users...");
 
-    // Hash passwords manually
-    const saltRounds = 12;
-    const adminPassword = await bcrypt.hash('admin123', saltRounds);
-    const editorPassword = await bcrypt.hash('editor123', saltRounds);
-    const viewerPassword = await bcrypt.hash('viewer123', saltRounds);
+  // Pre-hash passwords (User entity has @BeforeInsert hook, but we need control)
+  const saltRounds = 12;
+  const adminPassword = await bcrypt.hash("admin123", saltRounds);
+  const editorPassword = await bcrypt.hash("editor123", saltRounds);
+  const viewerPassword = await bcrypt.hash("viewer123", saltRounds);
 
-    // Insert users directly using queryRunner to avoid entity hooks
-    await queryRunner.query(`
-        INSERT INTO "users" (
-            "id", "email", "firstName", "lastName", "password", "role", "status",
-            "preferences", "createdAt", "updatedAt"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-    `, [
-        '00000000-0000-0000-0000-000000000001',
-        'admin@databuddy.com',
-        'Admin',
-        'DataBuddy',
-        adminPassword,
-        'admin',
-        'active',
-        JSON.stringify({ theme: 'light', language: 'en', timezone: 'UTC' })
-    ]);
-    console.log('✅ Admin user created');
+  const adminUser = userRepo.create({
+    id: "00000000-0000-0000-0000-000000000001",
+    email: "admin@databuddy.com",
+    firstName: "Admin",
+    lastName: "DataBuddy",
+    password: adminPassword, // Already hashed, entity hook will skip
+    role: UserRole.ADMIN,
+    status: UserStatus.ACTIVE,
+    preferences: { theme: "light", language: "en", timezone: "UTC" },
+  });
+  await userRepo.save(adminUser);
+  console.log("✅ Admin user created");
 
-    await queryRunner.query(`
-        INSERT INTO "users" (
-            "id", "email", "firstName", "lastName", "password", "role", "status",
-            "preferences", "createdAt", "updatedAt"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-    `, [
-        '00000000-0000-0000-0000-000000000002',
-        'editor@databuddy.com',
-        'Jane',
-        'Editor',
-        editorPassword,
-        'editor',
-        'active',
-        JSON.stringify({ theme: 'dark', language: 'en', timezone: 'UTC' })
-    ]);
-    console.log('✅ Editor user created');
+  const editorUser = userRepo.create({
+    id: "00000000-0000-0000-0000-000000000002",
+    email: "editor@databuddy.com",
+    firstName: "Jane",
+    lastName: "Editor",
+    password: editorPassword,
+    role: UserRole.EDITOR,
+    status: UserStatus.ACTIVE,
+    preferences: { theme: "dark", language: "en", timezone: "UTC" },
+  });
+  await userRepo.save(editorUser);
+  console.log("✅ Editor user created");
 
-    await queryRunner.query(`
-        INSERT INTO "users" (
-            "id", "email", "firstName", "lastName", "password", "role", "status",
-            "preferences", "createdAt", "updatedAt"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-    `, [
-        '00000000-0000-0000-0000-000000000003',
-        'viewer@databuddy.com',
-        'John',
-        'Viewer',
-        viewerPassword,
-        'viewer',
-        'active',
-        JSON.stringify({ theme: 'light', language: 'en', timezone: 'UTC' })
-    ]);
-    console.log('✅ Viewer user created');
+  const viewerUser = userRepo.create({
+    id: "00000000-0000-0000-0000-000000000003",
+    email: "viewer@databuddy.com",
+    firstName: "John",
+    lastName: "Viewer",
+    password: viewerPassword,
+    role: UserRole.VIEWER,
+    status: UserStatus.ACTIVE,
+    preferences: { theme: "light", language: "en", timezone: "UTC" },
+  });
+  await userRepo.save(viewerUser);
+  console.log("✅ Viewer user created");
 
-        // Insert sample pipeline templates
-        await queryRunner.query(`
-            INSERT INTO "pipelines" (
-                "id", "name", "description", "type", "status", "config", "inputSchema",
-                "outputSchema", "version", "isTemplate", "category", "tags",
-                "createdAt", "updatedAt", "createdById"
-            ) VALUES (
-                '10000000-0000-0000-0000-000000000001',
-                'CSV Data Import Template',
-                'Template untuk mengimport data CSV dengan validasi dasar',
-                'import',
-                'active',
-                '{"autoValidate": true, "skipErrors": false}',
-                '{"type": "object", "properties": {"file": {"type": "string", "format": "binary"}}}',
-                '{"type": "array", "items": {"type": "object"}}',
-                1,
-                true,
-                'Import',
-                '["csv", "import", "template", "data-processing"]',
-                NOW(),
-                NOW(),
-                '00000000-0000-0000-0000-000000000001'
-            )
-        `);
+  // ============================================================
+  // SEED PIPELINE TEMPLATES
+  // ============================================================
+  console.log("\n📦 Seeding pipeline templates...");
 
-        await queryRunner.query(`
-            INSERT INTO "pipelines" (
-                "id", "name", "description", "type", "status", "config", "inputSchema",
-                "outputSchema", "version", "isTemplate", "category", "tags",
-                "createdAt", "updatedAt", "createdById"
-            ) VALUES (
-                '10000000-0000-0000-0000-000000000002',
-                'Data Cleaning Pipeline',
-                'Pipeline untuk membersihkan dan menstandardisasi data',
-                'transform',
-                'active',
-                '{"strictMode": false}',
-                '{"type": "array", "items": {"type": "object"}}',
-                '{"type": "array", "items": {"type": "object"}}',
-                1,
-                true,
-                'Data Quality',
-                '["cleaning", "transform", "data-quality", "standardization"]',
-                NOW(),
-                NOW(),
-                '00000000-0000-0000-0000-000000000001'
-            )
-        `);
+  const csvImportPipeline = pipelineRepo.create({
+    id: "10000000-0000-0000-0000-000000000001",
+    name: "CSV Data Import Template",
+    description: "Template untuk mengimport data CSV dengan validasi dasar",
+    type: PipelineType.IMPORT,
+    status: PipelineStatus.ACTIVE,
+    config: { autoValidate: true, skipErrors: false },
+    inputSchema: { type: "object", properties: { file: { type: "string", format: "binary" } } },
+    outputSchema: { type: "array", items: { type: "object" } },
+    version: 1,
+    isTemplate: true,
+    category: "Import",
+    tags: ["csv", "import", "template", "data-processing"],
+    createdById: adminUser.id,
+  });
+  await pipelineRepo.save(csvImportPipeline);
 
-        await queryRunner.query(`
-            INSERT INTO "pipelines" (
-                "id", "name", "description", "type", "status", "config", "inputSchema",
-                "outputSchema", "version", "isTemplate", "category", "tags",
-                "createdAt", "updatedAt", "createdById"
-            ) VALUES (
-                '10000000-0000-0000-0000-000000000003',
-                'Excel Export Pipeline',
-                'Pipeline untuk mengekspor data ke format Excel',
-                'export',
-                'active',
-                '{"includeHeaders": true, "autoFormat": true}',
-                '{"type": "array", "items": {"type": "object"}}',
-                '{"type": "string", "format": "binary"}',
-                1,
-                true,
-                'Export',
-                '["excel", "export", "xlsx", "data-export"]',
-                NOW(),
-                NOW(),
-                '00000000-0000-0000-0000-000000000001'
-            )
-        `);
+  const dataCleaningPipeline = pipelineRepo.create({
+    id: "10000000-0000-0000-0000-000000000002",
+    name: "Data Cleaning Pipeline",
+    description: "Pipeline untuk membersihkan dan menstandardisasi data",
+    type: PipelineType.TRANSFORM,
+    status: PipelineStatus.ACTIVE,
+    config: { strictMode: false },
+    inputSchema: { type: "array", items: { type: "object" } },
+    outputSchema: { type: "array", items: { type: "object" } },
+    version: 1,
+    isTemplate: true,
+    category: "Data Quality",
+    tags: ["cleaning", "transform", "data-quality", "standardization"],
+    createdById: adminUser.id,
+  });
+  await pipelineRepo.save(dataCleaningPipeline);
 
-        // Insert pipeline steps for CSV Import Template
-        await queryRunner.query(`
-            INSERT INTO "pipeline_steps" (
-                "id", "name", "description", "type", "status", "order", "config",
-                "continueOnError", "retryCount", "timeoutSeconds",
-                "createdAt", "updatedAt", "pipelineId"
-            ) VALUES (
-                '20000000-0000-0000-0000-000000000001',
-                'Read CSV File',
-                'Membaca file CSV dari input',
-                'read_file',
-                'active',
-                1,
-                '{"fileFormat": "csv", "hasHeader": true, "encoding": "utf8", "delimiter": ","}',
-                false,
-                3,
-                300,
-                NOW(),
-                NOW(),
-                '10000000-0000-0000-0000-000000000001'
-            )
-        `);
+  const excelExportPipeline = pipelineRepo.create({
+    id: "10000000-0000-0000-0000-000000000003",
+    name: "Excel Export Pipeline",
+    description: "Pipeline untuk mengekspor data ke format Excel",
+    type: PipelineType.EXPORT,
+    status: PipelineStatus.ACTIVE,
+    config: { includeHeaders: true, autoFormat: true },
+    inputSchema: { type: "array", items: { type: "object" } },
+    outputSchema: { type: "string", format: "binary" },
+    version: 1,
+    isTemplate: true,
+    category: "Export",
+    tags: ["excel", "export", "xlsx", "data-export"],
+    createdById: adminUser.id,
+  });
+  await pipelineRepo.save(excelExportPipeline);
+  console.log("✅ Pipeline templates created");
 
-        await queryRunner.query(`
-            INSERT INTO "pipeline_steps" (
-                "id", "name", "description", "type", "status", "order", "config",
-                "continueOnError", "retryCount", "timeoutSeconds",
-                "createdAt", "updatedAt", "pipelineId"
-            ) VALUES (
-                '20000000-0000-0000-0000-000000000002',
-                'Validate Data',
-                'Memvalidasi struktur dan tipe data',
-                'validate_data',
-                'active',
-                2,
-                '{"rules": [{"type": "required", "column": "name", "message": "Name is required"}, {"type": "email", "column": "email"}]}',
-                false,
-                0,
-                60,
-                NOW(),
-                NOW(),
-                '10000000-0000-0000-0000-000000000001'
-            )
-        `);
+  // ============================================================
+  // SEED PIPELINE STEPS
+  // ============================================================
+  console.log("\n📦 Seeding pipeline steps...");
 
-        // Insert pipeline steps for Data Cleaning Pipeline
-        await queryRunner.query(`
-            INSERT INTO "pipeline_steps" (
-                "id", "name", "description", "type", "status", "order", "config",
-                "continueOnError", "retryCount", "timeoutSeconds",
-                "createdAt", "updatedAt", "pipelineId"
-            ) VALUES (
-                '20000000-0000-0000-0000-000000000003',
-                'Clean Text Data',
-                'Membersihkan dan menstandardisasi data teks',
-                'clean_data',
-                'active',
-                1,
-                '{"columns": ["name", "description"], "trim": true, "lowercase": false, "removeExtraSpaces": true}',
-                true,
-                0,
-                120,
-                NOW(),
-                NOW(),
-                '10000000-0000-0000-0000-000000000002'
-            )
-        `);
+  // Steps for CSV Import Pipeline
+  const step1 = pipelineStepRepo.create({
+    id: "20000000-0000-0000-0000-000000000001",
+    name: "Read CSV File",
+    description: "Membaca file CSV dari input",
+    type: StepType.READ_FILE,
+    status: StepStatus.ACTIVE,
+    order: 1,
+    config: { fileFormat: "csv", hasHeader: true, encoding: "utf8", delimiter: "," },
+    continueOnError: false,
+    retryCount: 3,
+    timeoutSeconds: 300,
+    pipelineId: csvImportPipeline.id,
+  });
+  await pipelineStepRepo.save(step1);
 
-        await queryRunner.query(`
-            INSERT INTO "pipeline_steps" (
-                "id", "name", "description", "type", "status", "order", "config",
-                "continueOnError", "retryCount", "timeoutSeconds",
-                "createdAt", "updatedAt", "pipelineId"
-            ) VALUES (
-                '20000000-0000-0000-0000-000000000004',
-                'Fill Missing Values',
-                'Mengisi nilai yang hilang dengan default values',
-                'fill_missing_values',
-                'active',
-                2,
-                '{"rules": [{"column": "status", "defaultValue": "active"}, {"column": "createdAt", "defaultValue": "now"}]}',
-                true,
-                0,
-                60,
-                NOW(),
-                NOW(),
-                '10000000-0000-0000-0000-000000000002'
-            )
-        `);
+  const step2 = pipelineStepRepo.create({
+    id: "20000000-0000-0000-0000-000000000002",
+    name: "Validate Data",
+    description: "Memvalidasi struktur dan tipe data",
+    type: StepType.VALIDATE_DATA,
+    status: StepStatus.ACTIVE,
+    order: 2,
+    config: {
+      rules: [
+        { type: "required", column: "name", message: "Name is required" },
+        { type: "email", column: "email" },
+      ],
+    },
+    continueOnError: false,
+    retryCount: 0,
+    timeoutSeconds: 60,
+    pipelineId: csvImportPipeline.id,
+  });
+  await pipelineStepRepo.save(step2);
 
-        // Insert pipeline steps for Excel Export Pipeline
-        await queryRunner.query(`
-            INSERT INTO "pipeline_steps" (
-                "id", "name", "description", "type", "status", "order", "config",
-                "continueOnError", "retryCount", "timeoutSeconds",
-                "createdAt", "updatedAt", "pipelineId"
-            ) VALUES (
-                '20000000-0000-0000-0000-000000000005',
-                'Format Data for Export',
-                'Memformat data sebelum diekspor',
-                'transform_columns',
-                'active',
-                1,
-                '{"mappings": {"created_at": "createdAt", "updated_at": "updatedAt"}, "dateFormat": "YYYY-MM-DD"}',
-                false,
-                0,
-                60,
-                NOW(),
-                NOW(),
-                '10000000-0000-0000-0000-000000000003'
-            )
-        `);
+  // Steps for Data Cleaning Pipeline
+  const step3 = pipelineStepRepo.create({
+    id: "20000000-0000-0000-0000-000000000003",
+    name: "Clean Text Data",
+    description: "Membersihkan dan menstandardisasi data teks",
+    type: StepType.TRANSFORM_COLUMNS,
+    status: StepStatus.ACTIVE,
+    order: 1,
+    config: {
+      columns: ["name", "description"],
+      trim: true,
+      lowercase: false,
+      removeExtraSpaces: true,
+    },
+    continueOnError: true,
+    retryCount: 0,
+    timeoutSeconds: 120,
+    pipelineId: dataCleaningPipeline.id,
+  });
+  await pipelineStepRepo.save(step3);
 
-        await queryRunner.query(`
-            INSERT INTO "pipeline_steps" (
-                "id", "name", "description", "type", "status", "order", "config",
-                "continueOnError", "retryCount", "timeoutSeconds",
-                "createdAt", "updatedAt", "pipelineId"
-            ) VALUES (
-                '20000000-0000-0000-0000-000000000006',
-                'Export to Excel',
-                'Mengekspor data ke file Excel',
-                'write_file',
-                'active',
-                2,
-                '{"format": "xlsx", "sheetName": "Data", "includeHeaders": true}',
-                false,
-                2,
-                300,
-                NOW(),
-                NOW(),
-                '10000000-0000-0000-0000-000000000003'
-            )
-        `);
+  const step4 = pipelineStepRepo.create({
+    id: "20000000-0000-0000-0000-000000000004",
+    name: "Check Duplicates",
+    description: "Mengecek dan menghapus data duplikat",
+    type: StepType.REMOVE_DUPLICATES,
+    status: StepStatus.ACTIVE,
+    order: 2,
+    config: { columns: ["id", "email"], action: "remove" },
+    continueOnError: true,
+    retryCount: 0,
+    timeoutSeconds: 60,
+    pipelineId: dataCleaningPipeline.id,
+  });
+  await pipelineStepRepo.save(step4);
 
-        // Insert sample data imports
-        await queryRunner.query(`
-            INSERT INTO "data_imports" (
-                "id", "name", "description", "status", "sourceType", "fileFormat",
-                "originalFileName", "totalRows", "processedRows", "createdAt", "updatedAt", "createdById"
-            ) VALUES (
-                '30000000-0000-0000-0000-000000000001',
-                'Sample Customer Data',
-                'Contoh data pelanggan untuk testing',
-                'completed',
-                'file_upload',
-                'csv',
-                'customers.csv',
-                1000,
-                1000,
-                NOW() - INTERVAL '2 days',
-                NOW() - INTERVAL '2 days',
-                '00000000-0000-0000-0000-000000000001'
-            )
-        `);
+  // Steps for Excel Export Pipeline
+  const step5 = pipelineStepRepo.create({
+    id: "20000000-0000-0000-0000-000000000005",
+    name: "Format Data for Export",
+    description: "Memformat data sebelum diekspor",
+    type: StepType.TRANSFORM_COLUMNS,
+    status: StepStatus.ACTIVE,
+    order: 1,
+    config: {
+      mappings: { created_at: "createdAt", updated_at: "updatedAt" },
+      dateFormat: "YYYY-MM-DD",
+    },
+    continueOnError: false,
+    retryCount: 0,
+    timeoutSeconds: 60,
+    pipelineId: excelExportPipeline.id,
+  });
+  await pipelineStepRepo.save(step5);
 
-        await queryRunner.query(`
-            INSERT INTO "data_imports" (
-                "id", "name", "description", "status", "sourceType", "fileFormat",
-                "originalFileName", "totalRows", "processedRows", "createdAt", "updatedAt", "createdById"
-            ) VALUES (
-                '30000000-0000-0000-0000-000000000002',
-                'Product Inventory',
-                'Data inventori produk',
-                'completed',
-                'file_upload',
-                'xlsx',
-                'inventory.xlsx',
-                500,
-                500,
-                NOW() - INTERVAL '1 day',
-                NOW() - INTERVAL '1 day',
-                '00000000-0000-0000-0000-000000000002'
-            )
-        `);
+  const step6 = pipelineStepRepo.create({
+    id: "20000000-0000-0000-0000-000000000006",
+    name: "Export to Excel",
+    description: "Mengekspor data ke file Excel",
+    type: StepType.WRITE_FILE,
+    status: StepStatus.ACTIVE,
+    order: 2,
+    config: { format: "xlsx", sheetName: "Data", includeHeaders: true },
+    continueOnError: false,
+    retryCount: 2,
+    timeoutSeconds: 300,
+    pipelineId: excelExportPipeline.id,
+  });
+  await pipelineStepRepo.save(step6);
+  console.log("✅ Pipeline steps created");
 
-        // Insert sample data exports
-        await queryRunner.query(`
-            INSERT INTO "data_exports" (
-                "id", "name", "description", "status", "destinationType", "fileFormat",
-                "outputFileName", "totalRows", "processedRows", "createdAt", "updatedAt", "createdById"
-            ) VALUES (
-                '40000000-0000-0000-0000-000000000001',
-                'Customer Report',
-                'Laporan data pelanggan untuk manajemen',
-                'completed',
-                'file_download',
-                'xlsx',
-                'customer_report.xlsx',
-                1000,
-                1000,
-                NOW() - INTERVAL '1 day',
-                NOW() - INTERVAL '1 day',
-                '00000000-0000-0000-0000-000000000001'
-            )
-        `);
+  // ============================================================
+  // SEED DATA IMPORTS
+  // ============================================================
+  console.log("\n📦 Seeding data imports...");
 
-        // Insert welcome notifications
-        await queryRunner.query(`
-            INSERT INTO "notifications" (
-                "id", "title", "message", "type", "priority", "status", "metadata",
-                "createdAt", "updatedAt", "userId"
-            ) VALUES (
-                '50000000-0000-0000-0000-000000000001',
-                'Welcome to DataBuddy!',
-                'Selamat datang di DataBuddy! Platform ini siap membantu Anda mengelola dan memproses data dengan mudah.',
-                'system_maintenance',
-                'low',
-                'unread',
-                '{"welcome": true, "version": "1.0.0"}',
-                NOW(),
-                NOW(),
-                '00000000-0000-0000-0000-000000000001'
-            )
-        `);
+  const twoDaysAgo = new Date();
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-        await queryRunner.query(`
-            INSERT INTO "notifications" (
-                "id", "title", "message", "type", "priority", "status", "metadata",
-                "createdAt", "updatedAt", "userId"
-            ) VALUES (
-                '50000000-0000-0000-0000-000000000002',
-                'Pipeline Templates Available',
-                'Beberapa template pipeline telah tersedia untuk membantu Anda memulai. Cek di menu Pipelines.',
-                'system_maintenance',
-                'low',
-                'unread',
-                '{"templates": ["CSV Import", "Data Cleaning", "Excel Export"]}',
-                NOW(),
-                NOW(),
-                '00000000-0000-0000-0000-000000000001'
-            )
-        `);
+  const oneDayAgo = new Date();
+  oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-        await queryRunner.query(`
-            INSERT INTO "notifications" (
-                "id", "title", "message", "type", "priority", "status", "metadata",
-                "createdAt", "updatedAt", "userId"
-            ) VALUES (
-                '50000000-0000-0000-0000-000000000003',
-                'Welcome to DataBuddy!',
-                'Akun editor Anda telah dibuat. Anda dapat membuat dan mengelola pipeline serta mengimport data.',
-                'system_maintenance',
-                'low',
-                'unread',
-                '{"welcome": true, "role": "editor"}',
-                NOW(),
-                NOW(),
-                '00000000-0000-0000-0000-000000000002'
-            )
-        `);
+  // Use QueryBuilder insert to avoid entity-database column mismatch
+  await dataSource
+    .createQueryBuilder()
+    .insert()
+    .into("data_imports")
+    .values([
+      {
+        id: "30000000-0000-0000-0000-000000000001",
+        name: "Sample Customer Data",
+        description: "Contoh data pelanggan untuk testing",
+        status: "completed",
+        sourceType: "file_upload",
+        fileFormat: "csv",
+        originalFileName: "customers.csv",
+        totalRows: 1000,
+        processedRows: 1000,
+        createdById: adminUser.id,
+        createdAt: twoDaysAgo,
+        updatedAt: twoDaysAgo,
+      },
+      {
+        id: "30000000-0000-0000-0000-000000000002",
+        name: "Product Inventory",
+        description: "Data inventori produk",
+        status: "completed",
+        sourceType: "file_upload",
+        fileFormat: "xlsx",
+        originalFileName: "inventory.xlsx",
+        totalRows: 500,
+        processedRows: 500,
+        createdById: editorUser.id,
+        createdAt: oneDayAgo,
+        updatedAt: oneDayAgo,
+      },
+    ])
+    .execute();
+  console.log("✅ Data imports created");
 
-        await queryRunner.query(`
-            INSERT INTO "notifications" (
-                "id", "title", "message", "type", "priority", "status", "metadata",
-                "createdAt", "updatedAt", "userId"
-            ) VALUES (
-                '50000000-0000-0000-0000-000000000004',
-                'Welcome to DataBuddy!',
-                'Akun viewer Anda telah dibuat. Anda dapat melihat pipeline dan data yang tersedia.',
-                'system_maintenance',
-                'low',
-                'unread',
-                '{"welcome": true, "role": "viewer"}',
-                NOW(),
-                NOW(),
-                '00000000-0000-0000-0000-000000000003'
-            )
-        `);
+  // ============================================================
+  // SEED DATA EXPORTS
+  // ============================================================
+  // Use QueryBuilder insert to avoid entity-database column mismatch
+  await dataSource
+    .createQueryBuilder()
+    .insert()
+    .into("data_exports")
+    .values([
+      {
+        id: "40000000-0000-0000-0000-000000000001",
+        name: "Customer Report",
+        description: "Laporan data pelanggan untuk manajemen",
+        status: "completed",
+        destinationType: "file_download",
+        fileFormat: "xlsx",
+        outputFileName: "customer_report.xlsx",
+        totalRows: 1000,
+        processedRows: 1000,
+        createdById: adminUser.id,
+        createdAt: oneDayAgo,
+        updatedAt: oneDayAgo,
+      },
+    ])
+    .execute();
+  console.log("✅ Data exports created");
 
-        // Commit the transaction
-        await queryRunner.commitTransaction();
-        console.log('✅ Sample data seeded successfully');
-    } catch (error) {
-        // Rollback on error
-        await queryRunner.rollbackTransaction();
-        console.error('❌ Error seeding data:', error);
-        throw error;
-    } finally {
-        // Release the query runner
-        await queryRunner.release();
-    }
-}
+  // ============================================================
+  // SEED NOTIFICATIONS
+  // ============================================================
+  console.log("\n📦 Seeding notifications...");
 
-// Migration interface for TypeORM CLI (legacy support)
-export class SeedInitialData1735664400001 implements MigrationInterface {
-    name = 'SeedInitialData1735664400001'
+  // Use QueryBuilder insert to avoid entity-database column mismatch
+  await dataSource
+    .createQueryBuilder()
+    .insert()
+    .into("notifications")
+    .values([
+      {
+        id: "50000000-0000-0000-0000-000000000001",
+        title: "Welcome to DataBuddy!",
+        message: "Selamat datang di DataBuddy! Platform ini siap membantu Anda mengelola dan memproses data dengan mudah.",
+        type: "system_maintenance",
+        priority: "low",
+        status: "unread",
+        metadata: { welcome: true, version: "1.0.0" },
+        userId: adminUser.id,
+      },
+      {
+        id: "50000000-0000-0000-0000-000000000002",
+        title: "Pipeline Templates Available",
+        message: "Beberapa template pipeline telah tersedia untuk membantu Anda memulai. Cek di menu Pipelines.",
+        type: "system_maintenance",
+        priority: "low",
+        status: "unread",
+        metadata: { templates: ["CSV Import", "Data Cleaning", "Excel Export"] },
+        userId: adminUser.id,
+      },
+      {
+        id: "50000000-0000-0000-0000-000000000003",
+        title: "Welcome to DataBuddy!",
+        message: "Akun editor Anda telah dibuat. Anda dapat membuat dan mengelola pipeline serta mengimport data.",
+        type: "system_maintenance",
+        priority: "low",
+        status: "unread",
+        metadata: { welcome: true, role: "editor" },
+        userId: editorUser.id,
+      },
+      {
+        id: "50000000-0000-0000-0000-000000000004",
+        title: "Welcome to DataBuddy!",
+        message: "Akun viewer Anda telah dibuat. Anda dapat melihat pipeline dan data yang tersedia.",
+        type: "system_maintenance",
+        priority: "low",
+        status: "unread",
+        metadata: { welcome: true, role: "viewer" },
+        userId: viewerUser.id,
+      },
+    ])
+    .execute();
+  console.log("✅ Notifications created");
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // This is kept for compatibility but we use the standalone function
-        const dataSource = queryRunner.connection;
-        await seedData(dataSource);
-    }
-
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        // Remove seeded data
-        await queryRunner.query(`DELETE FROM "notifications" WHERE "id" LIKE '50000000-%'`);
-        await queryRunner.query(`DELETE FROM "data_exports" WHERE "id" LIKE '40000000-%'`);
-        await queryRunner.query(`DELETE FROM "data_imports" WHERE "id" LIKE '30000000-%'`);
-        await queryRunner.query(`DELETE FROM "pipeline_steps" WHERE "id" LIKE '20000000-%'`);
-        await queryRunner.query(`DELETE FROM "pipelines" WHERE "id" LIKE '10000000-%'`);
-        await queryRunner.query(`DELETE FROM "users" WHERE "id" LIKE '00000000-%'`);
-    }
+  console.log("\n✅ All seed data created successfully!");
 }
 
 // Run seeder if called directly
 if (require.main === module) {
-    runSeeder().catch((error) => {
-        console.error('Seeding failed:', error);
-        process.exit(1);
-    });
+  runSeeder().catch((error) => {
+    console.error("Seeding failed:", error);
+    process.exit(1);
+  });
 }

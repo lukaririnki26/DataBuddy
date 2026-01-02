@@ -5,7 +5,7 @@
  * containing data, metadata, and execution state.
  */
 
-import { Observable } from 'rxjs';
+import { Observable } from "rxjs";
 
 export interface PipelineContext {
   /** Unique execution identifier */
@@ -88,7 +88,7 @@ export interface PipelineProgress {
 
 export interface PipelineLog {
   executionId: string;
-  level: 'info' | 'warn' | 'error' | 'debug';
+  level: "info" | "warn" | "error" | "debug";
   message: string;
   stepId?: string;
   data?: any;

@@ -5,13 +5,13 @@
  * authenticated user information attached by authentication middleware.
  */
 
-import { Request } from 'express';
-import { User } from '../../entities/user.entity';
+import { Request } from "express";
+import { User } from "../../entities/user.entity";
 
 export interface RequestWithUser extends Request {
   /** Authenticated user attached by JWT strategy */
   user: User;
 
   /** JWT token payload */
-  jwtPayload?: import('./jwt-payload.interface').JwtPayload;
+  jwtPayload?: import("./jwt-payload.interface").JwtPayload;
 }

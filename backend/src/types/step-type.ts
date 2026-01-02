@@ -6,28 +6,31 @@
 
 export enum StepType {
   // Data Input/Output
-  READ_FILE = 'read_file',
-  WRITE_FILE = 'write_file',
-  READ_API = 'read_api',
-  WRITE_API = 'write_api',
+  READ_FILE = "read_file",
+  WRITE_FILE = "write_file",
+  READ_API = "read_api",
+  WRITE_API = "write_api",
 
   // Data Transformation
-  TRANSFORM_COLUMNS = 'transform_columns',
-  FILTER_ROWS = 'filter_rows',
-  SORT_DATA = 'sort_data',
-  MERGE_DATASETS = 'merge_datasets',
+  TRANSFORM_COLUMNS = "transform_columns",
+  FILTER_ROWS = "filter_rows",
+  SORT_DATA = "sort_data",
+  GROUP_DATA = "group_data",
+  JOIN_DATASETS = "join_datasets",
 
-  // Data Validation
-  VALIDATE_SCHEMA = 'validate_schema',
-  CHECK_DUPLICATES = 'check_duplicates',
-  VALIDATE_RULES = 'validate_rules',
+  // Data Processing
+  VALIDATE_DATA = "validate_data",
+  CLEAN_DATA = "clean_data",
+  REMOVE_DUPLICATES = "remove_duplicates",
+  FILL_MISSING_VALUES = "fill_missing_values",
 
-  // Data Export
-  EXPORT_CSV = 'export_csv',
-  EXPORT_EXCEL = 'export_excel',
-  EXPORT_JSON = 'export_json',
-  EXPORT_DATABASE = 'export_database',
+  // Data Analysis
+  AGGREGATE_DATA = "aggregate_data",
+  CALCULATE_METRICS = "calculate_metrics",
 
-  // Custom/Advanced
-  CUSTOM_SCRIPT = 'custom_script',
+  // Advanced
+  APPLY_FORMULA = "apply_formula",
+  CUSTOM_SCRIPT = "custom_script",
+  CONDITIONAL_BRANCH = "conditional_branch",
+  LOOP_ITERATION = "loop_iteration",
 }

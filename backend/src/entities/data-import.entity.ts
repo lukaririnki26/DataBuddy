@@ -14,56 +14,63 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
-} from 'typeorm';
-import { IsString, IsEnum, IsOptional, IsUUID, Min, Max } from 'class-validator';
-import { User } from './user.entity';
+} from "typeorm";
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsUUID,
+  Min,
+  Max,
+} from "class-validator";
+import { User } from "./user.entity";
 
 export enum ImportStatus {
-  PENDING = 'pending',      // Import job created, waiting to start
-  PROCESSING = 'processing', // Import is currently running
-  VALIDATING = 'validating', // Data validation in progress
-  TRANSFORMING = 'transforming', // Data transformation in progress
-  COMPLETED = 'completed',   // Import completed successfully
-  FAILED = 'failed',        // Import failed with errors
-  CANCELLED = 'cancelled',  // Import was cancelled by user
+  PENDING = "pending", // Import job created, waiting to start
+  PROCESSING = "processing", // Import is currently running
+  VALIDATING = "validating", // Data validation in progress
+  TRANSFORMING = "transforming", // Data transformation in progress
+  COMPLETED = "completed", // Import completed successfully
+  FAILED = "failed", // Import failed with errors
+  CANCELLED = "cancelled", // Import was cancelled by user
 }
 
 export enum ImportSourceType {
-  FILE_UPLOAD = 'file_upload',    // Direct file upload
-  URL_DOWNLOAD = 'url_download',  // Download from URL
-  API_ENDPOINT = 'api_endpoint',  // Data from API
-  DATABASE_QUERY = 'database_query', // Data from database query
-  STREAM = 'stream',             // Real-time data stream
+  FILE_UPLOAD = "file_upload", // Direct file upload
+  URL_DOWNLOAD = "url_download", // Download from URL
+  API_ENDPOINT = "api_endpoint", // Data from API
+  DATABASE_QUERY = "database_query", // Data from database query
+  STREAM = "stream", // Real-time data stream
 }
 
 export enum FileFormat {
-  CSV = 'csv',
-  XLSX = 'xlsx',
-  XLS = 'xls',
-  JSON = 'json',
-  XML = 'xml',
-  TXT = 'txt',
+  CSV = "csv",
+  XLSX = "xlsx",
+  XLS = "xls",
+  JSON = "json",
+  XML = "xml",
+  TXT = "txt",
 }
 
-@Entity('data_imports')
-@Index(['createdBy', 'status'])
-@Index(['status', 'createdAt'])
-@Index(['sourceType', 'fileFormat'])
+@Entity("data_imports")
+@Index(["createdBy", "status"])
+@Index(["status", "createdAt"])
+@Index(["sourceType", "fileFormat"])
 export class DataImport {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ length: 200 })
   @IsString()
   name: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   @IsOptional()
   @IsString()
   description?: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: ImportStatus,
     default: ImportStatus.PENDING,
   })
@@ -71,14 +78,14 @@ export class DataImport {
   status: ImportStatus;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: ImportSourceType,
   })
   @IsEnum(ImportSourceType)
   sourceType: ImportSourceType;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: FileFormat,
     nullable: true,
   })
@@ -86,86 +93,92 @@ export class DataImport {
   @IsEnum(FileFormat)
   fileFormat?: FileFormat;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: "varchar", length: 500, nullable: true })
   @IsOptional()
   @IsString()
   sourcePath?: string; // File path, URL, API endpoint, etc.
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: "varchar", length: 500, nullable: true })
   @IsOptional()
   @IsString()
   originalFileName?: string;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: "varchar", length: 500, nullable: true })
   @IsOptional()
   @IsString()
   filePath?: string; // Local file path after upload
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   @IsOptional()
   @IsString()
   filename?: string; // Processed filename
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ type: "varchar", length: 100, nullable: true })
   @IsOptional()
   @IsString()
   mimeType?: string; // MIME type of the file
 
-  @Column({ type: 'bigint', nullable: true })
+  @Column({ type: "bigint", nullable: true })
   @IsOptional()
   @Min(0)
   fileSize?: number; // File size in bytes
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   importConfig?: Record<string, any>; // Import-specific configuration
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   dataPreview?: Record<string, any>; // Sample of imported data
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   totalRows: number; // Total rows in the dataset
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   processedRows: number; // Rows successfully processed
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   errorRows: number; // Rows with errors
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: "int", default: 0 })
   skippedRows: number; // Rows skipped (duplicates, filters, etc.)
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   columnMapping?: Record<string, any>; // Column mapping configuration
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   validationRules?: Record<string, any>; // Data validation rules
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   transformationRules?: Record<string, any>; // Data transformation rules
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ type: "varchar", length: 100, nullable: true })
   targetTable?: string; // Target database table name
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   errorMessage?: string; // Error message if import failed
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   errorDetails?: Record<string, any>; // Detailed error information
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ type: "float", nullable: true })
   progressPercentage?: number; // Progress as percentage (0-100)
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   startedAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   completedAt?: Date;
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ type: "float", nullable: true })
   durationSeconds?: number; // Total execution time
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   metadata?: Record<string, any>; // Additional metadata
+
+  @Column({ type: "jsonb", nullable: true })
+  errors?: string[]; // Array of error messages
+
+  @Column({ type: "jsonb", nullable: true })
+  columns?: string[]; // Array of column names from import
 
   @CreateDateColumn()
   createdAt: Date;
@@ -175,10 +188,10 @@ export class DataImport {
 
   // Relations
   @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: 'createdById' })
+  @JoinColumn({ name: "createdById" })
   createdBy: User;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   @IsUUID()
   createdById: string;
 
@@ -188,7 +201,11 @@ export class DataImport {
   }
 
   get isProcessing(): boolean {
-    return [ImportStatus.PROCESSING, ImportStatus.VALIDATING, ImportStatus.TRANSFORMING].includes(this.status);
+    return [
+      ImportStatus.PROCESSING,
+      ImportStatus.VALIDATING,
+      ImportStatus.TRANSFORMING,
+    ].includes(this.status);
   }
 
   get isCompleted(): boolean {
@@ -205,12 +222,17 @@ export class DataImport {
 
   get successRate(): number {
     if (this.totalRows === 0) return 0;
-    return ((this.processedRows / this.totalRows) * 100);
+    return (this.processedRows / this.totalRows) * 100;
   }
 
   get errorRate(): number {
     if (this.totalRows === 0) return 0;
-    return ((this.errorRows / this.totalRows) * 100);
+    return (this.errorRows / this.totalRows) * 100;
+  }
+
+  // Alias for fileFormat (for backward compatibility)
+  get fileType(): FileFormat | undefined {
+    return this.fileFormat;
   }
 
   // Methods
@@ -226,7 +248,8 @@ export class DataImport {
     this.progressPercentage = 100;
 
     if (this.startedAt) {
-      this.durationSeconds = (this.completedAt.getTime() - this.startedAt.getTime()) / 1000;
+      this.durationSeconds =
+        (this.completedAt.getTime() - this.startedAt.getTime()) / 1000;
     }
   }
 
@@ -237,7 +260,8 @@ export class DataImport {
     this.completedAt = new Date();
 
     if (this.startedAt) {
-      this.durationSeconds = (this.completedAt.getTime() - this.startedAt.getTime()) / 1000;
+      this.durationSeconds =
+        (this.completedAt.getTime() - this.startedAt.getTime()) / 1000;
     }
   }
 
@@ -246,7 +270,8 @@ export class DataImport {
     this.completedAt = new Date();
 
     if (this.startedAt) {
-      this.durationSeconds = (this.completedAt.getTime() - this.startedAt.getTime()) / 1000;
+      this.durationSeconds =
+        (this.completedAt.getTime() - this.startedAt.getTime()) / 1000;
     }
   }
 

@@ -4,11 +4,11 @@
  * Handles business logic for pipeline management (CRUD operations, execution).
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Pipeline } from '../../entities/pipeline.entity';
-import { PipelineStep } from '../../entities/pipeline-step.entity';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Pipeline } from "../../entities/pipeline.entity";
+import { PipelineStep } from "../../entities/pipeline-step.entity";
 
 @Injectable()
 export class PipelinesService {
@@ -21,15 +21,15 @@ export class PipelinesService {
 
   async findAll(): Promise<Pipeline[]> {
     return this.pipelineRepository.find({
-      relations: ['steps', 'createdBy'],
-      order: { createdAt: 'DESC' },
+      relations: ["steps", "createdBy"],
+      order: { createdAt: "DESC" },
     });
   }
 
   async findOne(id: string): Promise<Pipeline> {
     const pipeline = await this.pipelineRepository.findOne({
       where: { id },
-      relations: ['steps', 'createdBy'],
+      relations: ["steps", "createdBy"],
     });
 
     if (!pipeline) {

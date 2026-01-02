@@ -104,17 +104,17 @@ JWT_REFRESH_EXPIRES_IN=7d
 1. **Port already in use:**
    ```bash
    # Kill processes using ports 3000, 3001
-   lsof -ti:3000,3001 | xargs kill -9
+   fuser -k 3000/tcp 3001/tcp
    ```
 
 2. **Database connection issues:**
    - Ensure PostgreSQL is running: `sudo systemctl status postgresql`
    - Check database exists: `psql -U postgres -l`
-   - Reset database: `cd backend && npm run setup:db`
+   - Reset database: `cd backend && npm run db:setup`
 
 3. **Login not working:**
-   - Run database seeder: `cd backend && npm run seed`
-   - Check admin credentials in CHANGELOG.md
+   - Run database seeder: `cd backend && npm run seed:run`
+   - Ensure `JWT_SECRET` is set in `.env`
 
 ## 🛠 Development Commands
 

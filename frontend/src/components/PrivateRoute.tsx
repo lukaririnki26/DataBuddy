@@ -11,15 +11,16 @@ interface PrivateRouteProps {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const dispatch = useDispatch();
-  const { token, user, isLoading } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user, isLoading } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
+    const token = localStorage.getItem('accessToken');
     if (token && !user) {
       dispatch(getCurrentUser());
     }
-  }, [token, user, dispatch]);
+  }, [user, dispatch]);
 
-  if (!token) {
+  if (!isAuthenticated && !localStorage.getItem('accessToken')) {
     return <Navigate to="/login" replace />;
   }
 

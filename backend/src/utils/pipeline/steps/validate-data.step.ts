@@ -5,31 +5,34 @@
  * ensuring data quality before further processing.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { PipelineContext } from '../../../interfaces/pipeline-context.interface';
-import { PipelineStepHandler } from '../../../interfaces/pipeline-step.interface';
-import { StepType } from '../../../entities/pipeline-step.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { Observable, of } from "rxjs";
+import { map } from "rxjs/operators";
+import { PipelineContext } from "../../../interfaces/pipeline-context.interface";
+import { PipelineStepHandler } from "../../../interfaces/pipeline-step.interface";
+import { StepType } from "../../../entities/pipeline-step.entity";
 
 @Injectable()
 export class ValidateDataStep implements PipelineStepHandler {
   readonly type = StepType.FILTER_ROWS;
-  readonly name = 'Validate Data';
-  readonly description = 'Validate data against rules and constraints';
+  readonly name = "Validate Data";
+  readonly description = "Validate data against rules and constraints";
   readonly configSchema = {
     rules: {
-      type: 'array',
+      type: "array",
       items: {
-        type: 'object',
+        type: "object",
         properties: {
-          column: { type: 'string' },
-          rule: { type: 'string', enum: ['required', 'email', 'numeric', 'minLength'] },
-          value: { type: 'any' },
+          column: { type: "string" },
+          rule: {
+            type: "string",
+            enum: ["required", "email", "numeric", "minLength"],
+          },
+          value: { type: "any" },
         },
       },
     },
-    failOnError: { type: 'boolean', default: false },
+    failOnError: { type: "boolean", default: false },
   };
 
   private readonly logger = new Logger(ValidateDataStep.name);
@@ -50,7 +53,9 @@ export class ValidateDataStep implements PipelineStepHandler {
       }
     }
 
-    this.logger.debug(`Validated ${data.length} rows: ${validData.length} valid, ${invalidData.length} invalid`);
+    this.logger.debug(
+      `Validated ${data.length} rows: ${validData.length} valid, ${invalidData.length} invalid`,
+    );
 
     return of(validData);
   }
@@ -70,18 +75,18 @@ export class ValidateDataStep implements PipelineStepHandler {
 
   private validateField(value: any, ruleType: string, ruleValue: any): boolean {
     switch (ruleType) {
-      case 'required':
-        return value !== null && value !== undefined && value !== '';
+      case "required":
+        return value !== null && value !== undefined && value !== "";
 
-      case 'email':
+      case "email":
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return typeof value === 'string' && emailRegex.test(value);
+        return typeof value === "string" && emailRegex.test(value);
 
-      case 'numeric':
+      case "numeric":
         return !isNaN(Number(value));
 
-      case 'minLength':
-        return typeof value === 'string' && value.length >= ruleValue;
+      case "minLength":
+        return typeof value === "string" && value.length >= ruleValue;
 
       default:
         return true;
@@ -92,7 +97,7 @@ export class ValidateDataStep implements PipelineStepHandler {
     const errors: string[] = [];
 
     if (!Array.isArray(config.rules)) {
-      errors.push('rules must be an array');
+      errors.push("rules must be an array");
     }
 
     return {

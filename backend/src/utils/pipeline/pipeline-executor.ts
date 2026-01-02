@@ -5,11 +5,11 @@
  * pipeline steps and managing data flow between them.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { Observable, from, of, throwError } from 'rxjs';
-import { map, catchError, switchMap } from 'rxjs/operators';
-import { PipelineContext } from '../../interfaces/pipeline-context.interface';
-import { PipelineStepResult } from '../../interfaces/pipeline-step.interface';
+import { Injectable, Logger } from "@nestjs/common";
+import { Observable, from, of, throwError } from "rxjs";
+import { map, catchError, switchMap } from "rxjs/operators";
+import { PipelineContext } from "../../interfaces/pipeline-context.interface";
+import { PipelineStepResult } from "../../interfaces/pipeline-step.interface";
 
 @Injectable()
 export class PipelineExecutor {
@@ -37,12 +37,15 @@ export class PipelineExecutor {
           },
         })),
         catchError((error) => {
-          this.logger.error(`Step execution failed: ${error.message}`, error.stack);
+          this.logger.error(
+            `Step execution failed: ${error.message}`,
+            error.stack,
+          );
           return of({
             success: false,
             error: {
               message: error.message,
-              code: 'STEP_EXECUTION_FAILED',
+              code: "STEP_EXECUTION_FAILED",
               details: error,
             },
             stats: {
@@ -54,7 +57,10 @@ export class PipelineExecutor {
         }),
       );
     } catch (error) {
-      this.logger.error(`Step initialization failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Step initialization failed: ${error.message}`,
+        error.stack,
+      );
       return throwError(() => error);
     }
   }
@@ -70,19 +76,22 @@ export class PipelineExecutor {
     let currentContext = { ...initialContext };
 
     // Execute steps sequentially
-    const executionChain = steps.reduce((chain, step) => {
-      return chain.pipe(
-        switchMap((previousResult: PipelineStepResult | null) => {
-          if (previousResult) {
-            results.push(previousResult);
-            // Update context with previous step's output
-            currentContext.data = previousResult.data;
-          }
+    const executionChain = steps.reduce(
+      (chain, step) => {
+        return chain.pipe(
+          switchMap((previousResult: PipelineStepResult | null) => {
+            if (previousResult) {
+              results.push(previousResult);
+              // Update context with previous step's output
+              currentContext.data = previousResult.data;
+            }
 
-          return this.executeStep(step.handler, currentContext, step.config);
-        }),
-      );
-    }, of(null as PipelineStepResult | null));
+            return this.executeStep(step.handler, currentContext, step.config);
+          }),
+        );
+      },
+      of(null as PipelineStepResult | null),
+    );
 
     return executionChain.pipe(
       map((finalResult: PipelineStepResult | null) => {

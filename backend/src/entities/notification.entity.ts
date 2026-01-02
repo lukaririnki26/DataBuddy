@@ -14,65 +14,65 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
-} from 'typeorm';
-import { IsString, IsEnum, IsOptional, IsUUID } from 'class-validator';
-import { User } from './user.entity';
+} from "typeorm";
+import { IsString, IsEnum, IsOptional, IsUUID } from "class-validator";
+import { User } from "./user.entity";
 
 export enum NotificationType {
-  IMPORT_COMPLETED = 'import_completed',
-  IMPORT_FAILED = 'import_failed',
-  EXPORT_COMPLETED = 'export_completed',
-  EXPORT_FAILED = 'export_failed',
-  PIPELINE_STARTED = 'pipeline_started',
-  PIPELINE_COMPLETED = 'pipeline_completed',
-  PIPELINE_FAILED = 'pipeline_failed',
-  DATA_IMPORT_STARTED = 'data_import_started',
-  DATA_EXPORT_STARTED = 'data_export_started',
-  SYSTEM_ERROR = 'system_error',
-  SYSTEM_MAINTENANCE = 'system_maintenance',
-  SYSTEM_ALERT = 'system_alert',
-  USER_INVITATION = 'user_invitation',
-  DATA_VALIDATION_ERROR = 'data_validation_error',
+  IMPORT_COMPLETED = "import_completed",
+  IMPORT_FAILED = "import_failed",
+  EXPORT_COMPLETED = "export_completed",
+  EXPORT_FAILED = "export_failed",
+  PIPELINE_STARTED = "pipeline_started",
+  PIPELINE_COMPLETED = "pipeline_completed",
+  PIPELINE_FAILED = "pipeline_failed",
+  DATA_IMPORT_STARTED = "data_import_started",
+  DATA_EXPORT_STARTED = "data_export_started",
+  SYSTEM_ERROR = "system_error",
+  SYSTEM_MAINTENANCE = "system_maintenance",
+  SYSTEM_ALERT = "system_alert",
+  USER_INVITATION = "user_invitation",
+  DATA_VALIDATION_ERROR = "data_validation_error",
 }
 
 export enum NotificationPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent',
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+  URGENT = "urgent",
 }
 
 export enum NotificationStatus {
-  UNREAD = 'unread',
-  READ = 'read',
-  ARCHIVED = 'archived',
+  UNREAD = "unread",
+  READ = "read",
+  ARCHIVED = "archived",
 }
 
-@Entity('notifications')
-@Index(['user', 'status'])
-@Index(['type', 'createdAt'])
-@Index(['priority', 'status'])
+@Entity("notifications")
+@Index(["user", "status"])
+@Index(["type", "createdAt"])
+@Index(["priority", "status"])
 export class Notification {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column({ length: 200 })
   @IsString()
   title: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   @IsString()
   message: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: NotificationType,
   })
   @IsEnum(NotificationType)
   type: NotificationType;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: NotificationPriority,
     default: NotificationPriority.MEDIUM,
   })
@@ -80,41 +80,41 @@ export class Notification {
   priority: NotificationPriority;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: NotificationStatus,
     default: NotificationStatus.UNREAD,
   })
   @IsEnum(NotificationStatus)
   status: NotificationStatus;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   metadata?: Record<string, any>; // Additional data related to the notification
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: "varchar", length: 500, nullable: true })
   @IsOptional()
   @IsString()
   actionUrl?: string; // URL to redirect user for action
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: "boolean", default: false })
   emailSent: boolean; // Whether email notification was sent
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   emailSentAt?: Date;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: "boolean", default: false })
   pushSent: boolean; // Whether push notification was sent
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   pushSentAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   @IsOptional()
   expiresAt?: Date; // When the notification expires
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   readAt?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   archivedAt?: Date;
 
   @CreateDateColumn()
@@ -125,10 +125,10 @@ export class Notification {
 
   // Relations
   @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: "userId" })
   user: User;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: "uuid" })
   @IsUUID()
   userId: string;
 
@@ -146,7 +146,9 @@ export class Notification {
   }
 
   get isHighPriority(): boolean {
-    return [NotificationPriority.HIGH, NotificationPriority.URGENT].includes(this.priority);
+    return [NotificationPriority.HIGH, NotificationPriority.URGENT].includes(
+      this.priority,
+    );
   }
 
   get isUrgent(): boolean {
@@ -181,8 +183,8 @@ export class Notification {
 
   // Create notification from import event
   static fromImport(importEntity: any, user: User): Partial<Notification> {
-    const isCompleted = importEntity.status === 'completed';
-    const isFailed = importEntity.status === 'failed';
+    const isCompleted = importEntity.status === "completed";
+    const isFailed = importEntity.status === "failed";
 
     let type: NotificationType;
     let title: string;
@@ -200,7 +202,7 @@ export class Notification {
       message = `Your data import "${importEntity.name}" has failed. ${importEntity.errorRows} rows had errors.`;
       priority = NotificationPriority.HIGH;
     } else {
-      throw new Error('Invalid import status for notification');
+      throw new Error("Invalid import status for notification");
     }
 
     return {
@@ -222,8 +224,8 @@ export class Notification {
 
   // Create notification from export event
   static fromExport(exportEntity: any, user: User): Partial<Notification> {
-    const isCompleted = exportEntity.status === 'completed';
-    const isFailed = exportEntity.status === 'failed';
+    const isCompleted = exportEntity.status === "completed";
+    const isFailed = exportEntity.status === "failed";
 
     let type: NotificationType;
     let title: string;
@@ -241,7 +243,7 @@ export class Notification {
       message = `Your data export "${exportEntity.name}" has failed. ${exportEntity.errorRows} rows had errors.`;
       priority = NotificationPriority.HIGH;
     } else {
-      throw new Error('Invalid export status for notification');
+      throw new Error("Invalid export status for notification");
     }
 
     return {
@@ -263,7 +265,11 @@ export class Notification {
   }
 
   // Create notification from pipeline event
-  static fromPipeline(pipeline: any, executionTime?: number, error?: string): Partial<Notification> {
+  static fromPipeline(
+    pipeline: any,
+    executionTime?: number,
+    error?: string,
+  ): Partial<Notification> {
     const hasError = !!error;
 
     let type: NotificationType;
@@ -279,7 +285,7 @@ export class Notification {
     } else {
       type = NotificationType.PIPELINE_COMPLETED;
       title = `Pipeline Executed: ${pipeline.name}`;
-      message = `Pipeline "${pipeline.name}" has been executed successfully${executionTime ? ` in ${executionTime.toFixed(2)} seconds` : ''}.`;
+      message = `Pipeline "${pipeline.name}" has been executed successfully${executionTime ? ` in ${executionTime.toFixed(2)} seconds` : ""}.`;
       priority = NotificationPriority.LOW;
     }
 
@@ -306,7 +312,7 @@ export class Notification {
     message: string,
     type: NotificationType = NotificationType.SYSTEM_ERROR,
     priority: NotificationPriority = NotificationPriority.MEDIUM,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Partial<Notification> {
     return {
       title,

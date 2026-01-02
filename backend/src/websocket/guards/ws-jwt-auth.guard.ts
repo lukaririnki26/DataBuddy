@@ -1,6 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Socket } from 'socket.io';
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { Socket } from "socket.io";
 
 /**
  * WebSocket JWT Authentication Guard
@@ -15,7 +15,8 @@ export class WsJwtAuthGuard implements CanActivate {
     const client: Socket = context.switchToWs().getClient<Socket>();
 
     // Extract token from handshake auth or query params
-    const token = client.handshake.auth?.token || client.handshake.query?.token as string;
+    const token =
+      client.handshake.auth?.token || (client.handshake.query?.token as string);
 
     if (!token) {
       return false;

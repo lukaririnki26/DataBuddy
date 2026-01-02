@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class CreateInitialSchema1735664400000 implements MigrationInterface {
-    name = 'CreateInitialSchema1735664400000'
+    name = "CreateInitialSchema1735664400000";
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Create ENUM types first
@@ -94,10 +94,6 @@ export class CreateInitialSchema1735664400000 implements MigrationInterface {
 
         // Create indexes for users table
         await queryRunner.query(`
-            CREATE INDEX "IDX_96aac72f1574b8872991fab0a9" ON "users" ("createdById", "status")
-        `);
-
-        await queryRunner.query(`
             CREATE INDEX "IDX_88bd96abac20491a2cb1b79b7b" ON "users" ("role", "status")
         `);
 
@@ -183,6 +179,9 @@ export class CreateInitialSchema1735664400000 implements MigrationInterface {
                 "fileFormat" "public"."data_imports_fileformat_enum",
                 "sourcePath" character varying(500),
                 "originalFileName" character varying(500),
+                "filePath" character varying(500),
+                "filename" character varying(255),
+                "mimeType" character varying(100),
                 "fileSize" bigint,
                 "importConfig" jsonb,
                 "dataPreview" jsonb,
@@ -196,6 +195,8 @@ export class CreateInitialSchema1735664400000 implements MigrationInterface {
                 "targetTable" character varying(100),
                 "errorMessage" text,
                 "errorDetails" jsonb,
+                "errors" jsonb,
+                "columns" jsonb,
                 "progressPercentage" real,
                 "startedAt" TIMESTAMP,
                 "completedAt" TIMESTAMP,
@@ -232,6 +233,7 @@ export class CreateInitialSchema1735664400000 implements MigrationInterface {
                 "fileFormat" "public"."data_exports_fileformat_enum" NOT NULL,
                 "destinationPath" character varying(500),
                 "outputFileName" character varying(500),
+                "filename" character varying(255),
                 "exportConfig" jsonb,
                 "dataQuery" jsonb,
                 "totalRows" integer NOT NULL DEFAULT 0,
@@ -285,6 +287,7 @@ export class CreateInitialSchema1735664400000 implements MigrationInterface {
                 "emailSentAt" TIMESTAMP,
                 "pushSent" boolean NOT NULL DEFAULT false,
                 "pushSentAt" TIMESTAMP,
+                "expiresAt" TIMESTAMP,
                 "readAt" TIMESTAMP,
                 "archivedAt" TIMESTAMP,
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
@@ -337,56 +340,71 @@ export class CreateInitialSchema1735664400000 implements MigrationInterface {
             ADD CONSTRAINT "FK_4a72e9607c8686fe6b0241d49e9"
             FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
         `);
-
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // Drop foreign key constraints
-        await queryRunner.query(`ALTER TABLE "notifications" DROP CONSTRAINT "FK_4a72e9607c8686fe6b0241d49e9"`);
-        await queryRunner.query(`ALTER TABLE "data_exports" DROP CONSTRAINT "FK_2b2b2b2b2b2b2b2b2b2b2b2b2b3"`);
-        await queryRunner.query(`ALTER TABLE "data_imports" DROP CONSTRAINT "FK_1b1b1b1b1b1b1b1b1b1b1b1b1b2"`);
-        await queryRunner.query(`ALTER TABLE "pipeline_steps" DROP CONSTRAINT "FK_8b3f3c0b6f3c6b3f3c6b3f3c6b4"`);
-        await queryRunner.query(`ALTER TABLE "pipelines" DROP CONSTRAINT "FK_96aac72f1574b8872991fab0a9a"`);
+        // Drop foreign key constraints first
+        await queryRunner.query(
+            `ALTER TABLE "notifications" DROP CONSTRAINT IF EXISTS "FK_4a72e9607c8686fe6b0241d49e9"`,
+        );
+        await queryRunner.query(
+            `ALTER TABLE "data_exports" DROP CONSTRAINT IF EXISTS "FK_2b2b2b2b2b2b2b2b2b2b2b2b2b3"`,
+        );
+        await queryRunner.query(
+            `ALTER TABLE "data_imports" DROP CONSTRAINT IF EXISTS "FK_1b1b1b1b1b1b1b1b1b1b1b1b1b2"`,
+        );
+        await queryRunner.query(
+            `ALTER TABLE "pipeline_steps" DROP CONSTRAINT IF EXISTS "FK_8b3f3c0b6f3c6b3f3c6b3f3c6b4"`,
+        );
+        await queryRunner.query(
+            `ALTER TABLE "pipelines" DROP CONSTRAINT IF EXISTS "FK_96aac72f1574b8872991fab0a9a"`,
+        );
+
+        // Drop indexes BEFORE dropping tables (indexes are on tables)
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_4a72e9607c8686fe6b0241d49ec"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_4a72e9607c8686fe6b0241d49eb"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_4a72e9607c8686fe6b0241d49ea"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_2b2b2b2b2b2b2b2b2b2b2b2b2b5"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_2b2b2b2b2b2b2b2b2b2b2b2b2b4"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_2b2b2b2b2b2b2b2b2b2b2b2b2b3"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_1b1b1b1b1b1b1b1b1b1b1b1b1b4"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_1b1b1b1b1b1b1b1b1b1b1b1b1b3"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_1b1b1b1b1b1b1b1b1b1b1b1b1b2"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_8b3f3c0b6f3c6b3f3c6b3f3c6b5"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_8b3f3c0b6f3c6b3f3c6b3f3c6b4"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_88bd96abac20491a2cb1b79b7ba"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_96aac72f1574b8872991fab0a9a"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_88bd96abac20491a2cb1b79b7b"`);
+        await queryRunner.query(`DROP INDEX IF EXISTS "IDX_96aac72f1574b8872991fab0a9"`);
 
         // Drop tables
-        await queryRunner.query(`DROP TABLE "notifications"`);
-        await queryRunner.query(`DROP TABLE "data_exports"`);
-        await queryRunner.query(`DROP TABLE "data_imports"`);
-        await queryRunner.query(`DROP TABLE "pipeline_steps"`);
-        await queryRunner.query(`DROP TABLE "pipelines"`);
-        await queryRunner.query(`DROP TABLE "users"`);
-
-        // Drop indexes
-        await queryRunner.query(`DROP INDEX "IDX_4a72e9607c8686fe6b0241d49ec"`);
-        await queryRunner.query(`DROP INDEX "IDX_4a72e9607c8686fe6b0241d49eb"`);
-        await queryRunner.query(`DROP INDEX "IDX_4a72e9607c8686fe6b0241d49ea"`);
-        await queryRunner.query(`DROP INDEX "IDX_2b2b2b2b2b2b2b2b2b2b2b2b2b5"`);
-        await queryRunner.query(`DROP INDEX "IDX_2b2b2b2b2b2b2b2b2b2b2b2b2b4"`);
-        await queryRunner.query(`DROP INDEX "IDX_2b2b2b2b2b2b2b2b2b2b2b2b2b3"`);
-        await queryRunner.query(`DROP INDEX "IDX_1b1b1b1b1b1b1b1b1b1b1b1b1b4"`);
-        await queryRunner.query(`DROP INDEX "IDX_1b1b1b1b1b1b1b1b1b1b1b1b1b3"`);
-        await queryRunner.query(`DROP INDEX "IDX_1b1b1b1b1b1b1b1b1b1b1b1b1b2"`);
-        await queryRunner.query(`DROP INDEX "IDX_8b3f3c0b6f3c6b3f3c6b3f3c6b5"`);
-        await queryRunner.query(`DROP INDEX "IDX_8b3f3c0b6f3c6b3f3c6b3f3c6b4"`);
-        await queryRunner.query(`DROP INDEX "IDX_88bd96abac20491a2cb1b79b7ba"`);
-        await queryRunner.query(`DROP INDEX "IDX_96aac72f1574b8872991fab0a9a"`);
-        await queryRunner.query(`DROP INDEX "IDX_88bd96abac20491a2cb1b79b7b"`);
-        await queryRunner.query(`DROP INDEX "IDX_96aac72f1574b8872991fab0a9"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "notifications"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "data_exports"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "data_imports"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "pipeline_steps"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "pipelines"`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "users"`);
 
         // Drop ENUM types
-        await queryRunner.query(`DROP TYPE "public"."notifications_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."notifications_priority_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."notifications_type_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."data_exports_destinationtype_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."data_exports_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."data_imports_fileformat_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."data_imports_sourcetype_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."data_imports_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."pipeline_steps_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."pipeline_steps_type_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."pipelines_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."pipelines_type_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."users_status_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."users_role_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."notifications_status_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."notifications_priority_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."notifications_type_enum"`);
+        await queryRunner.query(
+            `DROP TYPE IF EXISTS "public"."data_exports_destinationtype_enum"`,
+        );
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."data_exports_status_enum"`);
+        await queryRunner.query(
+            `DROP TYPE IF EXISTS "public"."data_imports_fileformat_enum"`,
+        );
+        await queryRunner.query(
+            `DROP TYPE IF EXISTS "public"."data_imports_sourcetype_enum"`,
+        );
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."data_imports_status_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."pipeline_steps_status_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."pipeline_steps_type_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."pipelines_status_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."pipelines_type_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."users_status_enum"`);
+        await queryRunner.query(`DROP TYPE IF EXISTS "public"."users_role_enum"`);
     }
 }

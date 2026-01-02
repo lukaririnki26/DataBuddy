@@ -5,9 +5,9 @@
  * into controller method parameters.
  */
 
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { RequestWithUser } from '../interfaces/auth/request-with-user.interface';
-import { User } from '../entities/user.entity';
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+import { RequestWithUser } from "../interfaces/auth/request-with-user.interface";
+import { User } from "../entities/user.entity";
 
 /**
  * Parameter decorator that extracts the authenticated user from the request

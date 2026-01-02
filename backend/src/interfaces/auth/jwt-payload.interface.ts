@@ -16,7 +16,7 @@ export interface JwtPayload {
   role: string;
 
   /** Token type (access or refresh) */
-  type?: 'access' | 'refresh';
+  type?: "access" | "refresh";
 
   /** Token issued at timestamp */
   iat?: number;
