@@ -162,7 +162,7 @@ const DashboardPage: React.FC = () => {
       {/* Stats Grid */}
       <Grid container spacing={4} sx={{ mb: 4 }}>
         {stats.map((stat, idx) => (
-          <Grid item xs={12} sm={6} lg={3} key={idx}>
+          <Grid item xs={12} sm={6} lg={6} xl={3} key={idx}>
             <Card
               component={Link}
               to={stat.href}
