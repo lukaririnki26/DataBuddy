@@ -59,7 +59,7 @@ After running the database setup, you can login with these accounts:
 
 | Service | Port | Description |
 |---------|------|-------------|
-| Frontend (Vite) | 3000 | React application |
+| Frontend (Vite) | 3000 | React 18 + TypeScript + Redux Toolkit + Material UI + Tailwind CSS |
 | Backend (NestJS) | 3001 | API server |
 | PostgreSQL | 5432 | Database |
 | Redis | 6379 | Cache & queues |

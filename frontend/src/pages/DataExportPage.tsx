@@ -6,7 +6,6 @@ import {
     Table as TableIcon,
     FileText,
     Search,
-    Filter,
     ChevronRight,
     Zap,
     Shield,
@@ -14,16 +13,38 @@ import {
     CheckCircle,
     AlertCircle,
     RefreshCw,
-    MoreVertical,
     History,
     Database
 } from 'lucide-react';
 import { usePipelines } from '../hooks/usePipelines';
 import { dataService, ExportHistoryItem } from '../services/data.service';
 import { useToast } from '../context/ToastContext';
+import {
+    Box,
+    Typography,
+    Button,
+    Card,
+    CardContent,
+    TextField,
+    InputAdornment,
+    IconButton,
+    Chip,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    useTheme,
+    alpha,
+    Grid,
+    LinearProgress
+} from '@mui/material';
 
 const DataExportPage: React.FC = () => {
     const { addToast } = useToast();
+    const theme = useTheme();
     const [search, setSearch] = useState('');
     const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
     const [format, setFormat] = useState<'csv' | 'xlsx' | 'json'>('csv');
@@ -82,268 +103,349 @@ const DataExportPage: React.FC = () => {
         pipelines.find(p => p.id === selectedPipelineId),
         [pipelines, selectedPipelineId]);
 
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'completed': return { bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.light, borderColor: alpha(theme.palette.success.main, 0.2) };
+            case 'failed': return { bgcolor: alpha(theme.palette.error.main, 0.1), color: theme.palette.error.light, borderColor: alpha(theme.palette.error.main, 0.2) };
+            default: return { bgcolor: alpha(theme.palette.info.main, 0.1), color: theme.palette.info.light, borderColor: alpha(theme.palette.info.main, 0.2) };
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-[#0f172a] p-8 text-white">
-            <div className="max-w-7xl mx-auto space-y-10">
+        <Box sx={{
+            minHeight: '100vh',
+            bgcolor: theme.palette.background.default,
+            p: { xs: 2, md: 4 }
+        }}>
+            <Box sx={{ maxWidth: 'xl', mx: 'auto', display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {/* Header */}
-                <div className="space-y-1">
-                    <h1 className="text-4xl font-black bg-gradient-to-r from-white via-indigo-200 to-purple-200 bg-clip-text text-transparent italic tracking-tight uppercase">
+                <Box>
+                    <Typography variant="h3" fontWeight="900" sx={{
+                        background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        mb: 0.5,
+                        fontStyle: 'italic',
+                        textTransform: 'uppercase',
+                        letterSpacing: '-0.02em'
+                    }}>
                         Signal Uplink
-                    </h1>
-                    <p className="text-slate-400 font-medium">Coordinate and authorize global data extraction protocols</p>
-                </div>
+                    </Typography>
+                    <Typography variant="subtitle1" color="text.secondary" fontWeight="medium">
+                        Coordinate and authorize global data extraction protocols
+                    </Typography>
+                </Box>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                <Grid container spacing={5}>
                     {/* Configuration Panel */}
-                    <div className="lg:col-span-4 space-y-8">
-                        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-8">
-                            <div className="flex items-center gap-3">
-                                <Settings className="w-5 h-5 text-indigo-400" />
-                                <h3 className="text-lg font-bold italic tracking-tight">Transmission Config</h3>
-                            </div>
+                    <Grid item xs={12} lg={4}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <Card sx={{
+                                borderRadius: '2.5rem',
+                                bgcolor: alpha(theme.palette.common.white, 0.05),
+                                backdropFilter: 'blur(20px)',
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+                            }}>
+                                <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                        <Settings size={20} color={theme.palette.primary.light} />
+                                        <Typography variant="h6" fontWeight="bold" fontStyle="italic">Transmission Config</Typography>
+                                    </Box>
 
-                            <div className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Output Designation</label>
-                                    <input
-                                        type="text"
-                                        value={filename}
-                                        onChange={(e) => setFilename(e.target.value)}
-                                        placeholder="nexus_data_manifest"
-                                        className="w-full bg-slate-900/50 border border-white/10 rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-700"
-                                    />
-                                </div>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                        <Box>
+                                            <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', mb: 1 }}>Output Designation</Typography>
+                                            <TextField
+                                                fullWidth
+                                                variant="filled"
+                                                value={filename}
+                                                onChange={(e) => setFilename(e.target.value)}
+                                                placeholder="nexus_data_manifest"
+                                            />
+                                        </Box>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Data Schema Format</label>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <FormatButton
-                                            active={format === 'csv'}
-                                            onClick={() => setFormat('csv')}
-                                            label="CSV"
-                                            icon={FileText}
-                                        />
-                                        <FormatButton
-                                            active={format === 'xlsx'}
-                                            onClick={() => setFormat('xlsx')}
-                                            label="XLSX"
-                                            icon={TableIcon}
-                                        />
-                                        <FormatButton
-                                            active={format === 'json'}
-                                            onClick={() => setFormat('json')}
-                                            label="JSON"
-                                            icon={FileJson}
-                                        />
-                                    </div>
-                                </div>
+                                        <Box>
+                                            <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', mb: 1 }}>Data Schema Format</Typography>
+                                            <Box sx={{ display: 'flex', gap: 2 }}>
+                                                <FormatButton active={format === 'csv'} onClick={() => setFormat('csv')} label="CSV" icon={FileText} />
+                                                <FormatButton active={format === 'xlsx'} onClick={() => setFormat('xlsx')} label="XLSX" icon={TableIcon} />
+                                                <FormatButton active={format === 'json'} onClick={() => setFormat('json')} label="JSON" icon={FileJson} />
+                                            </Box>
+                                        </Box>
+                                    </Box>
 
-                                <div className="p-6 bg-indigo-500/5 border border-indigo-500/20 rounded-[1.5rem] space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <Shield className="w-4 h-4 text-indigo-400" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300">Authorization Node</span>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-xs text-slate-400 leading-relaxed font-medium">Selected Pipeline:</p>
-                                        <p className="text-sm font-bold text-white truncate max-w-full italic">
+                                    <Box sx={{
+                                        p: 3, borderRadius: '1.5rem',
+                                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                                        display: 'flex', flexDirection: 'column', gap: 1
+                                    }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                            <Shield size={16} color={theme.palette.primary.light} />
+                                            <Typography variant="caption" fontWeight="900" sx={{ color: theme.palette.primary.light, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Authorization Node</Typography>
+                                        </Box>
+                                        <Typography variant="caption" color="text.secondary" fontWeight="medium">Selected Pipeline:</Typography>
+                                        <Typography variant="body2" fontWeight="bold" color="text.primary" sx={{ fontStyle: 'italic' }}>
                                             {selectedPipeline?.name || 'Awaiting Selection...'}
-                                        </p>
-                                    </div>
-                                </div>
+                                        </Typography>
+                                    </Box>
 
-                                <button
-                                    onClick={handleExport}
-                                    disabled={!selectedPipelineId || isExporting}
-                                    className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-xs transition-all flex items-center justify-center gap-3 ${selectedPipelineId && !isExporting
-                                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 hover:bg-indigo-600 hover:scale-[1.02] active:scale-95'
-                                        : 'bg-white/5 text-slate-600 cursor-not-allowed'
-                                        }`}
-                                >
-                                    {isExporting ? (
-                                        <>
-                                            <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
-                                            Initializing Uplink...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Zap className="w-4 h-4" />
-                                            Authorize Extraction
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
+                                    <Button
+                                        onClick={handleExport}
+                                        disabled={!selectedPipelineId || isExporting}
+                                        fullWidth
+                                        variant="contained"
+                                        size="large"
+                                        startIcon={isExporting ? <RefreshCw className="animate-spin" /> : <Zap />}
+                                        sx={{
+                                            py: 2.5,
+                                            borderRadius: '1.5rem',
+                                            fontWeight: 900,
+                                            letterSpacing: '0.2em',
+                                            fontSize: '0.75rem'
+                                        }}
+                                    >
+                                        {isExporting ? 'Initializing Uplink...' : 'Authorize Extraction'}
+                                    </Button>
+                                </CardContent>
+                            </Card>
 
-                        {/* Quick Stats */}
-                        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 grid grid-cols-2 gap-6 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                <Download className="w-16 h-16" />
-                            </div>
-                            <div>
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Global Exports</h4>
-                                <div className="text-2xl font-black italic">1.2K+</div>
-                            </div>
-                            <div>
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Uptime Rate</h4>
-                                <div className="text-2xl font-black italic text-emerald-400">99.9%</div>
-                            </div>
-                        </div>
-                    </div>
+                            {/* Quick Stats */}
+                            <Card sx={{
+                                borderRadius: '2.5rem',
+                                bgcolor: alpha(theme.palette.common.white, 0.05),
+                                backdropFilter: 'blur(20px)',
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <CardContent sx={{ p: 4, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                                    <Box sx={{ position: 'absolute', top: 0, right: 0, p: 3, opacity: 0.05 }}>
+                                        <Download size={64} />
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>Global Exports</Typography>
+                                        <Typography variant="h4" fontWeight="900" fontStyle="italic">1.2K+</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>Uptime Rate</Typography>
+                                        <Typography variant="h4" fontWeight="900" fontStyle="italic" color="success.main">99.9%</Typography>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        </Box>
+                    </Grid>
 
                     {/* Selection & History Area */}
-                    <div className="lg:col-span-8 space-y-10">
-                        {/* Pipeline Selector */}
-                        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                <div className="flex items-center gap-3">
-                                    <Database className="w-5 h-5 text-purple-400" />
-                                    <h3 className="text-lg font-bold italic tracking-tight">Source Neural Pipeline</h3>
-                                </div>
-                                <div className="relative group min-w-[300px]">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-purple-400 transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        placeholder="Search neural patterns..."
-                                        className="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all placeholder:text-slate-700"
-                                    />
-                                </div>
-                            </div>
+                    <Grid item xs={12} lg={8}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                            {/* Pipeline Selector */}
+                            <Card sx={{
+                                borderRadius: '2.5rem',
+                                bgcolor: alpha(theme.palette.common.white, 0.05),
+                                backdropFilter: 'blur(20px)',
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+                            }}>
+                                <CardContent sx={{ p: 4 }}>
+                                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 3, mb: 4 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                            <Database size={20} color={theme.palette.secondary.light} />
+                                            <Typography variant="h6" fontWeight="bold" fontStyle="italic">Source Neural Pipeline</Typography>
+                                        </Box>
+                                        <TextField
+                                            placeholder="Search neural patterns..."
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            variant="filled"
+                                            InputProps={{
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <Search size={16} />
+                                                    </InputAdornment>
+                                                ),
+                                                disableUnderline: true,
+                                                sx: { borderRadius: '1rem', bgcolor: alpha(theme.palette.background.default, 0.5) }
+                                            }}
+                                            sx={{ minWidth: 300, '& .MuiFilledInput-root': { bgcolor: alpha(theme.palette.background.default, 0.5) } }}
+                                        />
+                                    </Box>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {pipelinesLoading ? (
-                                    Array(4).fill(0).map((_, i) => (
-                                        <div key={i} className="h-24 bg-white/5 animate-pulse rounded-2xl border border-white/5"></div>
-                                    ))
-                                ) : (
-                                    (pipelines || []).map((pipeline) => (
-                                        <div
-                                            key={pipeline.id}
-                                            onClick={() => setSelectedPipelineId(pipeline.id)}
-                                            className={`p-5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${selectedPipelineId === pipeline.id
-                                                ? 'bg-purple-500/10 border-purple-500/40 shadow-lg shadow-purple-500/10'
-                                                : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/8'
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-between relative z-10">
-                                                <div className="space-y-1">
-                                                    <h4 className={`text-sm font-bold tracking-tight italic ${selectedPipelineId === pipeline.id ? 'text-purple-300' : 'text-slate-200'}`}>
-                                                        {pipeline.name}
-                                                    </h4>
-                                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{pipeline.category}</p>
-                                                </div>
-                                                <div className={`p-2 rounded-xl transition-all ${selectedPipelineId === pipeline.id ? 'bg-purple-500 text-white shadow-lg' : 'bg-white/5 text-slate-600'
-                                                    }`}>
-                                                    <ChevronRight className="w-4 h-4" />
-                                                </div>
-                                            </div>
-                                            <div className="absolute top-0 right-0 p-4 opacity-5 translate-x-1/4 -translate-y-1/4 group-hover:translate-x-0 group-hover:translate-y-0 transition-transform">
-                                                <Zap className="w-12 h-12" />
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Export History */}
-                        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6">
-                            <div className="flex items-center gap-3">
-                                <History className="w-5 h-5 text-slate-400" />
-                                <h3 className="text-lg font-bold italic tracking-tight">Transmission History</h3>
-                            </div>
-
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="text-left border-b border-white/5">
-                                            <th className="pb-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500">manifest</th>
-                                            <th className="pb-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500">protocol</th>
-                                            <th className="pb-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500">status</th>
-                                            <th className="pb-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500">uplink time</th>
-                                            <th className="pb-4 px-4"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-white/5">
-                                        {historyLoading ? (
-                                            Array(3).fill(0).map((_, i) => (
-                                                <tr key={i} className="animate-pulse">
-                                                    <td colSpan={5} className="py-8"><div className="h-4 bg-white/5 rounded-full w-full"></div></td>
-                                                </tr>
+                                    <Grid container spacing={2}>
+                                        {pipelinesLoading ? (
+                                            Array.from(new Array(4)).map((_, i) => (
+                                                <Grid item xs={12} md={6} key={i}>
+                                                    <Box sx={{ height: 100, bgcolor: alpha(theme.palette.common.white, 0.05), borderRadius: '1.5rem' }} />
+                                                </Grid>
                                             ))
                                         ) : (
-                                            exportHistory?.map((item) => (
-                                                <tr key={item.id} className="group hover:bg-white/5 transition-colors">
-                                                    <td className="py-6 px-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">
-                                                                <FileText className="w-4 h-4" />
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <p className="text-sm font-bold text-slate-200">{item.name || 'Unnamed Transmission'}</p>
-                                                                <p className="text-[10px] text-slate-500 font-medium uppercase tracking-tighter">
-                                                                    {(item.fileFormat || 'UNKNOWN').toUpperCase()} · {item.totalRows || 0} units
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-6 px-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <Settings className="w-3.5 h-3.5 text-slate-500" />
-                                                            <span className="text-xs font-bold italic text-slate-400">{item.destinationType || 'Standard'}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-6 px-4">
-                                                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full border w-fit ${item.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                            item.status === 'failed' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                                'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                                            }`}>
-                                                            {item.status === 'completed' ? <CheckCircle className="w-3 h-3" /> : item.status === 'failed' ? <AlertCircle className="w-3 h-3" /> : <Clock className="w-3 h-3 animate-pulse" />}
-                                                            <span className="text-[10px] font-black uppercase tracking-wider">{item.status || 'Pending'}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-6 px-4">
-                                                        <span className="text-xs font-medium text-slate-500">
-                                                            {item.createdAt ? `${new Date(item.createdAt).toLocaleDateString()} · ${new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'N/A'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-6 px-4 text-right">
-                                                        {item.downloadUrl && (
-                                                            <a
-                                                                href={item.downloadUrl}
-                                                                className="p-2.5 text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition-all inline-block"
-                                                                title="Download Manifest"
-                                                            >
-                                                                <Download className="w-4 h-4" />
-                                                            </a>
-                                                        )}
-                                                    </td>
-                                                </tr>
+                                            (pipelines || []).map((pipeline) => (
+                                                <Grid item xs={12} md={6} key={pipeline.id}>
+                                                    <Box
+                                                        onClick={() => setSelectedPipelineId(pipeline.id)}
+                                                        sx={{
+                                                            p: 3, borderRadius: '1.5rem',
+                                                            border: '1px solid',
+                                                            borderColor: selectedPipelineId === pipeline.id ? theme.palette.secondary.main : alpha(theme.palette.common.white, 0.1),
+                                                            bgcolor: selectedPipelineId === pipeline.id ? alpha(theme.palette.secondary.main, 0.05) : alpha(theme.palette.common.white, 0.05),
+                                                            cursor: 'pointer',
+                                                            position: 'relative',
+                                                            overflow: 'hidden',
+                                                            transition: 'all 0.2s',
+                                                            '&:hover': {
+                                                                bgcolor: selectedPipelineId === pipeline.id ? alpha(theme.palette.secondary.main, 0.1) : alpha(theme.palette.common.white, 0.08),
+                                                                borderColor: selectedPipelineId === pipeline.id ? theme.palette.secondary.main : alpha(theme.palette.common.white, 0.2)
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Box sx={{ position: 'relative', zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <Box>
+                                                                <Typography variant="subtitle2" fontWeight="bold" fontStyle="italic" sx={{ color: selectedPipelineId === pipeline.id ? theme.palette.secondary.light : 'text.primary', mb: 0.5 }}>
+                                                                    {pipeline.name}
+                                                                </Typography>
+                                                                <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                                                                    {pipeline.category}
+                                                                </Typography>
+                                                            </Box>
+                                                            <Box sx={{
+                                                                p: 1, borderRadius: '0.75rem',
+                                                                bgcolor: selectedPipelineId === pipeline.id ? theme.palette.secondary.main : alpha(theme.palette.common.white, 0.05),
+                                                                color: selectedPipelineId === pipeline.id ? 'white' : 'text.secondary'
+                                                            }}>
+                                                                <ChevronRight size={16} />
+                                                            </Box>
+                                                        </Box>
+                                                        <Box sx={{ position: 'absolute', top: -10, right: -10, p: 2, opacity: 0.05, transform: 'rotate(12deg)' }}>
+                                                            <Zap size={64} />
+                                                        </Box>
+                                                    </Box>
+                                                </Grid>
                                             ))
                                         )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                                    </Grid>
+                                </CardContent>
+                            </Card>
+
+                            {/* Export History */}
+                            <Card sx={{
+                                borderRadius: '2.5rem',
+                                bgcolor: alpha(theme.palette.common.white, 0.05),
+                                backdropFilter: 'blur(20px)',
+                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+                            }}>
+                                <CardContent sx={{ p: 4, overflowX: 'auto' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                                        <History size={20} color={theme.palette.text.secondary} />
+                                        <Typography variant="h6" fontWeight="bold" fontStyle="italic">Transmission History</Typography>
+                                    </Box>
+
+                                    <TableContainer>
+                                        <Table>
+                                            <TableHead>
+                                                <TableRow sx={{ '& th': { borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` } }}>
+                                                    <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>manifest</Typography></TableCell>
+                                                    <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>protocol</Typography></TableCell>
+                                                    <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>status</Typography></TableCell>
+                                                    <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>uplink time</Typography></TableCell>
+                                                    <TableCell></TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {historyLoading ? (
+                                                    Array.from(new Array(3)).map((_, i) => (
+                                                        <TableRow key={i}>
+                                                            <TableCell><LinearProgress /></TableCell>
+                                                            <TableCell><LinearProgress /></TableCell>
+                                                            <TableCell><LinearProgress /></TableCell>
+                                                            <TableCell><LinearProgress /></TableCell>
+                                                            <TableCell><LinearProgress /></TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                ) : (
+                                                    exportHistory?.map((item) => (
+                                                        <TableRow key={item.id} hover sx={{ '& td': { borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` } }}>
+                                                            <TableCell>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                                    <Box sx={{ p: 1, borderRadius: '0.5rem', bgcolor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.light }}>
+                                                                        <FileText size={16} />
+                                                                    </Box>
+                                                                    <Box>
+                                                                        <Typography variant="subtitle2" fontWeight="bold" color="text.primary">{item.name || 'Unnamed Transmission'}</Typography>
+                                                                        <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ textTransform: 'uppercase', fontSize: '0.625rem' }}>
+                                                                            {(item.fileFormat || 'UNKNOWN').toUpperCase()} · {item.totalRows || 0} units
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <Settings size={14} color={theme.palette.text.secondary} />
+                                                                    <Typography variant="caption" fontWeight="bold" fontStyle="italic" color="text.secondary">{item.destinationType || 'Standard'}</Typography>
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Chip
+                                                                    icon={item.status === 'completed' ? <CheckCircle size={12} /> : item.status === 'failed' ? <AlertCircle size={12} /> : <Clock size={12} />}
+                                                                    label={item.status || 'Pending'}
+                                                                    size="small"
+                                                                    sx={{
+                                                                        ...getStatusColor(item.status || ''),
+                                                                        fontWeight: 900, textTransform: 'uppercase', fontSize: '0.625rem', height: 24,
+                                                                        border: '1px solid',
+                                                                        '& .MuiChip-icon': { color: 'inherit' }
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Typography variant="caption" fontWeight="bold" color="text.secondary">
+                                                                    {item.createdAt ? `${new Date(item.createdAt).toLocaleDateString()} · ${new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'N/A'}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="right">
+                                                                {item.downloadUrl && (
+                                                                    <IconButton href={item.downloadUrl} size="small" sx={{ color: 'text.secondary', '&:hover': { color: theme.palette.primary.main, bgcolor: alpha(theme.palette.primary.main, 0.1) } }}>
+                                                                        <Download size={16} />
+                                                                    </IconButton>
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                )}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </CardContent>
+                            </Card>
+                        </Box>
+                    </Grid>
+                </Grid>
+            </Box>
+        </Box>
     );
 };
 
-const FormatButton: React.FC<{ active: boolean; onClick: () => void; label: string; icon: any }> = ({ active, onClick, label, icon: Icon }) => (
-    <button
-        onClick={onClick}
-        className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all space-y-2 ${active
-            ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300 shadow-lg shadow-indigo-500/10'
-            : 'bg-white/5 border-white/10 text-slate-500 hover:bg-white/8 hover:text-slate-300'
-            }`}
-    >
-        <Icon className="w-5 h-5" />
-        <span className="text-[10px] font-black tracking-widest uppercase">{label}</span>
-    </button>
-);
+const FormatButton: React.FC<{ active: boolean; onClick: () => void; label: string; icon: any }> = ({ active, onClick, label, icon: Icon }) => {
+    const theme = useTheme();
+    return (
+        <Button
+            onClick={onClick}
+            sx={{
+                flex: 1,
+                display: 'flex', flexDirection: 'column', gap: 1, py: 2,
+                borderRadius: '1rem',
+                border: '1px solid',
+                borderColor: active ? theme.palette.primary.main : alpha(theme.palette.common.white, 0.1),
+                bgcolor: active ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.05),
+                color: active ? theme.palette.primary.light : 'text.secondary',
+                '&:hover': {
+                    bgcolor: active ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.common.white, 0.08),
+                    color: active ? theme.palette.primary.light : 'text.primary'
+                }
+            }}
+        >
+            <Icon size={20} />
+            <Typography variant="caption" fontWeight="900" sx={{ letterSpacing: '0.1em' }}>{label}</Typography>
+        </Button>
+    );
+};
 
 export default DataExportPage;

@@ -5,6 +5,12 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-01-02
+
+### Fixed
+- **Dashboard White Screen**: Fixed a critical crash caused by race conditions when loading system metrics.
+- **Theme Unification**: Completed the migration of all remaining pages (DataImport, DataExport, Settings, Profile) to the centralized Material UI theme, ensuring zero reliance on legacy Tailwind classes.
+
 ## [1.2.0] - 2026-01-02
 
 ### Added
