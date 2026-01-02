@@ -49,14 +49,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         key={`main-content-${drawerWidth}`}
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          width: {
+            xs: '100%',
+            md: `calc(100% - ${drawerWidth}px)`
+          },
           ml: { md: `${drawerWidth}px` },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.standard,
           }),
           overflowY: 'auto',
-          height: '100vh'
+          overflowX: 'hidden',
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         {/* Navbar - Scrolls with content */}
@@ -66,8 +72,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           isMobile={isMobile}
         />
 
-        {/* Page Content */}
-        <Box sx={{ p: { xs: 2, md: 4 } }}>
+        {/* Page Content - Constrained for better layout */}
+        <Box sx={{
+          flex: 1,
+          p: { xs: 2, sm: 3, md: 4 },
+          maxWidth: '100%',
+          width: '100%',
+          mx: 'auto',
+        }}>
           {children}
         </Box>
       </Box>
