@@ -75,7 +75,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Page Content - Constrained for better layout */}
         <Box sx={{
           flex: 1,
-          p: { xs: 2, md: 3 },
+          p: { xs: 1.5, md: 2 },
           maxWidth: '100%',
           width: '100%',
           mx: 'auto',
