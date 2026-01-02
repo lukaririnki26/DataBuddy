@@ -12,19 +12,23 @@ const Layout: React.FC = () => {
   // State for mobile drawer open/close
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // State for desktop sidebar collapse/expand
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // State for desktop sidebar - starts OPEN (false = open/wide, true = closed/narrow)
+  const [isClosed, setIsClosed] = useState(false);
 
-  // Width constants
-  const drawerWidth = isCollapsed ? 80 : 280;
+  // Width constants - when closed it's narrow (80px), when open it's wide (280px)
+  const drawerWidth = isClosed ? 80 : 280;
 
   const handleDrawerToggle = () => {
+    console.log('Mobile toggle clicked, current mobileOpen:', mobileOpen);
     setMobileOpen(!mobileOpen);
   };
 
-  const handleCollapseToggle = () => {
-    setIsCollapsed(!isCollapsed);
+  const handleSidebarToggle = () => {
+    console.log('Sidebar toggle clicked, current isClosed:', isClosed);
+    setIsClosed(!isClosed);
   };
+
+  console.log('Layout render - isClosed:', isClosed, 'drawerWidth:', drawerWidth, 'isMobile:', isMobile);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -34,8 +38,8 @@ const Layout: React.FC = () => {
       <Sidebar
         mobileOpen={mobileOpen}
         onClose={handleDrawerToggle}
-        collapsed={isCollapsed}
-        onCollapse={handleCollapseToggle}
+        isClosed={isClosed}
+        onToggle={handleSidebarToggle}
         drawerWidth={drawerWidth}
         isMobile={isMobile}
       />

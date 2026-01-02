@@ -5,6 +5,13 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.15] - 2026-01-03
+
+### Fixed
+- **Sidebar Toggle Logic**: Completely inverted state logic - sidebar now starts OPEN (wide, icon+text) and clicking hamburger makes it CLOSE (narrow, icon only).
+- **Tooltip Accuracy**: Changed tooltip text from "Expand/Collapse" to "Open/Close" to match actual behavior.
+- **State Management**: Renamed `isCollapsed`/`onCollapse` to `isClosed`/`onToggle` for clarity.
+
 ## [1.3.14] - 2026-01-03
 
 ### Fixed

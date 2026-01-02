@@ -32,8 +32,8 @@ import {
 interface SidebarProps {
   mobileOpen: boolean;
   onClose: () => void;
-  collapsed: boolean;
-  onCollapse: () => void;
+  isClosed: boolean;
+  onToggle: () => void;
   drawerWidth: number;
   isMobile: boolean;
 }
@@ -41,8 +41,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({
   mobileOpen,
   onClose,
-  collapsed,
-  onCollapse,
+  isClosed,
+  onToggle,
   drawerWidth,
   isMobile
 }) => {
@@ -73,10 +73,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         p: 3,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
+        justifyContent: isClosed && !isMobile ? 'center' : 'flex-start',
         gap: 1.5
       }}>
-        {!collapsed || isMobile ? (
+        {!isClosed || isMobile ? (
           <>
             <Box sx={{ position: 'relative', display: 'flex' }}>
               <Database size={32} color={theme.palette.primary.main} />
@@ -135,7 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           return (
             <ListItem key={item.name} disablePadding sx={{ mb: 0.5 }}>
-              <Tooltip title={collapsed && !isMobile ? item.name : ''} placement="right">
+              <Tooltip title={isClosed && !isMobile ? item.name : ''} placement="right">
                 <ListItemButton
                   component={Link}
                   to={item.href}
@@ -143,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={isMobile ? onClose : undefined}
                   sx={{
                     minHeight: 48,
-                    justifyContent: collapsed && !isMobile ? 'center' : 'initial',
+                    justifyContent: isClosed && !isMobile ? 'center' : 'initial',
                     px: 2.5,
                     py: 1.5,
                     borderRadius: '12px',
@@ -164,14 +164,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <ListItemIcon
                     sx={{
                       minWidth: 0,
-                      mr: collapsed && !isMobile ? 0 : 2,
+                      mr: isClosed && !isMobile ? 0 : 2,
                       justifyContent: 'center',
                       color: isActive ? theme.palette.primary.main : theme.palette.text.secondary
                     }}
                   >
                     <item.icon size={20} />
                   </ListItemIcon>
-                  {(!collapsed || isMobile) && (
+                  {(!isClosed || isMobile) && (
                     <ListItemText
                       primary={item.name}
                       primaryTypographyProps={{
@@ -194,11 +194,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           p: 2,
           borderTop: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
           display: 'flex',
-          justifyContent: collapsed ? 'center' : 'flex-end',
+          justifyContent: isClosed ? 'center' : 'flex-end',
         }}>
-          <Tooltip title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'} placement="right">
+          <Tooltip title={isClosed ? 'Open Sidebar' : 'Close Sidebar'} placement="right">
             <IconButton
-              onClick={onCollapse}
+              onClick={onToggle}
               sx={{
                 bgcolor: alpha(theme.palette.common.white, 0.05),
                 '&:hover': {
