@@ -5,6 +5,14 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.14] - 2026-01-03
+
+### Fixed
+- **Sidebar Toggle**: Complete rewrite to ensure toggle functionality works properly with smooth width transitions.
+- **Sidebar UI/UX**: Consistent spacing throughout (px: 2 for list, p: 2-3 for sections), improved theme consistency.
+- **Sidebar Scrolling**: Fixed overflow handling with custom scrollbar styling.
+- **Structure**: Removed unnecessary Toolbar spacer, simplified component architecture.
+
 ## [1.3.13] - 2026-01-03
 
 ### Changed

@@ -15,7 +15,6 @@ import {
   useTheme,
   alpha,
   Divider,
-  Toolbar,
   Typography
 } from '@mui/material';
 import {
@@ -26,8 +25,6 @@ import {
   Users,
   Activity,
   Zap,
-  ChevronLeft,
-  ChevronRight,
   Database,
   Menu,
 } from 'lucide-react';
@@ -69,20 +66,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       flexDirection: 'column',
       height: '100%',
       bgcolor: 'background.paper',
-      color: 'text.primary',
-      overflowX: 'hidden',
+      overflow: 'hidden'
     }}>
-      {/* Spacer for AppBar */}
-      <Toolbar />
-
       {/* Logo/Branding */}
       <Box sx={{
         p: 3,
         display: 'flex',
         alignItems: 'center',
         justifyContent: collapsed && !isMobile ? 'center' : 'flex-start',
-        gap: 1.5,
-        mb: 2
+        gap: 1.5
       }}>
         {!collapsed || isMobile ? (
           <>
@@ -120,10 +112,21 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </Box>
 
-      <Divider sx={{ mx: 2, mb: 2 }} />
+      <Divider sx={{ mx: 2 }} />
 
       {/* Navigation List */}
-      <List sx={{ flex: 1, p: 2, gap: 1, display: 'flex', flexDirection: 'column' }}>
+      <List sx={{
+        flex: 1,
+        px: 2,
+        py: 2,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        '&::-webkit-scrollbar': { width: '6px' },
+        '&::-webkit-scrollbar-thumb': {
+          bgcolor: alpha(theme.palette.common.white, 0.1),
+          borderRadius: '3px'
+        }
+      }}>
         {navigation.map((item) => {
           if (item.adminOnly && user?.role !== 'admin') return null;
 
@@ -131,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
 
           return (
-            <ListItem key={item.name} disablePadding sx={{ display: 'block' }}>
+            <ListItem key={item.name} disablePadding sx={{ mb: 0.5 }}>
               <Tooltip title={collapsed && !isMobile ? item.name : ''} placement="right">
                 <ListItemButton
                   component={Link}
@@ -142,14 +145,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                     minHeight: 48,
                     justifyContent: collapsed && !isMobile ? 'center' : 'initial',
                     px: 2.5,
-                    borderRadius: 3,
-                    mb: 1,
+                    py: 1.5,
+                    borderRadius: '12px',
                     transition: 'all 0.2s',
                     bgcolor: isActive ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
                     '&.Mui-selected': {
                       bgcolor: alpha(theme.palette.primary.main, 0.15),
                       '&:hover': {
-                        bgcolor: alpha(theme.palette.primary.main, 0.25),
+                        bgcolor: alpha(theme.palette.primary.main, 0.2),
                       }
                     },
                     '&:hover': {
@@ -161,7 +164,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <ListItemIcon
                     sx={{
                       minWidth: 0,
-                      mr: collapsed && !isMobile ? 0 : 3,
+                      mr: collapsed && !isMobile ? 0 : 2,
                       justifyContent: 'center',
                       color: isActive ? theme.palette.primary.main : theme.palette.text.secondary
                     }}
@@ -192,15 +195,17 @@ const Sidebar: React.FC<SidebarProps> = ({
           borderTop: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
           display: 'flex',
           justifyContent: collapsed ? 'center' : 'flex-end',
-          bgcolor: 'background.paper',
         }}>
           <Tooltip title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'} placement="right">
             <IconButton
               onClick={onCollapse}
               sx={{
                 bgcolor: alpha(theme.palette.common.white, 0.05),
-                '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1) },
-                cursor: 'pointer'
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.common.white, 0.1),
+                  transform: 'scale(1.1)'
+                },
+                transition: 'all 0.2s'
               }}
             >
               <Menu size={20} />
@@ -222,18 +227,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         open={mobileOpen}
         onClose={onClose}
         ModalProps={{
-          keepMounted: true, // Better open performance on mobile.
+          keepMounted: true,
         }}
         sx={{
           display: { xs: 'block', md: 'none' },
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
-            width: drawerWidth,
-            bgcolor: 'background.default',
+            width: 280,
+            bgcolor: 'background.paper',
             borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-            backgroundImage: 'none'
           },
-          zIndex: (theme) => theme.zIndex.drawer + 2
         }}
       >
         {drawerContent}
@@ -249,11 +252,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             width: drawerWidth,
             transition: theme.transitions.create('width', {
               easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
+              duration: theme.transitions.duration.standard,
             }),
-            bgcolor: 'background.default',
+            bgcolor: 'background.paper',
             borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-            overflowX: 'hidden'
+            overflowX: 'hidden',
           },
         }}
         open
