@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
 import { Box, CssBaseline, useMediaQuery, useTheme } from '@mui/material';
 import Navbar from './layout/Navbar';
 import Sidebar from './layout/Sidebar';
 
-const Layout: React.FC = () => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
   // Check if screen is mobile (sm down)
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -69,7 +72,7 @@ const Layout: React.FC = () => {
 
         {/* Page Content */}
         <Box sx={{ p: { xs: 2, md: 4 } }}>
-          <Outlet />
+          {children}
         </Box>
       </Box>
     </Box>
