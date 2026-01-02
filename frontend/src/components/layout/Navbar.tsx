@@ -95,8 +95,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
             <Menu />
           </IconButton>
 
-          {/* Branding - visible on all screens now that navbar is full width */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 4 }}>
+          {/* Branding - visible on all screens */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mr: { xs: 1, sm: 4 } }}>
             <Box sx={{ position: 'relative', display: 'flex' }}>
               <Database size={28} color={theme.palette.primary.main} />
               <Box sx={{
@@ -106,12 +106,17 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
                 pointerEvents: 'none'
               }} />
             </Box>
-            <Typography variant="h6" fontWeight="bold" sx={{
-              display: { xs: 'none', sm: 'block' },
-              background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
+            <Typography
+              variant="h6"
+              fontWeight="bold"
+              sx={{
+                background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                display: 'block', // Always show
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }}
+            >
               DataBuddy
             </Typography>
           </Box>

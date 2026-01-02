@@ -181,8 +181,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             boxSizing: 'border-box',
             width: drawerWidth,
             bgcolor: 'background.default',
-            borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+            borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            backgroundImage: 'none'
           },
+          zIndex: (theme) => theme.zIndex.drawer + 2
         }}
       >
         {drawerContent}
