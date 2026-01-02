@@ -37,13 +37,13 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         }, 5000);
     }, [removeToast]);
 
-    const value = {
+    const value = React.useMemo(() => ({
         toast: addToast,
         success: (title: string, message?: string) => addToast('success', title, message),
         error: (title: string, message?: string) => addToast('error', title, message),
         info: (title: string, message?: string) => addToast('info', title, message),
         warning: (title: string, message?: string) => addToast('warning', title, message),
-    };
+    }), [addToast]);
 
     return (
         <ToastContext.Provider value={value}>

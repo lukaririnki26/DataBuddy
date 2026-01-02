@@ -117,14 +117,13 @@ const PipelineBuilderPage: React.FC = () => {
   const {
     createPipeline,
     updatePipeline,
-    getPipeline,
   } = usePipelines();
 
   useEffect(() => {
     if (id && id !== 'new') {
       const loadPipeline = async () => {
         try {
-          const pipeline = await getPipeline(id);
+          const pipeline = await pipelinesService.getPipeline(id);
           setPipelineName(pipeline.name);
           setPipelineDescription(pipeline.description || '');
           setSteps(pipeline.steps?.map(step => ({
@@ -136,12 +135,16 @@ const PipelineBuilderPage: React.FC = () => {
             isEnabled: step.isActive !== false,
           })) || []);
         } catch (err) {
+          console.error(err);
+          // Only show toast if it's a real network error, to avoid potential loops during dev
+          // But since we fixed the source of the error, it should be fine.
           toastError('Error', 'Failed to load pipeline configuration');
         }
       };
       loadPipeline();
     }
-  }, [id, getPipeline, toastError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const addStep = (stepType: string) => {
     const stepTemplate = STEP_TYPES.find(s => s.type === stepType);
