@@ -5,6 +5,12 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2026-01-02
+
+### Added
+- **Responsive Navigation**: Implemented a fully responsive sidebar with collapsible desktop mode and mobile drawer support.
+- **Mobile Friendly**: Enhanced layout for small screens ensuring all navigation and features are accessible on mobile devices.
+
 ## [1.3.2] - 2026-01-02
 
 ### Fixed

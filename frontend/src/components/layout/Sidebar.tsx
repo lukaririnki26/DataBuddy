@@ -1,14 +1,22 @@
-/**
- * Sidebar Component
- *
- * Navigation sidebar dengan menu items dan branding.
- * Responsive design yang bisa di-collapse pada mobile.
- */
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
+import {
+  Drawer,
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  IconButton,
+  Tooltip,
+  useTheme,
+  alpha,
+  Divider
+} from '@mui/material';
 import {
   BarChart3,
   Upload,
@@ -18,14 +26,29 @@ import {
   Activity,
   Zap,
   Database,
+  ChevronLeft,
+  ChevronRight,
+  Menu
 } from 'lucide-react';
 
 interface SidebarProps {
-  collapsed?: boolean;
-  onCollapse?: () => void;
+  mobileOpen: boolean;
+  onClose: () => void;
+  collapsed: boolean;
+  onCollapse: () => void;
+  drawerWidth: number;
+  isMobile: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  mobileOpen,
+  onClose,
+  collapsed,
+  onCollapse,
+  drawerWidth,
+  isMobile
+}) => {
+  const theme = useTheme();
   const location = useLocation();
   const { user } = useSelector((state: RootState) => state.auth);
 
@@ -39,67 +62,180 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse }) => {
     { name: 'Users', href: '/admin/users', icon: Users, adminOnly: true },
   ];
 
-  return (
-    <div className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[#0f172a] border-r border-white/10 shadow-2xl transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'
-      }`}>
-      {/* Logo/Brand */}
-      <div className={`flex items-center justify-center h-20 px-4 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border-b border-white/10 ${collapsed ? 'px-2' : ''
-        }`}>
-        <div className="flex items-center">
-          <div className="relative">
-            <Database className={`text-indigo-400 ${collapsed ? 'h-8 w-8' : 'h-8 w-8 mr-3'}`} />
-            <div className="absolute inset-0 bg-indigo-400/20 blur-lg rounded-full animate-pulse"></div>
-          </div>
-          {!collapsed && (
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+  const drawerContent = (
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      bgcolor: 'background.paper',
+      color: 'text.primary',
+      overflowX: 'hidden',
+    }}>
+      {/* Brand Header */}
+      <Box sx={{
+        h: 64, // match navbar height
+        p: 2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: collapsed && !isMobile ? 'center' : 'space-between',
+        borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ position: 'relative', display: 'flex' }}>
+            <Database size={28} color={theme.palette.primary.main} />
+            <Box sx={{
+              position: 'absolute', inset: 0,
+              bgcolor: alpha(theme.palette.primary.main, 0.3),
+              filter: 'blur(8px)',
+              pointerEvents: 'none'
+            }} />
+          </Box>
+          {(!collapsed || isMobile) && (
+            <Typography variant="h6" fontWeight="bold" sx={{
+              background: `linear-gradient(to right, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
               DataBuddy
-            </h1>
+            </Typography>
           )}
-        </div>
-      </div>
+        </Box>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        {/* Mobile Close Button */}
+        {isMobile && (
+          <IconButton onClick={onClose}>
+            <ChevronLeft />
+          </IconButton>
+        )}
+      </Box>
+
+      {/* Navigation List */}
+      <List sx={{ flex: 1, p: 2, gap: 1, display: 'flex', flexDirection: 'column' }}>
         {navigation.map((item) => {
           if (item.adminOnly && user?.role !== 'admin') return null;
 
-          const Icon = item.icon;
           const isActive = location.pathname === item.href ||
             (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
 
           return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 ${isActive
-                ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-white border border-white/20 shadow-lg shadow-indigo-500/10'
-                : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                } ${collapsed ? 'justify-center px-2' : 'mx-2'}`}
-              title={collapsed ? item.name : undefined}
-            >
-              <Icon className={`flex-shrink-0 transition-transform duration-300 group-hover:scale-110 ${collapsed ? 'h-6 w-6' : 'h-5 w-5 mr-3'
-                } ${isActive ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
-              {!collapsed && (
-                <span className="truncate">{item.name}</span>
-              )}
-            </Link>
+            <ListItem key={item.name} disablePadding sx={{ display: 'block' }}>
+              <Tooltip title={collapsed && !isMobile ? item.name : ''} placement="right">
+                <ListItemButton
+                  component={Link}
+                  to={item.href}
+                  selected={isActive}
+                  onClick={isMobile ? onClose : undefined}
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: collapsed && !isMobile ? 'center' : 'initial',
+                    px: 2.5,
+                    borderRadius: 3,
+                    mb: 1,
+                    transition: 'all 0.2s',
+                    bgcolor: isActive ? alpha(theme.palette.primary.main, 0.1) : 'transparent',
+                    '&.Mui-selected': {
+                      bgcolor: alpha(theme.palette.primary.main, 0.15),
+                      '&:hover': {
+                        bgcolor: alpha(theme.palette.primary.main, 0.25),
+                      }
+                    },
+                    '&:hover': {
+                      bgcolor: alpha(theme.palette.common.white, 0.05),
+                      transform: 'scale(1.02)'
+                    }
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: collapsed && !isMobile ? 0 : 3,
+                      justifyContent: 'center',
+                      color: isActive ? theme.palette.primary.main : theme.palette.text.secondary
+                    }}
+                  >
+                    <item.icon size={20} />
+                  </ListItemIcon>
+                  {(!collapsed || isMobile) && (
+                    <ListItemText
+                      primary={item.name}
+                      primaryTypographyProps={{
+                        fontWeight: isActive ? 700 : 500,
+                        color: isActive ? 'text.primary' : 'text.secondary',
+                        fontSize: '0.9rem'
+                      }}
+                    />
+                  )}
+                </ListItemButton>
+              </Tooltip>
+            </ListItem>
           );
         })}
-      </nav>
+      </List>
 
-      {/* Footer dengan system info */}
-      {!collapsed && (
-        <div className="p-4 border-t border-white/10 bg-black/20">
-          <div className="text-xs">
-            <p className="font-medium text-slate-300 mb-2 uppercase tracking-wider">System Status</p>
-            <div className="flex items-center space-x-2 backdrop-blur-md bg-green-500/10 border border-green-500/20 px-3 py-2 rounded-lg">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-green-400 font-medium">All systems active</span>
-            </div>
-          </div>
-        </div>
+      {/* Desktop Collapse Toggle */}
+      {!isMobile && (
+        <Box sx={{
+          p: 2,
+          borderTop: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+          display: 'flex',
+          justifyContent: collapsed ? 'center' : 'flex-end'
+        }}>
+          <IconButton onClick={onCollapse} sx={{ bgcolor: alpha(theme.palette.common.white, 0.05) }}>
+            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </IconButton>
+        </Box>
       )}
-    </div>
+    </Box>
+  );
+
+  return (
+    <Box
+      component="nav"
+      sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+    >
+      {/* Mobile Drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onClose}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            bgcolor: 'background.default',
+            borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+
+      {/* Desktop Drawer */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            transition: theme.transitions.create('width', {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+            bgcolor: 'background.default',
+            borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            overflowX: 'hidden'
+          },
+        }}
+        open
+      >
+        {drawerContent}
+      </Drawer>
+    </Box>
   );
 };
 

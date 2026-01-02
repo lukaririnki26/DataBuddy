@@ -1,92 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { Box, CssBaseline, useMediaQuery, useTheme } from '@mui/material';
 import Navbar from './layout/Navbar';
 import Sidebar from './layout/Sidebar';
 
 const Layout: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const theme = useTheme();
+  // Check if screen is mobile (sm down)
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Handle responsive sidebar
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) { // md breakpoint
-        setSidebarOpen(false); // Close mobile sidebar on desktop
-      }
-    };
+  // State for mobile drawer open/close
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  // State for desktop sidebar collapse/expand
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Close sidebar when clicking outside on mobile
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const sidebar = document.getElementById('sidebar');
-      const toggleButton = document.querySelector('[data-sidebar-toggle]');
+  // Width constants
+  const drawerWidth = isCollapsed ? 80 : 280;
 
-      if (
-        sidebarOpen &&
-        sidebar &&
-        !sidebar.contains(event.target as Node) &&
-        toggleButton &&
-        !toggleButton.contains(event.target as Node)
-      ) {
-        setSidebarOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [sidebarOpen]);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
   };
 
-  const toggleSidebarCollapse = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+  const handleCollapseToggle = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 font-sans text-slate-200 selection:bg-indigo-500/30 selection:text-indigo-200">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" />
-      )}
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      <CssBaseline />
+
+      {/* Navbar */}
+      <Navbar
+        onMenuClick={handleDrawerToggle}
+        drawerWidth={drawerWidth}
+        isMobile={isMobile}
+      />
 
       {/* Sidebar */}
-      <div
-        id="sidebar"
-        className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-500 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } md:translate-x-0 md:static md:inset-0`}
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onClose={handleDrawerToggle}
+        collapsed={isCollapsed}
+        onCollapse={handleCollapseToggle}
+        drawerWidth={drawerWidth}
+        isMobile={isMobile}
+      />
+
+      {/* Main Content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: { xs: 2, md: 4 },
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
+          mt: '64px', // Navbar height
+          transition: theme.transitions.create(['margin', 'width'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+          overflowX: 'hidden'
+        }}
       >
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onCollapse={toggleSidebarCollapse}
-        />
-      </div>
-
-      {/* Main content area */}
-      <div className={`flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-72'
-        }`}>
-        {/* Top navbar */}
-        <Navbar
-          onMenuClick={toggleSidebar}
-          sidebarOpen={sidebarOpen}
-        />
-
-        {/* Main content */}
-        <main className="flex-1 p-4 md:p-8 overflow-auto">
-          <div className="max-w-7xl mx-auto">
-            <Outlet />
-          </div>
-        </main>
-      </div>
-    </div>
+        <Outlet />
+      </Box>
+    </Box>
   );
 };
 
