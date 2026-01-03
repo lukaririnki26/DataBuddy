@@ -1,6 +1,6 @@
 {
   "name": "databuddy-monorepo",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "DataBuddy - Data Management & Pipeline Processing Platform",
   "private": true,
   "workspaces": [

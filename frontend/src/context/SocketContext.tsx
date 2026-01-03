@@ -28,11 +28,14 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         const token = localStorage.getItem('accessToken');
         if (!token) return;
 
-        const socketHost = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
+        // Connect through the Vite proxy (configured in .env as VITE_WS_URL=/)
+        const socketHost = import.meta.env.VITE_WS_URL || window.location.origin;
 
         const newSocket = io(socketHost, {
+            path: '/socket.io',
             auth: { token },
-            transports: ['websocket'],
+            reconnectionAttempts: 5,
+            timeout: 10000,
         });
 
         newSocket.on('connect', () => {

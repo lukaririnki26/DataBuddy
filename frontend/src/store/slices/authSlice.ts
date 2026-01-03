@@ -36,11 +36,12 @@ interface AuthState {
 }
 
 // Initial state
+const token = localStorage.getItem('accessToken');
 const initialState: AuthState = {
   user: null,
-  tokens: null,
-  isAuthenticated: false,
-  isLoading: false, // Set to false so landing page can show immediately
+  tokens: token ? { accessToken: token, refreshToken: localStorage.getItem('refreshToken') || '', expiresIn: 0 } : null,
+  isAuthenticated: !!token,
+  isLoading: !!token, // Set to true if we have a token so we can hydrate
   error: null,
 };
 
@@ -52,14 +53,14 @@ export const loginUser = createAsyncThunk(
       const response = await api.post('/auth/login', credentials);
       const { user, tokens } = response;
 
-      // Store tokens in localStorage
-      localStorage.setItem('accessToken', tokens.accessToken);
+      // Store tokens in localStorage and update API client
+      api.setToken(tokens.accessToken);
       localStorage.setItem('refreshToken', tokens.refreshToken);
 
       return { user, tokens };
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || 'Login failed'
+        error.message || 'Login failed'
       );
     }
   }
@@ -78,14 +79,14 @@ export const registerUser = createAsyncThunk(
       const response = await api.post('/auth/register', userData);
       const { user, tokens } = response;
 
-      // Store tokens in localStorage
-      localStorage.setItem('accessToken', tokens.accessToken);
+      // Store tokens in localStorage and update API client
+      api.setToken(tokens.accessToken);
       localStorage.setItem('refreshToken', tokens.refreshToken);
 
       return { user, tokens };
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || 'Registration failed'
+        error.message || 'Registration failed'
       );
     }
   }
@@ -124,19 +125,14 @@ export const refreshToken = createAsyncThunk(
 export const logoutUser = createAsyncThunk(
   'auth/logout',
   async (_, { getState }) => {
-    const accessToken = localStorage.getItem('accessToken');
-
     try {
-      if (accessToken) {
-        // Use api service for logout
-        await api.post('/auth/logout');
-      }
+      await api.post('/auth/logout');
     } catch (error) {
       // Ignore logout errors
     }
 
-    // Clear tokens from localStorage
-    localStorage.removeItem('accessToken');
+    // Clear tokens from localStorage and update API client
+    api.clearToken();
     localStorage.removeItem('refreshToken');
   }
 );
@@ -268,11 +264,14 @@ const authSlice = createSlice({
       })
 
       // Logout
-      .addCase(logoutUser.fulfilled, (state) => {
+      .addCase(logoutUser.pending, (state) => {
         state.user = null;
         state.tokens = null;
         state.isAuthenticated = false;
         state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        // Already handled in pending for immediate feedback
       })
 
       // Get current user
@@ -286,6 +285,9 @@ const authSlice = createSlice({
         state.user = null;
         state.tokens = null;
         state.isLoading = false;
+        // Also clear storage to be safe
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       })
 
       // Change password

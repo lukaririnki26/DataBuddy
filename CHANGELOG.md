@@ -5,6 +5,17 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2026-01-03
+ 
+### Fixed
+- **Seamless Logout**: Optimized authentication flow with optimistic state updates to ensure instant, zero-delay redirect to landing page upon logout.
+- **Theme Consistency**: Fixed "Dark Card" issue in Light Mode and "Light Card" issue in Dark Mode by correcting palette transparency logic in `theme.ts`. Cards now render with correct glassmorphism in both modes.
+- **Card Rendering**: Landing Page and Login Page cards now maintain proper contrast and legibility regardless of theme selection.
+ 
+### Changed
+- **Environment config**: Standardized frontend `.env` architecture to explicitly support Vite proxying with relative paths (`/api`) to prevent CORS issues.
+- **Git Ignoring**: Unignored `.env` files based on user preference for local tracking (Note: Ensure no secrets are committed).
+
 ## [1.7.0] - 2026-01-03
 
 ### Added

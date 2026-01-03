@@ -132,7 +132,7 @@ const PipelineBuilderPage: React.FC = () => {
             name: step.name || `${step.type} step`,
             config: step.config || {},
             order: step.order,
-            isEnabled: step.isActive !== false,
+            isEnabled: (step as any).isActive !== false,
           })) || []);
         } catch (err) {
           console.error(err);
@@ -308,13 +308,7 @@ const PipelineBuilderPage: React.FC = () => {
         <Box sx={{ flex: 1, overflowY: 'auto', p: 4 }}>
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
             {/* Config Panel */}
-            <Card sx={{
-              borderRadius: '2rem',
-              bgcolor: alpha(theme.palette.common.white, 0.03),
-              backdropFilter: 'blur(32px)',
-              border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
-            }}>
+            <Card>
               <CardContent sx={{ p: 4 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
@@ -324,7 +318,6 @@ const PipelineBuilderPage: React.FC = () => {
                       value={pipelineName}
                       onChange={(e) => setPipelineName(e.target.value)}
                       placeholder="My Intelligent Pipeline"
-                      variant="filled"
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
@@ -334,7 +327,6 @@ const PipelineBuilderPage: React.FC = () => {
                       value={pipelineDescription}
                       onChange={(e) => setPipelineDescription(e.target.value)}
                       placeholder="Defining the data transformation logic..."
-                      variant="filled"
                     />
                   </Grid>
                 </Grid>
@@ -378,16 +370,11 @@ const PipelineBuilderPage: React.FC = () => {
                         key={step.id}
                         onClick={() => setSelectedStep(step.id)}
                         sx={{
-                          borderRadius: '1.5rem',
                           cursor: 'pointer',
-                          bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.common.white, 0.03),
-                          backdropFilter: 'blur(32px)',
-                          border: isSelected ? `1px solid ${theme.palette.primary.main}` : `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                          transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          border: isSelected ? `2px solid ${theme.palette.primary.main}` : undefined,
                           '&:hover': {
-                            transform: 'translateY(-4px) scale(1.01)',
-                            bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.15) : alpha(theme.palette.common.white, 0.06),
-                            boxShadow: `0 20px 40px ${alpha(theme.palette.common.black, 0.4)}`
+                            transform: 'translateY(-2px)',
                           }
                         }}
                       >
@@ -461,14 +448,6 @@ const PipelineBuilderPage: React.FC = () => {
                   <Card
                     key={type.type}
                     onClick={() => addStep(type.type)}
-                    sx={{
-                      cursor: 'pointer',
-                      bgcolor: alpha(theme.palette.common.white, 0.05),
-                      border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                      borderRadius: '1.5rem',
-                      '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1), transform: 'scale(1.02)' },
-                      transition: 'all 0.2s'
-                    }}
                   >
                     <CardContent sx={{ p: 2, display: 'flex', gap: 2, '&:last-child': { pb: 2 } }}>
                       <Box sx={{
@@ -502,11 +481,10 @@ const PipelineBuilderPage: React.FC = () => {
                     fullWidth
                     value={selectedStepData.name}
                     onChange={(e) => setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, name: e.target.value } : s))}
-                    variant="filled"
                   />
                 </Box>
 
-                <Box sx={{ p: 3, borderRadius: '1.5rem', bgcolor: alpha(theme.palette.info.main, 0.05), border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ p: 3, borderRadius: '1.5rem', bgcolor: alpha(theme.palette.common.white, 0.02), border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Settings size={16} color={theme.palette.info.main} />
                     <Typography variant="subtitle2" fontWeight="bold" color="info.main">Neural Configuration</Typography>
@@ -516,40 +494,42 @@ const PipelineBuilderPage: React.FC = () => {
                     const template = STEP_TYPES.find(t => t.type === selectedStepData.type);
                     if (!template || !template.configSchema) return <Typography variant="caption">No configuration available.</Typography>;
 
-                    return Object.entries(template.configSchema).map(([key, schema]: [string, any]) => (
-                      <Box key={key}>
-                        <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: 1, display: 'block' }}>{schema.label || key}</Typography>
-                        {schema.type === 'select' ? (
-                          <TextField
-                            select
-                            fullWidth
-                            value={selectedStepData.config[key] || ''}
-                            onChange={(e) => {
-                              const newConfig = { ...selectedStepData.config, [key]: e.target.value };
-                              setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, config: newConfig } : s));
-                            }}
-                            variant="filled"
-                            SelectProps={{ native: true }}
-                          >
-                            <option value="" disabled>Select {schema.label}</option>
-                            {schema.options.map((opt: string) => (
-                              <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                          </TextField>
-                        ) : (
-                          <TextField
-                            fullWidth
-                            value={selectedStepData.config[key] || ''}
-                            onChange={(e) => {
-                              const newConfig = { ...selectedStepData.config, [key]: e.target.value };
-                              setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, config: newConfig } : s));
-                            }}
-                            placeholder={schema.placeholder}
-                            variant="filled"
-                          />
-                        )}
-                      </Box>
-                    ));
+                    return Object.keys(template.configSchema).map((key) => {
+                      const schema: any = (template.configSchema as any)[key];
+                      if (!schema) return null;
+                      return (
+                        <Box key={key}>
+                          <Typography variant="caption" fontWeight="bold" color="text.secondary" sx={{ mb: 1, display: 'block' }}>{schema.label || key}</Typography>
+                          {schema.type === 'select' ? (
+                            <TextField
+                              select
+                              fullWidth
+                              value={selectedStepData.config[key] || ''}
+                              onChange={(e) => {
+                                const newConfig = { ...selectedStepData.config, [key]: e.target.value };
+                                setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, config: newConfig } : s));
+                              }}
+                              SelectProps={{ native: true }}
+                            >
+                              <option value="" disabled>Select {schema.label}</option>
+                              {schema.options?.map((opt: string) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </TextField>
+                          ) : (
+                            <TextField
+                              fullWidth
+                              value={selectedStepData.config[key] || ''}
+                              onChange={(e) => {
+                                const newConfig = { ...selectedStepData.config, [key]: e.target.value };
+                                setSteps(steps.map(s => s.id === selectedStepData.id ? { ...s, config: newConfig } : s));
+                              }}
+                              placeholder={schema.placeholder}
+                            />
+                          )}
+                        </Box>
+                      );
+                    });
                   })()}
                 </Box>
               </Box>

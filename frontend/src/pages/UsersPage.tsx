@@ -125,12 +125,6 @@ const UsersPage: React.FC = () => {
             onClick={() => info('Registration', 'Personnel creation is currently handled via Genesis Protocol')}
             variant="contained"
             startIcon={<UserPlus size={20} />}
-            sx={{
-              background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-              borderRadius: '1rem',
-              fontWeight: 'bold',
-              boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.4)}`
-            }}
           >
             Provision User
           </Button>
@@ -141,41 +135,31 @@ const UsersPage: React.FC = () => {
             placeholder="Search personnel by identity or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            variant="filled"
             fullWidth
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Search size={20} color={theme.palette.text.secondary} />
+                  <Search size={18} />
                 </InputAdornment>
-              ),
-              disableUnderline: true,
-              sx: { borderRadius: '1.5rem' }
+              )
             }}
           />
         </Box>
 
-        <TableContainer component={Paper} sx={{
-          borderRadius: '2.5rem',
-          bgcolor: alpha(theme.palette.common.white, 0.03),
-          backdropFilter: 'blur(32px)',
-          border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
-          overflow: 'hidden'
-        }}>
+        <TableContainer component={Paper}>
           <Table>
             <TableHead>
-              <TableRow sx={{ '& th': { borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.1)}`, bgcolor: alpha(theme.palette.common.white, 0.02) } }}>
-                <TableCell sx={{ pl: 4, py: 3 }}><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Identity</Typography></TableCell>
-                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Authorization</Typography></TableCell>
-                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Status</Typography></TableCell>
-                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Last Active</Typography></TableCell>
-                <TableCell align="right" sx={{ pr: 4 }}><Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>Actions</Typography></TableCell>
+              <TableRow>
+                <TableCell sx={{ pl: 4, py: 3 }}><Typography variant="caption" fontWeight="900" color="text.secondary">Identity</Typography></TableCell>
+                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary">Authorization</Typography></TableCell>
+                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary">Status</Typography></TableCell>
+                <TableCell><Typography variant="caption" fontWeight="900" color="text.secondary">Last Active</Typography></TableCell>
+                <TableCell align="right" sx={{ pr: 4 }}><Typography variant="caption" fontWeight="900" color="text.secondary">Actions</Typography></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredUsers.map((user) => (
-                <TableRow key={user.id} hover sx={{ '& td': { borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }, '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.05) } }}>
+                <TableRow key={user.id} hover>
                   <TableCell sx={{ pl: 4, py: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Avatar sx={{ bgcolor: theme.palette.primary.dark, color: theme.palette.primary.light, fontWeight: 'bold' }}>
@@ -212,8 +196,8 @@ const UsersPage: React.FC = () => {
                   </TableCell>
                   <TableCell align="right" sx={{ pr: 4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
-                      <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: 'white', bgcolor: alpha(theme.palette.common.white, 0.1) } }}><Edit2 size={16} /></IconButton>
-                      <IconButton size="small" sx={{ color: 'text.secondary', '&:hover': { color: theme.palette.error.main, bgcolor: alpha(theme.palette.error.main, 0.1) } }}><Trash2 size={16} /></IconButton>
+                      <IconButton size="small"><Edit2 size={16} /></IconButton>
+                      <IconButton size="small" color="error"><Trash2 size={16} /></IconButton>
                     </Box>
                   </TableCell>
                 </TableRow>

@@ -12,13 +12,8 @@ import { DataBuddyWebSocketGateway } from "./websocket.gateway";
  * - System notifications
  */
 @Module({
-  imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || "your-secret-key",
-      signOptions: { expiresIn: "24h" },
-    }),
-  ],
+  imports: [],
   providers: [DataBuddyWebSocketGateway],
   exports: [DataBuddyWebSocketGateway],
 })
-export class WebSocketModule {}
+export class WebSocketModule { }

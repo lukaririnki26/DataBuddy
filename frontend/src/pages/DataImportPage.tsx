@@ -273,13 +273,6 @@ const DataImportPage: React.FC = () => {
             onClick={resetImport}
             variant="outlined"
             startIcon={<Upload size={20} />}
-            sx={{
-              borderRadius: '1rem',
-              fontWeight: 'bold',
-              borderColor: alpha(theme.palette.common.white, 0.2),
-              color: 'white',
-              '&:hover': { borderColor: theme.palette.primary.main, bgcolor: alpha(theme.palette.primary.main, 0.1) }
-            }}
           >
             Initialize New Uplink
           </Button>
@@ -312,13 +305,7 @@ const DataImportPage: React.FC = () => {
 
             {/* Step 1: Upload */}
             {uploadStep === 'upload' && (
-              <Card sx={{
-                borderRadius: '2.5rem',
-                bgcolor: alpha(theme.palette.common.white, 0.03),
-                backdropFilter: 'blur(32px)',
-                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
-              }}>
+              <Card>
                 <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <Box
                     onDragEnter={handleDrag}
@@ -385,7 +372,6 @@ const DataImportPage: React.FC = () => {
                             value={hasHeader.toString()}
                             onChange={(e) => setHasHeader(e.target.value === 'true')}
                             fullWidth
-                            variant="filled"
                           >
                             <MenuItem value="true">Header Present</MenuItem>
                             <MenuItem value="false">Raw Data Stream</MenuItem>
@@ -396,7 +382,6 @@ const DataImportPage: React.FC = () => {
                             value={encoding}
                             onChange={(e) => setEncoding(e.target.value)}
                             fullWidth
-                            variant="filled"
                           >
                             <MenuItem value="utf8">Universal (UTF-8)</MenuItem>
                             <MenuItem value="latin1">Legacy (Latin-1)</MenuItem>
@@ -407,7 +392,6 @@ const DataImportPage: React.FC = () => {
                             value={separator}
                             onChange={(e) => setSeparator(e.target.value)}
                             fullWidth
-                            variant="filled"
                           >
                             <MenuItem value=",">Comma (Default)</MenuItem>
                             <MenuItem value=";">Semicolon</MenuItem>
@@ -468,12 +452,7 @@ const DataImportPage: React.FC = () => {
 
             {/* Step 3: Validate */}
             {uploadStep === 'validate' && (
-              <Card sx={{
-                borderRadius: '2.5rem',
-                bgcolor: alpha(theme.palette.common.white, 0.05),
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
-              }}>
+              <Card>
                 <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h5" fontWeight="bold">Integrity Protocol</Typography>
@@ -536,13 +515,7 @@ const DataImportPage: React.FC = () => {
 
             {/* Step 4: Import */}
             {uploadStep === 'import' && uploadResult && (
-              <Card sx={{
-                borderRadius: '2.5rem',
-                bgcolor: alpha(theme.palette.common.white, 0.05),
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                textAlign: 'center'
-              }}>
+              <Card>
                 <CardContent sx={{ p: 6, display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
                   <Box sx={{ p: 4, borderRadius: '50%', bgcolor: alpha(theme.palette.primary.main, 0.1), display: 'inline-flex' }}>
                     <Database size={64} className="animate-pulse" color={theme.palette.primary.light} />
@@ -621,18 +594,15 @@ const DataImportPage: React.FC = () => {
                 <Button
                   onClick={resetImport}
                   fullWidth
+                  variant="outlined"
                   sx={{
-                    p: 2, borderRadius: '1.5rem',
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
-                    border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                     justifyContent: 'flex-start',
                     textAlign: 'left',
                     gap: 2,
-                    color: 'text.primary',
-                    '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
+                    p: 2
                   }}
                 >
-                  <Box sx={{ p: 1, borderRadius: '0.75rem', bgcolor: theme.palette.background.default }}>
+                  <Box sx={{ p: 1, borderRadius: '0.75rem', bgcolor: theme.palette.background.default, display: 'flex' }}>
                     <Upload size={20} color={theme.palette.primary.light} />
                   </Box>
                   <Box>
@@ -646,18 +616,15 @@ const DataImportPage: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   fullWidth
+                  variant="outlined"
                   sx={{
-                    p: 2, borderRadius: '1.5rem',
-                    bgcolor: alpha(theme.palette.secondary.main, 0.1),
-                    border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
                     justifyContent: 'flex-start',
                     textAlign: 'left',
                     gap: 2,
-                    color: 'text.primary',
-                    '&:hover': { bgcolor: alpha(theme.palette.secondary.main, 0.2) }
+                    p: 2
                   }}
                 >
-                  <Box sx={{ p: 1, borderRadius: '0.75rem', bgcolor: theme.palette.background.default }}>
+                  <Box sx={{ p: 1, borderRadius: '0.75rem', bgcolor: theme.palette.background.default, display: 'flex' }}>
                     <Download size={20} color={theme.palette.secondary.light} />
                   </Box>
                   <Box>

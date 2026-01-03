@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
+import { useTranslation } from '../../hooks/useTranslation';
 import {
   Drawer,
   Box,
@@ -48,16 +49,17 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const theme = useTheme();
   const location = useLocation();
+  const { t } = useTranslation();
   const { user } = useSelector((state: RootState) => state.auth);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
-    { name: 'Data Import', href: '/data/import', icon: Upload },
-    { name: 'Data Export', href: '/data/export', icon: Download },
-    { name: 'Pipelines', href: '/pipelines', icon: Settings },
-    { name: 'Pipeline Builder', href: '/pipelines/builder', icon: Zap },
-    { name: 'Monitoring', href: '/monitoring', icon: Activity },
-    { name: 'Users', href: '/admin/users', icon: Users, adminOnly: true },
+    { name: t.common.dashboard, href: '/dashboard', icon: BarChart3 },
+    { name: t.common.import, href: '/data/import', icon: Upload },
+    { name: t.common.export, href: '/data/export', icon: Download },
+    { name: t.common.pipelines, href: '/pipelines', icon: Settings, exact: true },
+    { name: t.common.builder, href: '/pipelines/builder', icon: Zap },
+    { name: t.common.monitoring, href: '/monitoring', icon: Activity },
+    { name: t.common.personnel, href: '/admin/users', icon: Users, adminOnly: true },
   ];
 
   const drawerContent = (
@@ -65,7 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      bgcolor: isMobile ? '#1e293b' : 'background.paper',
+      bgcolor: isMobile ? 'background.paper' : 'background.paper',
       backdropFilter: isMobile ? 'none' : 'blur(20px)',
       overflow: 'hidden'
     }}>
@@ -125,15 +127,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         overflowX: 'hidden',
         '&::-webkit-scrollbar': { width: '6px' },
         '&::-webkit-scrollbar-thumb': {
-          bgcolor: alpha(theme.palette.common.white, 0.1),
+          bgcolor: alpha(theme.palette.text.primary, 0.1),
           borderRadius: '3px'
         }
       }}>
         {navigation.map((item) => {
           if (item.adminOnly && user?.role !== 'admin') return null;
 
-          const isActive = location.pathname === item.href ||
-            (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+          const isActive = item.exact
+            ? location.pathname === item.href
+            : location.pathname === item.href || (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
 
           return (
             <ListItem key={item.name} disablePadding sx={{ mb: 0.5 }}>
@@ -202,9 +205,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             <IconButton
               onClick={onToggle}
               sx={{
-                bgcolor: alpha(theme.palette.common.white, 0.05),
+                bgcolor: alpha(theme.palette.text.primary, 0.05),
                 '&:hover': {
-                  bgcolor: alpha(theme.palette.common.white, 0.1),
+                  bgcolor: alpha(theme.palette.text.primary, 0.1),
                   transform: 'scale(1.1)'
                 },
                 transition: 'all 0.2s'
@@ -236,14 +239,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           '& .MuiDrawer-paper': {
             boxSizing: 'border-box',
             width: 280,
-            bgcolor: '#0f172a',
+            bgcolor: 'background.paper',
             backgroundImage: 'none',
-            borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            borderRight: `1px solid ${theme.palette.divider}`,
             boxShadow: '10px 0 25px rgba(0,0,0,0.5)',
           },
           '& .MuiBackdrop-root': {
             backdropFilter: 'blur(4px)',
-            bgcolor: alpha('#000000', 0.6),
+            bgcolor: alpha(theme.palette.common.black, 0.6),
           },
         }}
       >
@@ -264,7 +267,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               duration: theme.transitions.duration.standard,
             }),
             bgcolor: 'background.paper',
-            borderRight: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            borderRight: `1px solid ${theme.palette.divider}`,
             overflowX: 'hidden',
           },
         }}

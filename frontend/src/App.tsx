@@ -5,11 +5,12 @@
  * Includes protected routes and navigation structure.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Box } from '@mui/material';
-import { useSelector } from 'react-redux';
-import { RootState } from './store';
+import { Box, CircularProgress } from '@mui/material';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from './store';
+import { getCurrentUser, setLoading } from './store/slices/authSlice';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import { ToastProvider } from './context/ToastContext';
@@ -29,10 +30,25 @@ import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 
 const App: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, isLoading } = useSelector((state: RootState) => ({
     isAuthenticated: state.auth.isAuthenticated,
     isLoading: state.auth.isLoading,
   }));
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      dispatch(getCurrentUser())
+        .unwrap()
+        .catch(() => {
+          // Silent catch to ensure loading stops
+        });
+    } else {
+      // Ensure loading is off if no token
+      dispatch(setLoading(false));
+    }
+  }, [dispatch]);
 
   if (isLoading) {
     return (
@@ -50,14 +66,16 @@ const App: React.FC = () => {
   }
 
   return (
-    <ToastProvider>
-      <SocketProvider>
-        <BrowserRouter>
+    <BrowserRouter>
+      <ToastProvider>
+        <SocketProvider>
           <Routes>
             {/* Public routes */}
             <Route
               path="/"
-              element={<LandingPage />}
+              element={
+                isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />
+              }
             />
             <Route
               path="/login"
@@ -104,10 +122,10 @@ const App: React.FC = () => {
                       </div>
 
                       <div className="mb-12">
-                        <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+                        <h1 className="text-5xl md:text-6xl font-bold mb-6" style={{ color: 'var(--mui-palette-text-primary, #fff)' }}>
                           Page Not Found
                         </h1>
-                        <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed" style={{ color: 'var(--mui-palette-text-secondary, #94a3b8)' }}>
                           The page you're looking for seems to have wandered off into the digital void.
                         </p>
                       </div>
@@ -132,9 +150,9 @@ const App: React.FC = () => {
               />
             </Route>
           </Routes>
-        </BrowserRouter>
-      </SocketProvider>
-    </ToastProvider>
+        </SocketProvider>
+      </ToastProvider>
+    </BrowserRouter>
   );
 };
 

@@ -16,7 +16,11 @@ async function bootstrap() {
   // Create NestJS application instance
   const app = await NestFactory.create(AppModule, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      origin: [
+        process.env.FRONTEND_URL,
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ].filter(Boolean) as string[],
       credentials: true,
     },
   });

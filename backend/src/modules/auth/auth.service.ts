@@ -75,58 +75,68 @@ export class AuthService {
   async login(
     email: string,
     password: string,
+    ip?: string,
   ): Promise<{ user: User; tokens: any }> {
-    console.log("Login attempt for email:", email);
-    // Find user by email
-    const user = await this.userRepository.findOne({
-      where: { email: email.toLowerCase() },
-      select: [
-        "id",
-        "email",
-        "firstName",
-        "lastName",
-        "password",
-        "role",
-        "status",
-        "lastLoginAt",
-        "lastLoginIp",
-        "preferences",
-        "createdAt",
-        "updatedAt",
-      ],
-    });
+    try {
+      // Find user by email
+      const user = await this.userRepository.findOne({
+        where: { email: email.toLowerCase() },
+        select: [
+          "id",
+          "email",
+          "firstName",
+          "lastName",
+          "password",
+          "role",
+          "status",
+          "lastLoginAt",
+          "lastLoginIp",
+          "preferences",
+          "createdAt",
+          "updatedAt",
+        ],
+      });
 
-    console.log("User found:", !!user);
-    if (!user) {
-      throw new UnauthorizedException("Invalid credentials");
+      if (!user) {
+        throw new UnauthorizedException("Invalid credentials");
+      }
+
+      // Validate password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException("Invalid credentials");
+      }
+
+      // Check if user is active
+      if (!user.isActive) {
+        throw new UnauthorizedException("Account is deactivated");
+      }
+
+      // Update last login information
+      const loginDate = new Date();
+      await this.userRepository.update(user.id, {
+        lastLoginAt: loginDate,
+        lastLoginIp: ip,
+      });
+
+      // Update local object for response
+      user.lastLoginAt = loginDate;
+      if (ip) user.lastLoginIp = ip;
+
+      // Generate tokens
+      const tokens = await this.generateTokens(user);
+
+      // Remove password from response
+      delete user.password;
+
+      return { user, tokens };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      console.error("Login Error:", error.message);
+      throw new UnauthorizedException("Authentication failed");
     }
-
-    // Validate password
-    console.log("User found:", !!user);
-    console.log("User password:", user?.password ? "SET" : "UNDEFINED");
-    console.log("User password value:", user?.password);
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log("Password validation result:", isPasswordValid);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException("Invalid credentials");
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      throw new UnauthorizedException("Account is deactivated");
-    }
-
-    // Update last login
-    user.updateLastLogin();
-    await this.userRepository.save(user);
-
-    // Generate tokens
-    const tokens = await this.generateTokens(user);
-
-    // Remove password from response
-    delete user.password;
-
-    return { user, tokens };
   }
 
   /**

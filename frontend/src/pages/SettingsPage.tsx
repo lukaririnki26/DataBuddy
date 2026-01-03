@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { setTheme, setLanguage } from '../store/slices/uiSlice';
 import { useToast } from '../context/ToastContext';
+import { useTranslation } from '../hooks/useTranslation';
 import {
     Notifications as NotificationsIcon,
     Palette as PaletteIcon,
-    Language as LanguageIcon,
     Save as SaveIcon,
-    Tune as TuneIcon,
-    VolumeUp as VolumeUpIcon
 } from '@mui/icons-material';
 import {
     Box,
@@ -27,62 +28,78 @@ import {
 
 const SettingsPage: React.FC = () => {
     const { success } = useToast();
+    const { t } = useTranslation();
     const theme = useTheme();
+    const dispatch = useDispatch();
+    const ui = useSelector((state: RootState) => state.ui);
 
     const [settings, setSettings] = useState({
         emailNotifications: true,
         pushNotifications: true,
         pipelineAlerts: true,
         systemAnnouncements: true,
-        theme: 'dark',
-        language: 'en',
+        theme: ui.theme,
+        language: ui.language,
         dateFormat: 'YYYY-MM-DD',
     });
 
+    // Update local state when Redux state changes (e.g. from storage load)
+    useEffect(() => {
+        setSettings(prev => ({
+            ...prev,
+            theme: ui.theme,
+            language: ui.language
+        }));
+    }, [ui.theme, ui.language]);
+
     const handleSettingChange = (setting: string, value: any) => {
         setSettings(prev => ({ ...prev, [setting]: value }));
+
+        // Immediate preview for theme and language
+        if (setting === 'theme') {
+            dispatch(setTheme(value));
+        }
+        if (setting === 'language') {
+            dispatch(setLanguage(value));
+        }
     };
 
     const handleSaveSettings = () => {
-        success('Settings Saved', 'System preferences updated successfully');
+        // Dispatch final states to ensure persistence
+        dispatch(setTheme(settings.theme));
+        dispatch(setLanguage(settings.language as any));
+        success(t.settings.successTitle, t.settings.successMsg);
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', background: theme.palette.background.default }}>
+        <Box sx={{ minHeight: '100vh' }}>
             <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
                 {/* Header */}
                 <Box>
                     <Typography variant="h3" fontWeight="900" sx={{
-                        background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
+                        background: `linear-gradient(to right, ${theme.palette.text.primary}, ${theme.palette.primary.light})`,
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         letterSpacing: '-0.02em',
                         mb: 1
                     }}>
-                        System Logic
+                        {t.settings.title}
                     </Typography>
                     <Typography variant="h6" color="text.secondary" fontWeight="medium" sx={{ opacity: 0.7 }}>
-                        Customize application behavior and regional protocols
+                        {t.settings.subtitle}
                     </Typography>
                 </Box>
 
                 <Grid container spacing={4}>
                     <Grid item xs={12} lg={6}>
                         {/* Notifications */}
-                        <Card sx={{
-                            height: '100%',
-                            borderRadius: '2.5rem',
-                            bgcolor: alpha(theme.palette.common.white, 0.03),
-                            backdropFilter: 'blur(32px)',
-                            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
-                        }}>
+                        <Card>
                             <CardContent sx={{ p: 6 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 6 }}>
                                     <Box sx={{ p: 2, borderRadius: '1.5rem', bgcolor: alpha(theme.palette.warning.main, 0.1), border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`, color: theme.palette.warning.light }}>
                                         <NotificationsIcon />
                                     </Box>
-                                    <Typography variant="h5" fontWeight="900" fontStyle="italic">Notification Matrix</Typography>
+                                    <Typography variant="h5" fontWeight="900" fontStyle="italic">{t.settings.notificationMatrix}</Typography>
                                 </Box>
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -94,10 +111,10 @@ const SettingsPage: React.FC = () => {
                                     ].map((item) => (
                                         <Box key={item.key} sx={{
                                             p: 3, borderRadius: '1.5rem',
-                                            bgcolor: alpha(theme.palette.common.white, 0.03),
-                                            border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
+                                            bgcolor: alpha(theme.palette.text.primary, 0.03),
+                                            border: `1px solid ${alpha(theme.palette.text.primary, 0.05)}`,
                                             transition: 'all 0.3s',
-                                            '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.06), borderColor: alpha(theme.palette.warning.main, 0.2) }
+                                            '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.06), borderColor: alpha(theme.palette.warning.main, 0.2) }
                                         }}>
                                             <FormControlLabel
                                                 control={
@@ -112,7 +129,7 @@ const SettingsPage: React.FC = () => {
                                                 }
                                                 label={
                                                     <Box sx={{ ml: 2 }}>
-                                                        <Typography fontWeight="bold" sx={{ color: 'white' }}>{item.label}</Typography>
+                                                        <Typography fontWeight="bold" sx={{ color: theme.palette.text.primary }}>{item.label}</Typography>
                                                         <Typography variant="caption" color="text.secondary">{item.desc}</Typography>
                                                     </Box>
                                                 }
@@ -128,45 +145,41 @@ const SettingsPage: React.FC = () => {
                     <Grid item xs={12} lg={6}>
                         {/* Appearance & Regional */}
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, height: '100%' }}>
-                            <Card sx={{
-                                borderRadius: '2.5rem',
-                                bgcolor: alpha(theme.palette.common.white, 0.03),
-                                backdropFilter: 'blur(32px)',
-                                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
-                            }}>
+                            <Card>
                                 <CardContent sx={{ p: 6 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 6 }}>
-                                        <Box sx={{ p: 2, borderRadius: '1.5rem', bgcolor: alpha(theme.palette.primary.main, 0.1), border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`, color: theme.palette.primary.light }}>
+                                        <Box sx={{ p: 2, borderRadius: '1.5rem', bgcolor: alpha(theme.palette.primary.main, 0.1), border: `1px solid ${theme.palette.primary.main}33`, color: theme.palette.primary.light }}>
                                             <PaletteIcon />
                                         </Box>
-                                        <Typography variant="h5" fontWeight="900" fontStyle="italic">Interface Customization</Typography>
+                                        <Typography variant="h5" fontWeight="900" fontStyle="italic">{t.settings.interface}</Typography>
                                     </Box>
 
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                        <FormControl fullWidth variant="filled" sx={{ '& .MuiSelect-icon': { color: 'white' } }}>
-                                            <InputLabel id="theme-select-label">Theme Preference</InputLabel>
+                                        <FormControl fullWidth>
+                                            <InputLabel id="theme-select-label">{t.settings.theme}</InputLabel>
                                             <Select
                                                 labelId="theme-select-label"
                                                 value={settings.theme}
                                                 onChange={(e) => handleSettingChange('theme', e.target.value)}
+                                                label={t.settings.theme}
                                             >
-                                                <MenuItem value="dark">Dark Mode (Default)</MenuItem>
-                                                <MenuItem value="light">Light Mode</MenuItem>
-                                                <MenuItem value="system">System Sync</MenuItem>
+                                                <MenuItem value="dark">{t.settings.themes.dark}</MenuItem>
+                                                <MenuItem value="light">{t.settings.themes.light}</MenuItem>
+                                                <MenuItem value="system">{t.settings.themes.system}</MenuItem>
                                             </Select>
                                         </FormControl>
 
-                                        <FormControl fullWidth variant="filled" sx={{ '& .MuiSelect-icon': { color: 'white' } }}>
-                                            <InputLabel id="language-select-label">Language / Region</InputLabel>
+                                        <FormControl fullWidth>
+                                            <InputLabel id="language-select-label">{t.settings.language}</InputLabel>
                                             <Select
                                                 labelId="language-select-label"
                                                 value={settings.language}
                                                 onChange={(e) => handleSettingChange('language', e.target.value)}
+                                                label={t.settings.language}
                                             >
-                                                <MenuItem value="en">English (US)</MenuItem>
-                                                <MenuItem value="id">Bahasa Indonesia</MenuItem>
-                                                <MenuItem value="es">Español</MenuItem>
+                                                <MenuItem value="en">{t.settings.languages.en}</MenuItem>
+                                                <MenuItem value="id">{t.settings.languages.id}</MenuItem>
+                                                <MenuItem value="es">{t.settings.languages.es}</MenuItem>
                                             </Select>
                                         </FormControl>
                                     </Box>
@@ -178,18 +191,8 @@ const SettingsPage: React.FC = () => {
                                 fullWidth
                                 variant="contained"
                                 startIcon={<SaveIcon />}
-                                sx={{
-                                    py: 2.5,
-                                    borderRadius: '1.5rem',
-                                    fontWeight: 900,
-                                    letterSpacing: '0.2em',
-                                    fontSize: '0.75rem',
-                                    background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                                    boxShadow: `0 20px 40px ${alpha(theme.palette.primary.main, 0.2)}`,
-                                    '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 25px 50px ${alpha(theme.palette.primary.main, 0.3)}` }
-                                }}
                             >
-                                Authorize Logic Sync
+                                {t.settings.save}
                             </Button>
                         </Box>
                     </Grid>

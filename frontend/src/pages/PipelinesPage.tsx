@@ -68,7 +68,7 @@ const StatusBadge: React.FC<{ isActive: boolean }> = ({ isActive }) => {
 const PipelinesPage: React.FC = () => {
   const navigate = useNavigate();
   const { success, error: toastError, info } = useToast();
-  const { pipelines, loading, refreshPipelines } = usePipelines();
+  const { pipelines, loading, refetch } = usePipelines();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const theme = useTheme();
@@ -77,7 +77,8 @@ const PipelinesPage: React.FC = () => {
     return (pipelines || []).filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType = filterType === 'all' || p.status === filterType;
+      const isActive = filterType === 'active';
+      const matchesType = filterType === 'all' || (filterType === 'active' ? p.isActive : !p.isActive);
       return matchesSearch && matchesType;
     });
   }, [pipelines, searchQuery, filterType]);
@@ -101,7 +102,7 @@ const PipelinesPage: React.FC = () => {
       try {
         await pipelinesService.deletePipeline(id);
         success('Blueprint Deleted', `"${name}" has been permanently removed`);
-        refreshPipelines();
+        refetch();
       } catch (err) {
         toastError('Delete Failed', 'Operational failure while clearing blueprint nodes');
       }
@@ -135,7 +136,7 @@ const PipelinesPage: React.FC = () => {
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: { lg: 'center' }, gap: 3, mb: 4 }}>
           <Box>
             <Typography variant="h3" fontWeight="900" sx={{
-              background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light})`,
+              background: `linear-gradient(to right, ${theme.palette.text.primary}, ${theme.palette.primary.light})`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.02em',
@@ -149,7 +150,7 @@ const PipelinesPage: React.FC = () => {
           </Box>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <IconButton onClick={() => refreshPipelines()} sx={{ bgcolor: alpha(theme.palette.common.white, 0.05), border: `1px solid ${alpha(theme.palette.common.white, 0.1)}` }}>
+            <IconButton onClick={() => refetch()} sx={{ bgcolor: alpha(theme.palette.text.primary, 0.05), border: `1px solid ${theme.palette.divider}` }}>
               <RefreshCw size={20} />
             </IconButton>
             <Button
@@ -157,14 +158,6 @@ const PipelinesPage: React.FC = () => {
               to="/pipelines/builder/new"
               variant="contained"
               startIcon={<Plus size={20} />}
-              sx={{
-                borderRadius: '16px',
-                px: 3, py: 1.5,
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.3)}`
-              }}
             >
               Genesis Blueprint
             </Button>
@@ -174,38 +167,26 @@ const PipelinesPage: React.FC = () => {
         {/* Filters & Command Bar */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, mb: 4 }}>
           <TextField
-            placeholder="Query blueprints by name or logic..."
+            placeholder="Search blueprints by name or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            variant="filled"
             fullWidth
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Search size={20} color={theme.palette.text.secondary} />
+                  <Search size={20} />
                 </InputAdornment>
               ),
-              disableUnderline: true,
-              sx: { borderRadius: '2rem' }
-            }}
-            sx={{
-              '& .MuiFilledInput-root': {
-                borderRadius: '2rem',
-                bgcolor: alpha(theme.palette.common.white, 0.05),
-                '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1) },
-                '&.Mui-focused': { bgcolor: alpha(theme.palette.common.white, 0.1) }
-              }
             }}
           />
 
           <Box sx={{
             display: 'flex',
             p: 0.5,
-            borderRadius: '2.5rem',
-            bgcolor: alpha(theme.palette.common.white, 0.03),
+            borderRadius: '1.25rem',
+            bgcolor: alpha(theme.palette.text.primary, 0.03),
             backdropFilter: 'blur(32px)',
-            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+            border: `1px solid ${theme.palette.divider}`,
             overflow: 'hidden'
           }}>
             {['all', 'active', 'draft'].map((type) => (
@@ -213,12 +194,17 @@ const PipelinesPage: React.FC = () => {
                 key={type}
                 onClick={() => setFilterType(type)}
                 sx={{
-                  borderRadius: '2rem',
+                  borderRadius: '1rem',
                   px: 3,
+                  py: 1,
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
                   color: filterType === type ? 'white' : 'text.secondary',
-                  bgcolor: filterType === type ? theme.palette.primary.main : 'transparent',
-                  fontWeight: 'bold',
-                  '&:hover': { bgcolor: filterType === type ? theme.palette.primary.dark : alpha(theme.palette.common.white, 0.1) }
+                  bgcolor: filterType === type ? alpha(theme.palette.primary.main, 0.2) : 'transparent',
+                  border: filterType === type ? `1px solid ${alpha(theme.palette.primary.main, 0.3)}` : '1px solid transparent',
+                  fontWeight: '900',
+                  '&:hover': { bgcolor: filterType === type ? alpha(theme.palette.primary.main, 0.3) : alpha(theme.palette.text.primary, 0.05) }
                 }}
               >
                 {type}
@@ -228,53 +214,39 @@ const PipelinesPage: React.FC = () => {
         </Box>
 
         {/* Pipelines Grid */}
-        <Grid container spacing={4}>
+        <Grid container spacing={3}>
           {loading ? (
             [...Array(6)].map((_, i) => (
               <Grid item xs={12} md={6} lg={4} key={i}>
-                <Skeleton variant="rectangular" height={256} sx={{ borderRadius: '2.5rem', bgcolor: alpha(theme.palette.common.white, 0.05) }} />
+                <Skeleton variant="rectangular" height={256} sx={{ borderRadius: '2.5rem', bgcolor: alpha(theme.palette.text.primary, 0.05) }} />
               </Grid>
             ))
           ) : filteredPipelines.length > 0 ? (
             filteredPipelines.map((p) => (
               <Grid item xs={12} md={6} lg={4} key={p.id}>
-                <Card sx={{
-                  height: '100%',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  borderRadius: '2.5rem',
-                  bgcolor: alpha(theme.palette.common.white, 0.03),
-                  backdropFilter: 'blur(32px)',
-                  border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                  '&:hover': {
-                    transform: 'translateY(-8px) scale(1.02)',
-                    bgcolor: alpha(theme.palette.common.white, 0.06),
-                    boxShadow: `0 40px 80px -20px rgba(0,0,0,0.6)`,
-                    borderColor: alpha(theme.palette.primary.main, 0.3)
-                  }
-                }}>
-                  <CardContent sx={{ p: 4, height: '100%' }}>
+                <Card>
+                  <CardContent sx={{ p: 4, height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
                         <Box sx={{
                           p: 2,
                           borderRadius: '16px',
                           bgcolor: alpha(theme.palette.primary.main, 0.1),
-                          border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                          border: `1px solid ${theme.palette.divider}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0
                         }}>
                           <Cpu size={24} color={theme.palette.primary.light} />
                         </Box>
-                        <StatusBadge isActive={p.status === 'active'} />
+                        <StatusBadge isActive={p.isActive} />
                       </Box>
-                      <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                      <IconButton size="small" sx={{ color: 'text.secondary', flexShrink: 0 }}>
                         <MoreVertical size={20} />
                       </IconButton>
                     </Box>
 
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="h5" fontWeight="900" gutterBottom noWrap title={p.name}>
+                    <Box sx={{ mb: 3, minWidth: 0 }}>
+                      <Typography variant="h5" fontWeight="900" gutterBottom noWrap title={p.name} sx={{ width: '100%' }}>
                         {p.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{
@@ -282,66 +254,69 @@ const PipelinesPage: React.FC = () => {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
-                        minHeight: '2.5em'
+                        height: '2.8rem',
+                        lineHeight: '1.4rem'
                       }}>
                         {p.description || 'No strategic description defined for this blueprint sequence.'}
                       </Typography>
                     </Box>
 
-                    <Grid container spacing={2} sx={{ mt: 'auto' }}>
+                    <Grid container spacing={1.5} sx={{ mt: 'auto' }}>
                       <Grid item xs={6}>
-                        <Box sx={{ p: 2, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
-                          <Typography variant="caption" display="block" color="text.secondary" fontWeight="900" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', mb: 0.5 }}>Architecture</Typography>
-                          <Typography variant="body2" fontWeight="bold">Modular {p.steps?.length || 0} Nodes</Typography>
+                        <Box sx={{ p: 1.5, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, minWidth: 0 }}>
+                          <Typography variant="caption" display="block" color="text.secondary" fontWeight="900" noWrap sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', mb: 0.5 }}>Architecture</Typography>
+                          <Typography variant="body2" fontWeight="bold" noWrap>Modular {p.steps?.length || 0} Nodes</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={6}>
-                        <Box sx={{ p: 2, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
-                          <Typography variant="caption" display="block" color="text.secondary" fontWeight="900" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', mb: 0.5 }}>Last Sync</Typography>
-                          <Typography variant="body2" fontWeight="bold">{new Date(p.updatedAt).toLocaleDateString()}</Typography>
+                        <Box sx={{ p: 1.5, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, minWidth: 0 }}>
+                          <Typography variant="caption" display="block" color="text.secondary" fontWeight="900" noWrap sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', mb: 0.5 }}>Last Sync</Typography>
+                          <Typography variant="body2" fontWeight="bold" noWrap>{new Date(p.updatedAt).toLocaleDateString()}</Typography>
                         </Box>
                       </Grid>
                     </Grid>
 
-                    {/* Command Bar Overlay - revealed on hover */}
-                    <Box sx={{
-                      position: 'absolute', inset: 'auto 0 0 0',
-                      p: 3,
-                      bgcolor: alpha('#0f172a', 0.9),
-                      backdropFilter: 'blur(20px)',
-                      borderTop: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      transform: 'translateY(100%)',
-                      transition: 'transform 0.3s',
-                      '.MuiCard-root:hover &': { transform: 'translateY(0)' }
-                    }}>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton onClick={() => handleExecute(p.id, p.name)} sx={{
-                          bgcolor: theme.palette.success.main,
-                          color: 'white',
-                          '&:hover': { bgcolor: theme.palette.success.dark }
-                        }}>
-                          <Play size={20} />
-                        </IconButton>
-                        <Button
-                          component={Link}
-                          to={`/pipelines/builder/${p.id}`}
-                          variant="outlined"
-                          sx={{
-                            borderColor: 'rgba(255,255,255,0.2)',
-                            color: 'white',
-                            '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' }
-                          }}
-                        >
-                          Configure
-                        </Button>
-                      </Box>
-                      <IconButton onClick={() => handleDelete(p.id, p.name)} sx={{
-                        bgcolor: alpha(theme.palette.error.main, 0.1),
-                        color: theme.palette.error.main,
-                        '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2) }
-                      }}>
-                        <Trash2 size={20} />
+                    <Box sx={{ mt: 3, pt: 3, borderTop: `1px solid ${theme.palette.divider}`, display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                      <Button
+                        onClick={() => handleExecute(p.id, p.name)}
+                        variant="contained"
+                        size="small"
+                        startIcon={<Play size={16} />}
+                        sx={{
+                          flex: 1,
+                          bgcolor: alpha(theme.palette.success.main, 0.1),
+                          color: theme.palette.success.light,
+                          border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+                          '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.2) }
+                        }}
+                      >
+                        Run
+                      </Button>
+                      <Button
+                        component={Link}
+                        to={`/pipelines/builder/${p.id}`}
+                        variant="outlined"
+                        size="small"
+                        startIcon={<Settings size={16} />}
+                        sx={{
+                          flex: 1,
+                          borderColor: alpha(theme.palette.text.primary, 0.1),
+                          color: 'text.secondary',
+                          '&:hover': { borderColor: theme.palette.primary.main, color: 'text.primary' }
+                        }}
+                      >
+                        Config
+                      </Button>
+                      <IconButton
+                        onClick={() => handleDelete(p.id, p.name)}
+                        size="small"
+                        sx={{
+                          bgcolor: alpha(theme.palette.error.main, 0.05),
+                          color: theme.palette.error.light,
+                          '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.1), color: theme.palette.error.main }
+                        }}
+                      >
+                        <Trash2 size={16} />
                       </IconButton>
                     </Box>
                   </CardContent>
@@ -354,8 +329,8 @@ const PipelinesPage: React.FC = () => {
                 textAlign: 'center',
                 py: 10,
                 borderRadius: '3rem',
-                border: `2px dashed ${alpha(theme.palette.common.white, 0.1)}`,
-                bgcolor: alpha(theme.palette.common.white, 0.02)
+                border: `2px dashed ${theme.palette.divider}`,
+                bgcolor: alpha(theme.palette.text.primary, 0.02)
               }}>
                 <Box sx={{ position: 'relative', display: 'inline-flex', mb: 4 }}>
                   <Box sx={{ position: 'absolute', inset: 0, bgcolor: alpha(theme.palette.primary.main, 0.2), filter: 'blur(40px)', borderRadius: '50%' }} />
@@ -370,12 +345,6 @@ const PipelinesPage: React.FC = () => {
                   to="/pipelines/builder/new"
                   size="large"
                   variant="contained"
-                  sx={{
-                    borderRadius: '2rem',
-                    px: 6, py: 2,
-                    fontSize: '1.2rem',
-                    background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                  }}
                 >
                   Initialize Command
                 </Button>

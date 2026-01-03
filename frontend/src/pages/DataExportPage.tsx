@@ -43,7 +43,7 @@ import {
 } from '@mui/material';
 
 const DataExportPage: React.FC = () => {
-    const { addToast } = useToast();
+    const { success, warning, error } = useToast();
     const theme = useTheme();
     const [search, setSearch] = useState('');
     const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
@@ -76,7 +76,7 @@ const DataExportPage: React.FC = () => {
 
     const handleExport = async () => {
         if (!selectedPipelineId) {
-            addToast('Please select a pipeline to initiate export.', 'warning');
+            warning('Selection Required', 'Please select a pipeline to initiate export.');
             return;
         }
 
@@ -87,13 +87,13 @@ const DataExportPage: React.FC = () => {
                 filename: filename || `export_${new Date().toISOString().split('T')[0]}`,
             });
 
-            addToast(`Signal Uplink initiated. Job ID: ${result.jobId}`, 'success');
+            success('Signal Uplink Initiated', `Job ID: ${result.jobId}`);
 
             // Refresh history
             const updatedHistory = await dataService.getExportHistory(10);
             setExportHistory(updatedHistory);
         } catch (err) {
-            addToast(err instanceof Error ? err.message : 'Uplink failed. Please verify protocol.', 'error');
+            error('Uplink Failed', err instanceof Error ? err.message : 'Uplink failed. Please verify protocol.');
         } finally {
             setIsExporting(false);
         }
@@ -139,13 +139,7 @@ const DataExportPage: React.FC = () => {
                     {/* Configuration Panel */}
                     <Grid item xs={12} lg={4}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            <Card sx={{
-                                borderRadius: '2.5rem',
-                                bgcolor: alpha(theme.palette.common.white, 0.03),
-                                backdropFilter: 'blur(32px)',
-                                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
-                            }}>
+                            <Card>
                                 <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 4 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                         <Settings size={20} color={theme.palette.primary.light} />
@@ -157,7 +151,6 @@ const DataExportPage: React.FC = () => {
                                             <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', display: 'block', mb: 1 }}>Output Designation</Typography>
                                             <TextField
                                                 fullWidth
-                                                variant="filled"
                                                 value={filename}
                                                 onChange={(e) => setFilename(e.target.value)}
                                                 placeholder="nexus_data_manifest"
@@ -197,13 +190,6 @@ const DataExportPage: React.FC = () => {
                                         variant="contained"
                                         size="large"
                                         startIcon={isExporting ? <RefreshCw className="animate-spin" /> : <Zap />}
-                                        sx={{
-                                            py: 2.5,
-                                            borderRadius: '1.5rem',
-                                            fontWeight: 900,
-                                            letterSpacing: '0.2em',
-                                            fontSize: '0.75rem'
-                                        }}
                                     >
                                         {isExporting ? 'Initializing Uplink...' : 'Authorize Extraction'}
                                     </Button>
@@ -211,14 +197,7 @@ const DataExportPage: React.FC = () => {
                             </Card>
 
                             {/* Quick Stats */}
-                            <Card sx={{
-                                borderRadius: '2.5rem',
-                                bgcolor: alpha(theme.palette.common.white, 0.05),
-                                backdropFilter: 'blur(20px)',
-                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}>
+                            <Card>
                                 <CardContent sx={{ p: 4, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
                                     <Box sx={{ position: 'absolute', top: 0, right: 0, p: 3, opacity: 0.05 }}>
                                         <Download size={64} />
@@ -240,12 +219,7 @@ const DataExportPage: React.FC = () => {
                     <Grid item xs={12} lg={8}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                             {/* Pipeline Selector */}
-                            <Card sx={{
-                                borderRadius: '2.5rem',
-                                bgcolor: alpha(theme.palette.common.white, 0.05),
-                                backdropFilter: 'blur(20px)',
-                                border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`
-                            }}>
+                            <Card>
                                 <CardContent sx={{ p: 4 }}>
                                     <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 3, mb: 4 }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -256,17 +230,14 @@ const DataExportPage: React.FC = () => {
                                             placeholder="Search neural patterns..."
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
-                                            variant="filled"
                                             InputProps={{
                                                 startAdornment: (
                                                     <InputAdornment position="start">
-                                                        <Search size={16} />
+                                                        <Search size={18} />
                                                     </InputAdornment>
                                                 ),
-                                                disableUnderline: true,
-                                                sx: { borderRadius: '1rem', bgcolor: alpha(theme.palette.background.default, 0.5) }
                                             }}
-                                            sx={{ minWidth: 300, '& .MuiFilledInput-root': { bgcolor: alpha(theme.palette.background.default, 0.5) } }}
+                                            sx={{ minWidth: 320 }}
                                         />
                                     </Box>
 

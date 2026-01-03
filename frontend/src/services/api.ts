@@ -27,8 +27,8 @@ export interface ApiError {
 }
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-const API_TIMEOUT = 30000; // 30 seconds
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_TIMEOUT = 15000; // Reduced to 15s for better failure feedback
 
 console.log('API Configuration:', {
   API_BASE_URL,
@@ -64,6 +64,11 @@ class ApiClient {
     // Request interceptor - add auth token
     this.client.interceptors.request.use(
       (config) => {
+        // Always try to get the most recent token if not in memory
+        if (!this.token) {
+          this.loadToken();
+        }
+
         // Don't add Authorization header for login and register endpoints
         const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
         if (this.token && !isAuthEndpoint) {
@@ -79,9 +84,13 @@ class ApiClient {
       (response: AxiosResponse) => response,
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // Token expired or invalid - redirect to login
+          // Token expired or invalid - clear everything and redirect to login
           this.clearToken();
-          window.location.href = '/login';
+
+          // Only redirect if not already on login page to avoid loops
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login?expired=true';
+          }
         }
 
         // Transform error to consistent format
@@ -120,6 +129,7 @@ class ApiClient {
   clearToken(): void {
     this.token = null;
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
   }
 
   /**

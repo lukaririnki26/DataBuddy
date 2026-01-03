@@ -78,7 +78,10 @@ After running the database setup, you can login with these accounts:
 
 **Frontend (.env):**
 ```env
-VITE_API_URL=http://localhost:3001
+VITE_API_URL=/api
+VITE_WS_URL=/
+VITE_PORT=3000
+VITE_BACKEND_URL=http://127.0.0.1:3001
 ```
 
 **Backend (.env):**

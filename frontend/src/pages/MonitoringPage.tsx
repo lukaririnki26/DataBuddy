@@ -90,7 +90,7 @@ const MonitoringPage: React.FC = () => {
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { md: 'center' }, gap: 3, mb: 6 }}>
                     <Box>
                         <Typography variant="h3" fontWeight="900" sx={{
-                            background: `linear-gradient(to right, ${theme.palette.common.white}, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
+                            background: `linear-gradient(to right, ${theme.palette.text.primary}, ${theme.palette.primary.light}, ${theme.palette.secondary.light})`,
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                             letterSpacing: '-0.02em',
@@ -114,10 +114,10 @@ const MonitoringPage: React.FC = () => {
                                         minWidth: 0,
                                         px: 2,
                                         borderRadius: '0.75rem',
-                                        color: timeRange === range ? 'white' : 'text.secondary',
+                                        color: timeRange === range ? theme.palette.primary.contrastText : 'text.secondary',
                                         bgcolor: timeRange === range ? theme.palette.primary.main : 'transparent',
                                         fontWeight: 'bold',
-                                        '&:hover': { bgcolor: timeRange === range ? theme.palette.primary.dark : alpha(theme.palette.common.white, 0.05) }
+                                        '&:hover': { bgcolor: timeRange === range ? theme.palette.primary.dark : alpha(theme.palette.text.primary, 0.05) }
                                     }}
                                 >
                                     {range}
@@ -139,12 +139,11 @@ const MonitoringPage: React.FC = () => {
                     </Box>
                 </Box>
 
-                {/* Global Health Grid */}
                 <Grid container spacing={3} sx={{ mb: 4 }}>
                     <Grid item xs={12} sm={6} lg={3}>
                         <HealthCard
-                            title="SYSTEM STATUS"
-                            value={health?.status === 'healthy' ? 'OPERATIONAL' : 'DEGRADED'}
+                            title="System Status"
+                            value={health?.status === 'healthy' ? 'Operational' : 'Degraded'}
                             icon={Server}
                             color={health?.status === 'healthy' ? theme.palette.success.main : theme.palette.warning.main}
                             loading={healthLoading}
@@ -152,7 +151,7 @@ const MonitoringPage: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} lg={3}>
                         <HealthCard
-                            title="SYSTEM UPTIME"
+                            title="System Uptime"
                             value={formatUptime(health?.uptime || 0)}
                             icon={Clock}
                             color={theme.palette.info.main}
@@ -161,7 +160,7 @@ const MonitoringPage: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} lg={3}>
                         <HealthCard
-                            title="DATA THROUGHPUT"
+                            title="Data Throughput"
                             value={`${data?.pipelineStats?.throughputPerMinute || 0} req/m`}
                             icon={Zap}
                             color={theme.palette.secondary.main}
@@ -170,7 +169,7 @@ const MonitoringPage: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} lg={3}>
                         <HealthCard
-                            title="ERROR RATE"
+                            title="Error Rate"
                             value={`${(data?.pipelineStats?.errorRate || 0).toFixed(2)}%`}
                             icon={AlertCircle}
                             color={data?.pipelineStats?.errorRate && data.pipelineStats.errorRate > 5 ? theme.palette.error.main : theme.palette.text.disabled}
@@ -183,17 +182,10 @@ const MonitoringPage: React.FC = () => {
                     {/* Main Chart Area */}
                     <Grid item xs={12} lg={8}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            <Card sx={{
-                                borderRadius: '2.5rem',
-                                bgcolor: alpha(theme.palette.common.white, 0.03),
-                                backdropFilter: 'blur(32px)',
-                                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
-                                overflow: 'visible'
-                            }}>
+                            <Card>
                                 <CardContent sx={{ p: 4, position: 'relative' }}>
                                     <Box sx={{ position: 'absolute', top: 0, right: 0, p: 4 }}>
-                                        <BarChart3 className="w-8 h-8 text-white/5" />
+                                        <BarChart3 className="w-8 h-8 opacity-5" style={{ color: theme.palette.text.primary }} />
                                     </Box>
 
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -223,16 +215,17 @@ const MonitoringPage: React.FC = () => {
                                                         <stop offset="95%" stopColor={theme.palette.secondary.main} stopOpacity={0} />
                                                     </linearGradient>
                                                 </defs>
-                                                <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.common.white, 0.05)} vertical={false} />
-                                                <XAxis dataKey="time" stroke={alpha(theme.palette.common.white, 0.3)} fontSize={10} tickLine={false} axisLine={false} />
-                                                <YAxis stroke={alpha(theme.palette.common.white, 0.3)} fontSize={10} tickLine={false} axisLine={false} />
+                                                <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} vertical={false} />
+                                                <XAxis dataKey="time" stroke={theme.palette.text.secondary} fontSize={10} tickLine={false} axisLine={false} />
+                                                <YAxis stroke={theme.palette.text.secondary} fontSize={10} tickLine={false} axisLine={false} />
                                                 <Tooltip
                                                     contentStyle={{
-                                                        backgroundColor: theme.palette.background.default,
-                                                        border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+                                                        backgroundColor: theme.palette.background.paper,
+                                                        border: `1px solid ${theme.palette.divider}`,
                                                         borderRadius: '16px',
-                                                        color: '#fff'
+                                                        color: theme.palette.text.primary
                                                     }}
+                                                    itemStyle={{ color: theme.palette.text.primary }}
                                                 />
                                                 <Area type="monotone" dataKey="throughput" stroke={theme.palette.primary.main} fillOpacity={1} fill="url(#colorThroughput)" strokeWidth={3} />
                                                 <Area type="monotone" dataKey="latency" stroke={theme.palette.secondary.main} fillOpacity={1} fill="url(#colorLatency)" strokeWidth={3} />
@@ -246,10 +239,10 @@ const MonitoringPage: React.FC = () => {
                                 <Grid item xs={12} md={6}>
                                     <Card sx={{
                                         borderRadius: '2rem',
-                                        bgcolor: alpha(theme.palette.common.white, 0.03),
+                                        bgcolor: alpha(theme.palette.background.paper, 0.4),
                                         backdropFilter: 'blur(32px)',
-                                        border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                                        boxShadow: '0 20px 40px -12px rgba(0,0,0,0.5)'
+                                        border: `1px solid ${theme.palette.divider}`,
+                                        boxShadow: theme.palette.mode === 'dark' ? '0 20px 40px -12px rgba(0,0,0,0.5)' : '0 10px 30px -10px rgba(0,0,0,0.05)'
                                     }}>
                                         <CardContent sx={{ p: 4 }}>
                                             <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.2em', textTransform: 'uppercase', mb: 3, display: 'block' }}>Resource Allocation</Typography>
@@ -295,15 +288,7 @@ const MonitoringPage: React.FC = () => {
 
                     {/* Neural Logs */}
                     <Grid item xs={12} lg={4}>
-                        <Card sx={{
-                            height: '100%',
-                            borderRadius: '2.5rem',
-                            bgcolor: alpha(theme.palette.common.white, 0.03),
-                            backdropFilter: 'blur(32px)',
-                            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                            boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)',
-                            display: 'flex', flexDirection: 'column'
-                        }}>
+                        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                             <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -317,9 +302,9 @@ const MonitoringPage: React.FC = () => {
                                     {data?.recentExecutions?.map((exec, idx) => (
                                         <Box key={idx} sx={{
                                             p: 2, borderRadius: '1rem',
-                                            bgcolor: alpha(theme.palette.common.white, 0.05),
-                                            border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
-                                            '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.08) },
+                                            bgcolor: alpha(theme.palette.text.primary, 0.03),
+                                            border: `1px solid ${theme.palette.divider}`,
+                                            '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.05) },
                                             transition: 'all 0.2s'
                                         }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -335,7 +320,7 @@ const MonitoringPage: React.FC = () => {
                                                 />
                                                 <Typography variant="caption" color="text.secondary" fontWeight="medium">{new Date(exec.executedAt).toLocaleTimeString()}</Typography>
                                             </Box>
-                                            <Typography variant="subtitle2" color="text.primary" fontWeight="bold" gutterBottom>{exec.pipelineName}</Typography>
+                                            <Typography variant="subtitle2" color="text.primary" fontWeight="bold" gutterBottom noWrap>{exec.pipelineName}</Typography>
                                             <Typography variant="caption" color="text.secondary" display="block" noWrap>
                                                 {exec.processedItems} units synthesized in {exec.executionTime}ms
                                             </Typography>
@@ -386,36 +371,30 @@ const HealthCard: React.FC<HealthCardProps> = ({ title, value, icon: Icon, color
     const theme = useTheme();
     return (
         <Card sx={{
-            borderRadius: '2rem',
-            bgcolor: alpha(theme.palette.common.white, 0.03),
-            backdropFilter: 'blur(32px)',
-            border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-            boxShadow: '0 20px 40px -12px rgba(0,0,0,0.5)',
             transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
             '&:hover': {
-                bgcolor: alpha(theme.palette.common.white, 0.06),
+                bgcolor: alpha(theme.palette.text.primary, 0.03),
                 transform: 'translateY(-4px)',
-                boxShadow: '0 30px 60px -12px rgba(0,0,0,0.6)'
             }
         }}>
             <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Box sx={{
                         p: 1.5, borderRadius: '1rem',
-                        bgcolor: alpha(theme.palette.common.white, 0.05),
-                        border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`,
+                        bgcolor: alpha(theme.palette.text.primary, 0.03),
+                        border: `1px solid ${theme.palette.divider}`,
                         color: color
                     }}>
                         <Icon size={20} />
                     </Box>
-                    <Box sx={{ width: 24, height: 24, borderRadius: '50%', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Box sx={{ width: 24, height: 24, borderRadius: '50%', border: `1px solid ${theme.palette.divider}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: color, animation: 'pulse 2s infinite' }} />
                     </Box>
                 </Box>
                 <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', mb: 0.5, opacity: 0.7 }}>
                     {title}
                 </Typography>
-                <Typography variant="h4" fontWeight="900" sx={{ opacity: loading ? 0.3 : 1, color: 'white' }}>
+                <Typography variant="h4" fontWeight="900" noWrap sx={{ opacity: loading ? 0.3 : 1, color: 'text.primary' }}>
                     {value}
                 </Typography>
             </CardContent>
@@ -429,7 +408,7 @@ const ResourceMetric: React.FC<{ label: string; value: number; color: string }> 
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="caption" fontWeight="900" color="text.secondary" sx={{ letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</Typography>
-                <Typography variant="caption" fontWeight="bold" sx={{ color: 'white' }}>{Math.round(value)}%</Typography>
+                <Typography variant="caption" fontWeight="bold" sx={{ color: 'text.primary' }}>{Math.round(value)}%</Typography>
             </Box>
             <LinearProgress
                 variant="determinate"

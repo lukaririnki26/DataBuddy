@@ -51,7 +51,7 @@ const LandingPage: React.FC = () => {
               borderRadius: '12px',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              <Typography variant="h6" fontWeight="bold" sx={{ color: 'white' }}>D</Typography>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: theme.palette.primary.contrastText }}>D</Typography>
             </Box>
             <Typography variant="h5" fontWeight="bold" sx={{ color: 'text.primary' }}>DataBuddy</Typography>
           </Box>
@@ -60,11 +60,11 @@ const LandingPage: React.FC = () => {
             onClick={() => navigate('/login')}
             sx={{
               borderRadius: '9999px',
-              borderColor: alpha(theme.palette.common.white, 0.2),
+              borderColor: alpha(theme.palette.text.primary, 0.2),
               color: 'text.primary',
               '&:hover': {
-                borderColor: alpha(theme.palette.common.white, 0.4),
-                bgcolor: alpha(theme.palette.common.white, 0.1)
+                borderColor: alpha(theme.palette.text.primary, 0.4),
+                bgcolor: alpha(theme.palette.text.primary, 0.05)
               }
             }}
           >
@@ -124,11 +124,11 @@ const LandingPage: React.FC = () => {
                 px: 6, py: 2,
                 borderRadius: '9999px',
                 fontSize: '1.2rem',
-                borderColor: alpha(theme.palette.common.white, 0.2),
+                borderColor: alpha(theme.palette.text.primary, 0.2),
                 color: 'text.primary',
                 '&:hover': {
-                  borderColor: alpha(theme.palette.common.white, 0.4),
-                  bgcolor: alpha(theme.palette.common.white, 0.1)
+                  borderColor: alpha(theme.palette.text.primary, 0.4),
+                  bgcolor: alpha(theme.palette.text.primary, 0.05)
                 }
               }}
             >
@@ -162,9 +162,9 @@ const LandingPage: React.FC = () => {
             <Grid item xs={12} md={4} key={feature.title}>
               <Card sx={{
                 height: '100%',
-                bgcolor: alpha(theme.palette.background.paper, 0.03),
+                bgcolor: alpha(theme.palette.background.paper, 0.4),
                 backdropFilter: 'blur(32px)',
-                border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+                border: `1px solid ${theme.palette.divider}`,
                 borderRadius: '2rem',
                 transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                 '&:hover': {
@@ -200,7 +200,7 @@ const LandingPage: React.FC = () => {
           <Box sx={{
             background: `linear-gradient(to right, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
             backdropFilter: 'blur(10px)',
-            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            border: `1px solid ${theme.palette.divider}`,
             borderRadius: '3rem',
             p: { xs: 6, md: 10 },
             maxWidth: 'md',
@@ -232,11 +232,11 @@ const LandingPage: React.FC = () => {
                 sx={{
                   px: 6, py: 2,
                   borderRadius: '9999px',
-                  borderColor: alpha(theme.palette.common.white, 0.2),
+                  borderColor: alpha(theme.palette.text.primary, 0.2),
                   color: 'text.primary',
                   '&:hover': {
-                    borderColor: alpha(theme.palette.common.white, 0.4),
-                    bgcolor: alpha(theme.palette.common.white, 0.1)
+                    borderColor: alpha(theme.palette.text.primary, 0.4),
+                    bgcolor: alpha(theme.palette.text.primary, 0.05)
                   }
                 }}
               >

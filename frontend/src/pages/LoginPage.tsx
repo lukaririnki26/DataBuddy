@@ -51,10 +51,14 @@ const LoginPage: React.FC = () => {
   }, [isAuthenticated, navigate, success]);
 
   useEffect(() => {
-    if (error) {
-      toastError('Authentication Breach', error);
+    // Check for session expiry message from URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('expired') === 'true') {
+      toastError('Session Expired', 'Your secure session has timed out or is no longer valid. Please re-authenticate.');
+      // Clear the param from URL without refreshing
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [error, toastError]);
+  }, [toastError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,8 +142,8 @@ const LoginPage: React.FC = () => {
             ].map((stat) => (
               <Grid item xs={6} key={stat.label}>
                 <Card sx={{
-                  bgcolor: alpha(theme.palette.background.paper, 0.05),
-                  borderColor: 'rgba(255,255,255,0.1)',
+                  bgcolor: alpha(theme.palette.background.paper, 0.4),
+                  borderColor: theme.palette.divider,
                   backdropFilter: 'blur(10px)',
                   transition: 'transform 0.2s',
                   '&:hover': { transform: 'translateY(-4px)' }
@@ -160,12 +164,14 @@ const LoginPage: React.FC = () => {
         {/* Right Side: Auth Form */}
         <Grid item xs={12} lg={6}>
           <Box sx={{
-            bgcolor: alpha('#0f172a', 0.6), // Slightly deeper base
+            bgcolor: alpha(theme.palette.background.paper, 0.8),
             backdropFilter: 'blur(32px)',
-            border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
+            border: `1px solid ${theme.palette.divider}`,
             borderRadius: '3rem',
             p: { xs: 4, md: 8 },
-            boxShadow: '0 40px 100px -20px rgba(0,0,0,0.7)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 40px 100px -20px rgba(0,0,0,0.7)'
+              : '0 20px 60px -10px rgba(0,0,0,0.05)',
             position: 'relative',
             '&::before': {
               content: '""',
@@ -173,7 +179,7 @@ const LoginPage: React.FC = () => {
               inset: 0,
               borderRadius: '3rem',
               padding: '1px',
-              background: `linear-gradient(135deg, ${alpha(theme.palette.common.white, 0.2)}, transparent, ${alpha(theme.palette.primary.main, 0.2)})`,
+              background: `linear-gradient(135deg, ${alpha(theme.palette.text.primary, 0.2)}, transparent, ${alpha(theme.palette.primary.main, 0.2)})`,
               WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
               WebkitMaskComposite: 'xor',
               maskComposite: 'exclude',
@@ -201,7 +207,6 @@ const LoginPage: React.FC = () => {
                         placeholder="John"
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        variant="filled"
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -212,7 +217,6 @@ const LoginPage: React.FC = () => {
                         placeholder="Doe"
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        variant="filled"
                       />
                     </Grid>
                   </>
@@ -227,11 +231,10 @@ const LoginPage: React.FC = () => {
                     placeholder="name@matrix.net"
                     value={formData.email}
                     onChange={handleInputChange}
-                    variant="filled"
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Mail size={20} color={theme.palette.text.secondary} />
+                          <Mail size={18} />
                         </InputAdornment>
                       ),
                     }}
@@ -247,13 +250,38 @@ const LoginPage: React.FC = () => {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleInputChange}
-                    variant="filled"
+                    variant="standard"
                     InputProps={{
+                      disableUnderline: true,
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Lock size={20} color={theme.palette.text.secondary} />
+                          <Lock size={18} color={theme.palette.primary.light} style={{ opacity: 0.9, marginRight: 8 }} />
                         </InputAdornment>
                       ),
+                      sx: {
+                        bgcolor: alpha(theme.palette.text.primary, 0.05),
+                        backdropFilter: 'blur(12px)',
+                        border: `1px solid ${alpha(theme.palette.text.primary, 0.15)}`,
+                        borderRadius: '1.25rem',
+                        px: 2.5,
+                        py: 1.25,
+                        fontSize: '1rem',
+                        color: theme.palette.text.primary,
+                        transition: 'all 0.2s ease-in-out',
+                        '& input::placeholder': {
+                          color: alpha(theme.palette.text.primary, 0.5),
+                          opacity: 1,
+                        },
+                        '&:hover': {
+                          bgcolor: alpha(theme.palette.text.primary, 0.08),
+                          borderColor: alpha(theme.palette.primary.main, 0.4),
+                        },
+                        '&.Mui-focused': {
+                          bgcolor: alpha(theme.palette.text.primary, 0.1),
+                          borderColor: theme.palette.primary.main,
+                          boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.25)}`,
+                        },
+                      }
                     }}
                   />
                 </Grid>
@@ -267,7 +295,34 @@ const LoginPage: React.FC = () => {
                       name="role"
                       value={formData.role}
                       onChange={handleInputChange}
-                      variant="filled"
+                      variant="standard"
+                      InputProps={{
+                        disableUnderline: true,
+                        sx: {
+                          bgcolor: alpha(theme.palette.text.primary, 0.05),
+                          backdropFilter: 'blur(12px)',
+                          border: `1px solid ${alpha(theme.palette.text.primary, 0.15)}`,
+                          borderRadius: '1.25rem',
+                          px: 2.5,
+                          py: 1.25,
+                          fontSize: '1rem',
+                          color: theme.palette.text.primary,
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            bgcolor: alpha(theme.palette.text.primary, 0.08),
+                            borderColor: alpha(theme.palette.primary.main, 0.4),
+                          },
+                          '&.Mui-focused': {
+                            bgcolor: alpha(theme.palette.text.primary, 0.1),
+                            borderColor: theme.palette.primary.main,
+                            boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.25)}`,
+                          },
+                          '& .MuiSelect-select': {
+                            py: 0,
+                            color: theme.palette.text.primary,
+                          }
+                        }
+                      }}
                     >
                       <MenuItem value="viewer">Viewer</MenuItem>
                       <MenuItem value="editor">Editor</MenuItem>
@@ -304,7 +359,7 @@ const LoginPage: React.FC = () => {
                   typography: 'caption',
                   fontWeight: 900,
                   letterSpacing: '0.1em',
-                  '&:hover': { color: 'white', letterSpacing: '0.2em' }
+                  '&:hover': { color: theme.palette.text.primary, letterSpacing: '0.2em' }
                 }}
               >
                 {isLogin ? 'Register New Access Node' : 'Return to Verification Protocol'}

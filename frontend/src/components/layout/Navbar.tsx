@@ -59,7 +59,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
 
   const handleLogout = () => {
     dispatch(logoutUser());
-    navigate('/login');
+    navigate('/');
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -106,8 +106,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
             sx={{
               position: 'relative',
               borderRadius: '12px',
-              bgcolor: alpha(theme.palette.common.white, 0.05),
-              '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.1) },
+              bgcolor: alpha(theme.palette.text.primary, 0.05),
+              '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.1) },
               mr: 2,
               ml: 0,
               width: '100%',
@@ -164,7 +164,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
               ml: 1,
               borderRadius: '12px',
               p: 1,
-              '&:hover': { bgcolor: alpha(theme.palette.common.white, 0.05) }
+              '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.05) }
             }}
           >
             <Avatar
@@ -195,10 +195,12 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
               mt: 1.5,
               borderRadius: '16px',
               minWidth: 260,
-              bgcolor: alpha('#0f172a', 0.95), // Deeper dark for better contrast
+              bgcolor: 'background.paper',
               backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                : '0 20px 40px -10px rgba(0, 0, 0, 0.1)'
             }
           }}
         >
@@ -237,7 +239,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
               </Typography>
             </Box>
           </Box>
-          <Divider sx={{ borderColor: alpha(theme.palette.common.white, 0.1) }} />
+          <Divider sx={{ borderColor: theme.palette.divider }} />
           <Box sx={{ p: 1.5 }}>
             <MenuItem
               onClick={() => { navigate('/profile'); setUserMenuAnchorEl(null); }}
@@ -303,16 +305,18 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
               width: { xs: 'calc(100vw - 32px)', sm: 400 },
               maxHeight: 520,
               borderRadius: '1.25rem',
-              bgcolor: alpha('#0f172a', 0.95), // Deeper dark for premium feel
+              bgcolor: 'background.paper',
               backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(theme.palette.common.white, 0.1)}`,
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                : '0 20px 40px -10px rgba(0, 0, 0, 0.1)',
               overflow: 'hidden',
               '& .MuiList-root': { p: 0 }
             }
           }}
         >
-          <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${alpha(theme.palette.common.white, 0.05)}` }}>
+          <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${theme.palette.divider}` }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <Typography variant="h6" fontWeight="800" sx={{ letterSpacing: '-0.01em' }}>Intelligence Feed</Typography>
               {unread > 0 && (
@@ -373,7 +377,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
                       borderLeft: !n.isRead ? `4px solid ${color}` : '4px solid transparent',
                       bgcolor: !n.isRead ? alpha(color, 0.03) : 'transparent',
                       '&:hover': {
-                        bgcolor: alpha(theme.palette.common.white, 0.03)
+                        bgcolor: alpha(theme.palette.text.primary, 0.03)
                       },
                       transition: 'all 0.2s'
                     }}
@@ -406,7 +410,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, drawerWidth, isMobile }) =
               })
             )}
           </Box>
-          <Box sx={{ p: 1.5, borderTop: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, textAlign: 'center' }}>
+          <Box sx={{ p: 1.5, borderTop: `1px solid ${theme.palette.divider}`, textAlign: 'center' }}>
             <Button fullWidth size="small" variant="text" sx={{ borderRadius: '8px', py: 1, color: 'text.secondary', fontWeight: 'bold' }}>
               View All Communications
             </Button>
