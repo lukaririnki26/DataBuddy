@@ -14,7 +14,7 @@ import { Repository } from "typeorm";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import * as XLSX from "xlsx";
-import csv from "csv-parser";
+import csv = require("csv-parser");
 import { createReadStream, promises as fs } from "fs";
 import { DataImport, ImportStatus } from "../../entities/data-import.entity";
 import { DataExport, ExportStatus } from "../../entities/data-export.entity";
@@ -205,6 +205,7 @@ export class DataService {
   }> {
     return new Promise((resolve, reject) => {
       const results: any[] = [];
+      let detectedHeaders: string[] = [];
       const separator = options.separator || ",";
 
       const stream = require("stream");
@@ -218,13 +219,16 @@ export class DataService {
             mapHeaders: ({ header }) => header.trim(),
           }),
         )
+        .on("headers", (headers) => {
+          detectedHeaders = headers;
+        })
         .on("data", (data) => results.push(data))
         .on("end", () => {
-          if (results.length === 0) {
+          if (results.length === 0 && detectedHeaders.length === 0) {
             throw new BadRequestException("File appears to be empty");
           }
 
-          const columns = Object.keys(results[0]);
+          const columns = detectedHeaders.length > 0 ? detectedHeaders : (results.length > 0 ? Object.keys(results[0]) : []);
           const preview = results.slice(0, 5); // Preview 5 baris pertama
 
           resolve({

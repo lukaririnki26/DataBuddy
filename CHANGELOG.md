@@ -5,6 +5,19 @@ All notable changes to DataBuddy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-01-03
+
+### Added
+- **Pipeline Execution History**: Comprehensive tracking of pipeline runs, including input/output snapshots, execution duration, and status logs.
+- **History UI**: Dedicated modal interface in Pipeline Builder to inspect past executions and compare "Before vs After" data.
+- **Production Data Seeding**: New `reset-and-seed` capability to wipe test data and initialize the environment with production-ready blueprints (Enterprise ETL, Financial Aggregation).
+- **Backend Test Suite**: centralized ad-hoc verification scripts in `backend/test`.
+
+### Fixed
+- **Pipeline Runner**: Implemented missing `READ_API` and `AGGREGATE_DATA` step processors to support advanced financial pipelines.
+- **CSV Parsing**: Resolved `csv-parser` import issues and improved handling for header-only CSV files (preventing "File appears to be empty" errors).
+- **System Stability**: Fixed `reset-and-seed` script Enum compatibility and `NotificationsService` usage in debug scripts.
+
 ## [1.7.1] - 2026-01-03
  
 ### Fixed

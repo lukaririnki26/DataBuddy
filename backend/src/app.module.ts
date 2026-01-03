@@ -18,6 +18,7 @@ import { PipelinesModule } from "./modules/pipelines/pipelines.module";
 import { DataModule } from "./modules/data/data.module";
 import { MonitoringModule } from "./modules/monitoring/monitoring.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { UsersModule } from "./modules/users/users.module";
 
 // Import entities
 import { User } from "./entities/user.entity";
@@ -26,6 +27,7 @@ import { PipelineStep } from "./entities/pipeline-step.entity";
 import { DataImport } from "./entities/data-import.entity";
 import { DataExport } from "./entities/data-export.entity";
 import { Notification } from "./entities/notification.entity";
+import { PipelineExecution } from "./entities/pipeline-execution.entity";
 
 // Import configuration
 import databaseConfig from "./config/database.config";
@@ -58,6 +60,7 @@ import redisConfig from "./config/redis.config";
           DataImport,
           DataExport,
           Notification,
+          PipelineExecution,
         ],
         synchronize: configService.get("NODE_ENV") !== "production", // Auto-sync in dev only
         logging: configService.get("NODE_ENV") === "development",
@@ -99,7 +102,9 @@ import redisConfig from "./config/redis.config";
     PipelinesModule,
     DataModule,
     MonitoringModule,
+    MonitoringModule,
     NotificationsModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],

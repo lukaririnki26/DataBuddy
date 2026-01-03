@@ -199,6 +199,7 @@ export class NotificationsService {
     title: string,
     message: string,
     priority: NotificationPriority = NotificationPriority.HIGH,
+    userId: string,
     metadata?: any,
   ): Promise<void> {
     await this.createNotification({
@@ -206,6 +207,7 @@ export class NotificationsService {
       title,
       message,
       priority,
+      userId,
       metadata,
     });
   }

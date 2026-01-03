@@ -28,6 +28,7 @@ import { AuthService } from "./auth.service";
 import { LoginDto } from "../../dto/auth/login.dto";
 import { RegisterDto } from "../../dto/auth/register.dto";
 import { ChangePasswordDto } from "../../dto/auth/change-password.dto";
+import { UpdateProfileDto } from "../../dto/auth/update-profile.dto";
 import { RefreshTokenDto } from "../../dto/auth/refresh-token.dto";
 import { JwtAuthGuard } from "../../guards/jwt-auth.guard";
 import { CurrentUser } from "../../decorators/current-user.decorator";
@@ -36,7 +37,7 @@ import { User } from "../../entities/user.entity";
 @ApiTags("auth")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post("register")
   @HttpCode(HttpStatus.CREATED)
@@ -160,6 +161,21 @@ export class AuthController {
     // Remove sensitive information
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
+  }
+
+  @Put("profile")
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth("JWT-auth")
+  @ApiOperation({ summary: "Update user profile and preferences" })
+  @ApiResponse({ status: 200, description: "Profile updated successfully" })
+  @ApiResponse({ status: 400, description: "Invalid request data" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async updateProfile(
+    @CurrentUser("id") userId: string,
+    @Body(ValidationPipe) updateProfileDto: UpdateProfileDto,
+  ) {
+    return await this.authService.updateProfile(userId, updateProfileDto);
   }
 
   @Put("password")

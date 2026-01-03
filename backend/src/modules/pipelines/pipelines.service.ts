@@ -97,6 +97,8 @@ export class PipelinesService {
     await this.notificationsService.notifySystemAlert(
       "New Pipeline Node Created",
       `A new pipeline "${saved.name}" has been added to the system architecture.`,
+      undefined, // Priority
+      saved.createdById,
     );
 
     return saved;
@@ -110,6 +112,8 @@ export class PipelinesService {
     await this.notificationsService.notifySystemAlert(
       "Pipeline Protocol Updated",
       `The configuration for pipeline "${saved.name}" has been modified.`,
+      undefined,
+      saved.createdById,
     );
 
     return saved;
@@ -123,6 +127,8 @@ export class PipelinesService {
     await this.notificationsService.notifySystemAlert(
       "Pipeline Node Decommissioned",
       `The pipeline "${name}" has been removed from the system core.`,
+      undefined,
+      pipeline.createdById,
     );
   }
 

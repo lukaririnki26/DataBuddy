@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { usePipelines } from '../hooks/usePipelines';
 import { pipelinesService } from '../services/pipelines.service';
+import PipelineHistory from '../components/PipelineHistory';
 import {
   Plus,
   Search,
@@ -22,6 +23,7 @@ import {
   Activity,
   Box as BoxIcon,
   Cpu,
+  History,
 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import {
@@ -54,7 +56,7 @@ const StatusBadge: React.FC<{ isActive: boolean }> = ({ isActive }) => {
         backgroundColor: isActive ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.text.secondary, 0.1),
         color: isActive ? theme.palette.success.light : theme.palette.text.secondary,
         borderColor: isActive ? alpha(theme.palette.success.main, 0.2) : alpha(theme.palette.text.secondary, 0.2),
-        boxShadow: isActive ? `0 0 15px ${alpha(theme.palette.success.main, 0.1)}` : 'none'
+        boxShadow: isActive ? `0 0 15px ${alpha(theme.palette.success.main, 0.1)} ` : 'none'
       }}
     >
       <div className={`w-1.5 h-1.5 rounded-full mr-2 ${isActive ? 'animate-pulse' : ''}`}
@@ -97,8 +99,21 @@ const PipelinesPage: React.FC = () => {
     }
   };
 
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
+
+  const handleViewHistory = (id: string) => {
+    setSelectedPipelineId(id);
+    setHistoryOpen(true);
+  };
+
+  const handleCloseHistory = () => {
+    setHistoryOpen(false);
+    setSelectedPipelineId(null);
+  };
+
   const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to delete blueprint "${name}"?`)) {
+    if (window.confirm(`Are you sure you want to delete blueprint "${name}" ? `)) {
       try {
         await pipelinesService.deletePipeline(id);
         success('Blueprint Deleted', `"${name}" has been permanently removed`);
@@ -150,7 +165,7 @@ const PipelinesPage: React.FC = () => {
           </Box>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <IconButton onClick={() => refetch()} sx={{ bgcolor: alpha(theme.palette.text.primary, 0.05), border: `1px solid ${theme.palette.divider}` }}>
+            <IconButton onClick={() => refetch()} sx={{ bgcolor: alpha(theme.palette.text.primary, 0.05), border: `1px solid ${theme.palette.divider} ` }}>
               <RefreshCw size={20} />
             </IconButton>
             <Button
@@ -186,7 +201,7 @@ const PipelinesPage: React.FC = () => {
             borderRadius: '1.25rem',
             bgcolor: alpha(theme.palette.text.primary, 0.03),
             backdropFilter: 'blur(32px)',
-            border: `1px solid ${theme.palette.divider}`,
+            border: `1px solid ${theme.palette.divider} `,
             overflow: 'hidden'
           }}>
             {['all', 'active', 'draft'].map((type) => (
@@ -202,7 +217,7 @@ const PipelinesPage: React.FC = () => {
                   letterSpacing: '0.1em',
                   color: filterType === type ? 'white' : 'text.secondary',
                   bgcolor: filterType === type ? alpha(theme.palette.primary.main, 0.2) : 'transparent',
-                  border: filterType === type ? `1px solid ${alpha(theme.palette.primary.main, 0.3)}` : '1px solid transparent',
+                  border: filterType === type ? `1px solid ${alpha(theme.palette.primary.main, 0.3)} ` : '1px solid transparent',
                   fontWeight: '900',
                   '&:hover': { bgcolor: filterType === type ? alpha(theme.palette.primary.main, 0.3) : alpha(theme.palette.text.primary, 0.05) }
                 }}
@@ -232,7 +247,7 @@ const PipelinesPage: React.FC = () => {
                           p: 2,
                           borderRadius: '16px',
                           bgcolor: alpha(theme.palette.primary.main, 0.1),
-                          border: `1px solid ${theme.palette.divider}`,
+                          border: `1px solid ${theme.palette.divider} `,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           flexShrink: 0
                         }}>
@@ -263,61 +278,71 @@ const PipelinesPage: React.FC = () => {
 
                     <Grid container spacing={1.5} sx={{ mt: 'auto' }}>
                       <Grid item xs={6}>
-                        <Box sx={{ p: 1.5, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, minWidth: 0 }}>
+                        <Box sx={{ p: 1.5, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)} `, minWidth: 0 }}>
                           <Typography variant="caption" display="block" color="text.secondary" fontWeight="900" noWrap sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', mb: 0.5 }}>Architecture</Typography>
                           <Typography variant="body2" fontWeight="bold" noWrap>Modular {p.steps?.length || 0} Nodes</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={6}>
-                        <Box sx={{ p: 1.5, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)}`, minWidth: 0 }}>
+                        <Box sx={{ p: 1.5, bgcolor: alpha('#0f172a', 0.5), borderRadius: '16px', border: `1px solid ${alpha(theme.palette.common.white, 0.05)} `, minWidth: 0 }}>
                           <Typography variant="caption" display="block" color="text.secondary" fontWeight="900" noWrap sx={{ letterSpacing: '0.1em', textTransform: 'uppercase', mb: 0.5 }}>Last Sync</Typography>
                           <Typography variant="body2" fontWeight="bold" noWrap>{new Date(p.updatedAt).toLocaleDateString()}</Typography>
                         </Box>
                       </Grid>
                     </Grid>
 
-                    <Box sx={{ mt: 3, pt: 3, borderTop: `1px solid ${theme.palette.divider}`, display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                      <Button
-                        onClick={() => handleExecute(p.id, p.name)}
-                        variant="contained"
-                        size="small"
-                        startIcon={<Play size={16} />}
-                        sx={{
-                          flex: 1,
-                          bgcolor: alpha(theme.palette.success.main, 0.1),
-                          color: theme.palette.success.light,
-                          border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
-                          '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.2) }
-                        }}
-                      >
-                        Run
-                      </Button>
-                      <Button
-                        component={Link}
-                        to={`/pipelines/builder/${p.id}`}
-                        variant="outlined"
-                        size="small"
-                        startIcon={<Settings size={16} />}
-                        sx={{
-                          flex: 1,
-                          borderColor: alpha(theme.palette.text.primary, 0.1),
-                          color: 'text.secondary',
-                          '&:hover': { borderColor: theme.palette.primary.main, color: 'text.primary' }
-                        }}
-                      >
-                        Config
-                      </Button>
-                      <IconButton
-                        onClick={() => handleDelete(p.id, p.name)}
-                        size="small"
-                        sx={{
-                          bgcolor: alpha(theme.palette.error.main, 0.05),
-                          color: theme.palette.error.light,
-                          '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.1), color: theme.palette.error.main }
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </IconButton>
+                    <Box sx={{ mt: 3, pt: 3, borderTop: `1px solid ${theme.palette.divider} `, display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleViewHistory(p.id)}
+                          sx={{
+                            color: theme.palette.info.main,
+                            bgcolor: alpha(theme.palette.info.main, 0.1),
+                            '&:hover': { bgcolor: alpha(theme.palette.info.main, 0.2) }
+                          }}
+                          title="View History"
+                        >
+                          <History size={16} />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleExecute(p.id, p.name)}
+                          sx={{
+                            color: theme.palette.success.main,
+                            bgcolor: alpha(theme.palette.success.main, 0.1),
+                            '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.2) }
+                          }}
+                          title="Execute Pipeline"
+                        >
+                          <Play size={16} />
+                        </IconButton>
+                        <IconButton
+                          component={Link}
+                          to={`/pipelines/builder/${p.id}`}
+                          size="small"
+                          sx={{
+                            color: theme.palette.primary.main,
+                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                            '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
+                          }}
+                          title="Edit Pipeline"
+                        >
+                          <Edit size={16} />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDelete(p.id, p.name)}
+                          sx={{
+                            color: theme.palette.error.main,
+                            bgcolor: alpha(theme.palette.error.main, 0.1),
+                            '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.2) }
+                          }}
+                          title="Delete Pipeline"
+                        >
+                          <Trash2 size={16} />
+                        </IconButton>
+                      </Box>
                     </Box>
                   </CardContent>
                 </Card>
@@ -329,7 +354,7 @@ const PipelinesPage: React.FC = () => {
                 textAlign: 'center',
                 py: 10,
                 borderRadius: '3rem',
-                border: `2px dashed ${theme.palette.divider}`,
+                border: `2px dashed ${theme.palette.divider} `,
                 bgcolor: alpha(theme.palette.text.primary, 0.02)
               }}>
                 <Box sx={{ position: 'relative', display: 'inline-flex', mb: 4 }}>

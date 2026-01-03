@@ -12,6 +12,8 @@ import authReducer from './slices/authSlice';
 import pipelineReducer from './slices/pipelineSlice';
 import dataReducer from './slices/dataSlice';
 import uiReducer from './slices/uiSlice';
+import usersReducer from './slices/usersSlice';
+import historyReducer from './slices/historySlice';
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +21,8 @@ export const store = configureStore({
     pipeline: pipelineReducer,
     data: dataReducer,
     ui: uiReducer,
+    users: usersReducer,
+    history: historyReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

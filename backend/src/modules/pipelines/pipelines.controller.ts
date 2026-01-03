@@ -128,6 +128,7 @@ export class PipelinesController {
     async execute(
         @Param("id") id: string,
         @Body() executionData: { inputData?: any[]; parameters?: Record<string, any> },
+        @Request() req: any,
     ) {
         // Verify pipeline exists
         await this.pipelinesService.findOne(id);
@@ -135,6 +136,7 @@ export class PipelinesController {
         return this.pipelineRunnerService.execute(
             id,
             executionData.inputData,
+            req.user.id,
         );
     }
 

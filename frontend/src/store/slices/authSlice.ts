@@ -172,9 +172,35 @@ export const changePassword = createAsyncThunk(
       await api.put('/auth/password', passwordData);
       return { success: true };
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Password change failed'
-      );
+      let errorMessage = 'Password change failed';
+      if (error.response?.data?.message) {
+        errorMessage = Array.isArray(error.response.data.message)
+          ? error.response.data.message.join(', ')
+          : error.response.data.message;
+      }
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const updateUserProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (profileData: {
+    firstName?: string;
+    lastName?: string;
+    preferences?: Record<string, any>;
+  }, { rejectWithValue }) => {
+    try {
+      const response = await api.put('/auth/profile', profileData);
+      return response;
+    } catch (error: any) {
+      let errorMessage = 'Failed to update profile';
+      if (error.response?.data?.message) {
+        errorMessage = Array.isArray(error.response.data.message)
+          ? error.response.data.message.join(', ')
+          : error.response.data.message;
+      }
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -295,6 +321,15 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(changePassword.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+
+      // Update Profile
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.user = action.payload; // Update user with response
+        state.error = null;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },

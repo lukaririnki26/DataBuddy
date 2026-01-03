@@ -1,6 +1,8 @@
 # DataBuddy - Data Management Platform
 
-DataBuddy is a state-of-the-art data management and pipeline processing platform designed with a futuristic "System Command Center" aesthetic. It provides a highly interactive, glassmorphic interface for managing complex data workflows with ease.
+DataBuddy is a modern, reactive data processing platform designed for building, executing, and monitoring complex data pipelines.
+**Latest Version: 1.8.0 (Pipeline History & Production Ready)**
+It provides a highly interactive, glassmorphic interface for managing complex data workflows with ease.
 
 ## ✨ Key Features
 

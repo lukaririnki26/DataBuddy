@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { updateUser, changePassword } from '../store/slices/authSlice';
+import { updateUserProfile, changePassword } from '../store/slices/authSlice';
 import { useToast } from '../context/ToastContext';
 import {
     Person as PersonIcon,
@@ -40,13 +40,14 @@ const ProfilePage: React.FC = () => {
         confirmPassword: '',
     });
 
-    const handleUpdateProfile = (e: React.FormEvent) => {
+    const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            dispatch(updateUser({ firstName, lastName }));
-            success('Profile Updated', 'Profile updated successfully (Local Sync Only)');
+            await dispatch(updateUserProfile({ firstName, lastName })).unwrap();
+            success('Profile Updated', 'Profile updated successfully');
         } catch (err: any) {
-            error('Update Failed', err.message || 'Failed to update profile');
+            const msg = typeof err === 'string' ? err : (err.message || 'Failed to update profile');
+            error('Update Failed', msg);
         }
     };
 
@@ -62,7 +63,8 @@ const ProfilePage: React.FC = () => {
             success('Password Changed', 'Password changed successfully');
             setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (err: any) {
-            error('Change Failed', err.message || 'Failed to change password');
+            const msg = typeof err === 'string' ? err : (err.message || 'Failed to change password');
+            error('Change Failed', msg);
         }
     };
 

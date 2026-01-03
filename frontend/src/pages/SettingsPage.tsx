@@ -26,12 +26,15 @@ import {
     alpha,
 } from '@mui/material';
 
+import { updateUserProfile } from '../store/slices/authSlice';
+
 const SettingsPage: React.FC = () => {
-    const { success } = useToast();
+    const { success, error } = useToast();
     const { t } = useTranslation();
     const theme = useTheme();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<any>();
     const ui = useSelector((state: RootState) => state.ui);
+    const { user } = useSelector((state: RootState) => state.auth);
 
     const [settings, setSettings] = useState({
         emailNotifications: true,
@@ -43,14 +46,17 @@ const SettingsPage: React.FC = () => {
         dateFormat: 'YYYY-MM-DD',
     });
 
-    // Update local state when Redux state changes (e.g. from storage load)
+    // Load initial settings from User Profile and UI State
     useEffect(() => {
-        setSettings(prev => ({
-            ...prev,
-            theme: ui.theme,
-            language: ui.language
-        }));
-    }, [ui.theme, ui.language]);
+        if (user?.preferences) {
+            setSettings(prev => ({
+                ...prev,
+                ...user.preferences,
+                theme: ui.theme,
+                language: ui.language
+            }));
+        }
+    }, [user, ui.theme, ui.language]);
 
     const handleSettingChange = (setting: string, value: any) => {
         setSettings(prev => ({ ...prev, [setting]: value }));
@@ -64,11 +70,27 @@ const SettingsPage: React.FC = () => {
         }
     };
 
-    const handleSaveSettings = () => {
-        // Dispatch final states to ensure persistence
-        dispatch(setTheme(settings.theme));
-        dispatch(setLanguage(settings.language as any));
-        success(t.settings.successTitle, t.settings.successMsg);
+    const handleSaveSettings = async () => {
+        try {
+            // Dispatch UI changes
+            dispatch(setTheme(settings.theme));
+            dispatch(setLanguage(settings.language as any));
+
+            // Save to Backend Profile
+            await dispatch(updateUserProfile({
+                preferences: {
+                    emailNotifications: settings.emailNotifications,
+                    pushNotifications: settings.pushNotifications,
+                    pipelineAlerts: settings.pipelineAlerts,
+                    systemAnnouncements: settings.systemAnnouncements,
+                    dateFormat: settings.dateFormat
+                }
+            })).unwrap();
+
+            success(t.settings.successTitle, t.settings.successMsg);
+        } catch (err: any) {
+            error('Save Failed', err.message || 'Could not save settings');
+        }
     };
 
     return (

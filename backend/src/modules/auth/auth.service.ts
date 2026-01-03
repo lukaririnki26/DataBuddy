@@ -147,6 +147,7 @@ export class AuthService {
     changePasswordDto: ChangePasswordDto,
   ): Promise<void> {
     const { currentPassword, newPassword, confirmPassword } = changePasswordDto;
+    console.log(`[AuthService] Password change requested for user: ${userId}`);
 
     // Find user
     const user = await this.userRepository.findOne({
@@ -154,23 +155,31 @@ export class AuthService {
     });
 
     if (!user) {
+      console.log(`[AuthService] User not found: ${userId}`);
       throw new UnauthorizedException("User not found");
     }
 
     // Validate current password
+    console.log(`[AuthService] Validating current password for user: ${userId}`);
+    // Note: Logging passwords is unsafe in production, but we are debugging flow here.
+    // We will just log the result of validation.
     const isCurrentPasswordValid = await user.validatePassword(currentPassword);
+
     if (!isCurrentPasswordValid) {
+      console.log(`[AuthService] Current password invalid for user: ${userId}`);
       throw new BadRequestException("Current password is incorrect");
     }
 
     // Check if new passwords match
     if (newPassword !== confirmPassword) {
+      console.log(`[AuthService] New passwords do not match`);
       throw new BadRequestException("New passwords do not match");
     }
 
     // Check if new password is different from current
     const isSamePassword = await user.validatePassword(newPassword);
     if (isSamePassword) {
+      console.log(`[AuthService] New password is same as current`);
       throw new BadRequestException(
         "New password must be different from current password",
       );
@@ -179,6 +188,7 @@ export class AuthService {
     // Update password (will be hashed by entity hook)
     user.password = newPassword;
     await this.userRepository.save(user);
+    console.log(`[AuthService] Password changed successfully for user: ${userId}`);
   }
 
   /**
@@ -316,6 +326,35 @@ export class AuthService {
     } catch (error) {
       return null;
     }
+  }
+
+  /**
+   * Updates user profile
+   */
+  async updateProfile(
+    userId: string,
+    updateProfileDto: any, // Using any here to avoid cyclic dependency if DTO is not imported yet, or I should import it.
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    if (updateProfileDto.firstName) user.firstName = updateProfileDto.firstName;
+    if (updateProfileDto.lastName) user.lastName = updateProfileDto.lastName;
+    if (updateProfileDto.preferences) {
+      user.preferences = {
+        ...user.preferences,
+        ...updateProfileDto.preferences,
+      };
+    }
+
+    const savedUser = await this.userRepository.save(user);
+    delete savedUser.password;
+    return savedUser;
   }
 
   /**

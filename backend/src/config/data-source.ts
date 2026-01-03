@@ -11,6 +11,7 @@ import { Pipeline } from "../entities/pipeline.entity";
 import { PipelineStep } from "../entities/pipeline-step.entity";
 import { DataImport } from "../entities/data-import.entity";
 import { DataExport } from "../entities/data-export.entity";
+import { PipelineExecution } from "../entities/pipeline-execution.entity";
 import { Notification } from "../entities/notification.entity";
 
 export const AppDataSource = new DataSource({
@@ -24,7 +25,7 @@ export const AppDataSource = new DataSource({
   ssl: process.env.DB_SSL === "true",
   synchronize: false, // Never use synchronize in production
   logging: process.env.NODE_ENV === "development",
-  entities: [User, Pipeline, PipelineStep, DataImport, DataExport, Notification],
+  entities: [User, Pipeline, PipelineStep, DataImport, DataExport, PipelineExecution, Notification],
   migrations: ["src/migrations/*.ts"],
   subscribers: [],
 });
